@@ -8,7 +8,7 @@ import { frescura } from '@/datos/frescura'
 import { pesoVivoPorLote, ultimoPesoPorAnimal } from '@/datos/pesajes'
 import { eventosVencidos } from '@/datos/sanidad'
 import { Cifra } from '@/ui/Cifra'
-import { formatearGdp, formatearKg, SIN_DATO } from '@/ui/formato'
+import { formatearGdp, formatearKg } from '@/ui/formato'
 
 export default async function Hoy() {
   const hoy = hoyBogota()

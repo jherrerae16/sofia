@@ -52,4 +52,36 @@ describe('frescura', () => {
     expect(viejo.diasSinDatos).toBe(50)
     expect(viejo.alarmante).toBe(true)
   })
+
+  it('marca el límite de los 30 días: hasta ahí no alarma, un día más sí', async () => {
+    const loteId = await crearLote({ nombre: 'Ceba 01', tipo: 'ceba', fechaApertura: '2026-09-01' })
+    await crearAnimales({
+      loteId,
+      chapetas: ['001'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: null,
+      pesos: { '001': 150 },
+    })
+    const animalId = (await listarAnimalesDeLote(loteId))[0].id
+    await guardarPesaje({
+      fecha: '2026-10-01',
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      notas: null,
+      registradoPorId: 'u1',
+      mediciones: [{ animalId, pesoKg: 174 }],
+    })
+
+    const enElLimite = await frescura('2026-10-31')
+    expect(enElLimite.diasSinDatos).toBe(30)
+    expect(enElLimite.alarmante).toBe(false)
+
+    const pasadoElLimite = await frescura('2026-11-01')
+    expect(pasadoElLimite.diasSinDatos).toBe(31)
+    expect(pasadoElLimite.alarmante).toBe(true)
+  })
 })
