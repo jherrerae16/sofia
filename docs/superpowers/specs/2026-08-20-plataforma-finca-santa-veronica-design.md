@@ -1,13 +1,27 @@
-# Plataforma Finca Santa Verónica — Diseño v1
+# SOFÍA — Diseño v1
+
+*Plataforma de control integral de la finca Santa Verónica*
 
 **Fecha:** 20 de agosto de 2026
 **Estado:** diseño aprobado, pendiente plan de implementación
 
 ---
 
+## 0. El nombre
+
+**SOFÍA** = **SOF**anor + **IA**.
+
+Sofanor Echeverría fue el dueño anterior de Santa Verónica y el abuelo del propietario actual. Su nombre ya contenía la sigla adentro, así que la plataforma lleva el suyo sin necesidad de inventar nada.
+
+En la aplicación, el nombre completo se muestra una sola vez, al pie de la pantalla Hoy: *"SOFÍA — por Sofanor Echeverría."* Ni frase de bienvenida, ni pantalla de créditos. Un homenaje que se dice una vez se recuerda; uno que se repite en cada pantalla se vuelve decorado.
+
+El asistente de inteligencia artificial, cuando llegue en una versión posterior, se llamará **Vero** — de Santa Verónica, y porque *vero* significa verdadero. Así el abuelo nombra la plataforma y la finca nombra al asistente.
+
+---
+
 ## 1. Qué es
 
-Una plataforma web privada para administrar la finca ganadera de ceba Santa Verónica (Sabanalarga, Atlántico). Reemplaza el archivo `Proyeccion Sta Veronica.xlsx` y la libreta de campo, y convierte los dos en un sistema vivo que responde una pregunta central:
+SOFÍA es una plataforma web privada para administrar la finca ganadera de ceba Santa Verónica (Sabanalarga, Atlántico). Reemplaza el archivo `Proyeccion Sta Veronica.xlsx` y la libreta de campo, y convierte los dos en un sistema vivo que responde una pregunta central:
 
 > ¿La finca se está pagando sola, y qué tan lejos está de pagar además los $85.000.000 anuales de predial familiar?
 
