@@ -270,7 +270,7 @@ describe('desempeno', () => {
     // Cálculo a mano:
     // La ventana de dias_30 con hoy=2026-11-15 cubre desde 2026-10-16 (diasEntre <= 30).
     //   diasEntre('2026-09-01','2026-11-15') = 75 -> fuera.
-    //   diasEntre('2026-09-20','2026-11-15') = 55 -> fuera.
+    //   diasEntre('2026-09-20','2026-11-15') = 56 -> fuera.
     // Ningún pesaje cae dentro de la ventana (dentro.length = 0), así que `referencia`
     // retrocede a la última anterior: el pesaje del 2026-09-20 (175.3 kg). Como ese
     // pesaje es también el último de toda la historia del animal, `referencia` y

@@ -57,6 +57,15 @@ export type FilaDesempeno = {
  * Elige contra qué medición se compara el último peso, según el periodo pedido.
  * Para las ventanas de días se usa el pesaje más viejo dentro de la ventana:
  * comparar contra uno anterior a la ventana mediría un tramo que no se pidió.
+ *
+ * Cuando hay menos de dos pesajes dentro de la ventana, no hay dos puntos
+ * propios de la ventana con que medir un tramo, y la función retrocede
+ * deliberadamente al último pesaje anterior a ella (o a la entrada, si
+ * tampoco hay ninguno). Con un solo pesaje dentro de la ventana, ese
+ * respaldo sí mide un tramo real de días. Con ninguno, el respaldo puede
+ * coincidir con `ultimo` (la misma medición contra sí misma): `gdpEntre` lo
+ * detecta por los cero días transcurridos y devuelve null en vez de un gdp
+ * inventado, y el animal queda 'sin_dato' en vez de acusado de crítico.
  */
 function referencia(
   historial: Medicion[],

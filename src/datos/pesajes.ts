@@ -91,7 +91,9 @@ export async function revisarTanda(
       // grave. El `gdp` que se muestra sigue siendo el del tramo hacia
       // atrás: es la cifra que el usuario espera ver en su fila.
       const posterior = historial.find((m) => m.fecha > fecha) ?? null
-      const veredictoPosterior = posterior ? validarMedicion(nueva, null, posterior, hoy) : null
+      const veredictoPosterior = posterior
+        ? validarMedicion(nueva, null, posterior, hoy, 'hacia_adelante')
+        : null
       const definitivo = veredictoPosterior
         ? veredictoMasGrave(veredicto, veredictoPosterior)
         : veredicto

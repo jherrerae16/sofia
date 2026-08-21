@@ -17,7 +17,7 @@ describe('Santa Verónica — números conocidos', () => {
     expect(gdpAcumulada(entrada, salida)).toBe(497)
   })
 
-  it('clasifica como bajo rendimiento el desempeño real del lote 2025', () => {
+  it('clasifica como crítico el desempeño real del lote 2025', () => {
     const entrada = { fecha: '2025-01-01', pesoKg: 142 }
     const salida = { fecha: '2026-01-01', pesoKg: 254 }
     const gdp = gdpAcumulada(entrada, salida)

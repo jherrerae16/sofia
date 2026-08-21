@@ -36,7 +36,10 @@ describe('validarMedicion', () => {
     expect(veredicto.mensaje).toContain('mayor que cero')
   })
 
-  it('rechaza un peso que no es un número, como el que deja un texto mal digitado', () => {
+  it('rechaza un peso que no es un número, como el que deja un texto mal digitado, con un mensaje propio', () => {
+    // "El peso debe ser mayor que cero" es correcto para 0 o negativos, pero
+    // confuso para un texto mal digitado: no es que el peso sea "menor o
+    // igual a cero", es que no es un número en absoluto.
     const veredicto = validarMedicion(
       entrada,
       null,
@@ -44,7 +47,8 @@ describe('validarMedicion', () => {
       HOY,
     )
     expect(veredicto.nivel).toBe('rechazo')
-    expect(veredicto.mensaje).toContain('mayor que cero')
+    expect(veredicto.mensaje).toContain('no es un número')
+    expect(veredicto.mensaje).not.toContain('mayor que cero')
     expect(veredicto.gdp).toBeNull()
   })
 
@@ -89,6 +93,24 @@ describe('validarMedicion', () => {
       HOY,
     )
     expect(veredicto.nivel).toBe('ok')
+  })
+
+  it('en el tramo hacia adelante, el mensaje de pérdida dice hacia dónde es la pérdida, no "desde el pesaje anterior"', () => {
+    // Reproduce cómo `revisarTanda` evalúa el tramo hacia adelante: la
+    // medición recién digitada se pasa como "entrada" (sin `anterior`) y se
+    // compara contra la que ya existía después. "Desde el pesaje anterior"
+    // sería falso aquí: la pérdida es hacia una medición posterior, no desde
+    // una anterior.
+    const veredicto = validarMedicion(
+      { fecha: '2026-10-15', pesoKg: 200 },
+      null,
+      { fecha: '2026-11-01', pesoKg: 170 },
+      HOY,
+      'hacia_adelante',
+    )
+    expect(veredicto.nivel).toBe('advertencia')
+    expect(veredicto.mensaje).not.toContain('desde el pesaje anterior')
+    expect(veredicto.mensaje).toContain('2026-11-01')
   })
 
   it('rechaza una fecha de pesaje posterior a hoy', () => {

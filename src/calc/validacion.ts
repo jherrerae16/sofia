@@ -23,12 +23,23 @@ export function validarMedicion(
   anterior: Medicion | null,
   nueva: Medicion,
   hoy: FechaISO,
+  // 'hacia_adelante' es cómo `revisarTanda` evalúa el tramo hacia la
+  // medición posterior ya guardada: ahí `entrada` es en realidad la
+  // medición recién digitada, y `referencia` (más abajo) no es un pesaje
+  // anterior de verdad. El mensaje de pérdida debe decir la verdad en ese
+  // caso: la pérdida es hacia una medición posterior, no desde una anterior.
+  sentido: 'normal' | 'hacia_adelante' = 'normal',
 ): Veredicto {
-  // `!Number.isFinite` cubre NaN además de negativos y cero: un texto no
-  // numérico digitado por error (p. ej. "17o" en vez de "170") se convierte
-  // en NaN antes de llegar aquí, y `NaN <= 0` es `false`, así que sin este
-  // chequeo colaría como nivel 'ok' con una ganancia diaria también NaN.
-  if (!Number.isFinite(nueva.pesoKg) || nueva.pesoKg <= 0) {
+  // Un texto no numérico digitado por error (p. ej. "17o" en vez de "170")
+  // se convierte en NaN antes de llegar aquí. Se distingue del caso "cero o
+  // negativo" porque el mensaje correcto es otro: no es que el peso sea
+  // menor o igual a cero, es que no es un número en absoluto. Sin este
+  // chequeo, `NaN <= 0` es `false` y colaría como nivel 'ok' con una
+  // ganancia diaria también NaN.
+  if (!Number.isFinite(nueva.pesoKg)) {
+    return { nivel: 'rechazo', mensaje: 'El peso digitado no es un número.', gdp: null }
+  }
+  if (nueva.pesoKg <= 0) {
     return { nivel: 'rechazo', mensaje: 'El peso debe ser mayor que cero.', gdp: null }
   }
 
@@ -75,11 +86,11 @@ export function validarMedicion(
   const perdida = (referencia.pesoKg - nueva.pesoKg) / referencia.pesoKg
   if (perdida > PERDIDA_MAXIMA_TOLERADA) {
     const kilos = Math.round((referencia.pesoKg - nueva.pesoKg) * 10) / 10
-    return {
-      nivel: 'advertencia',
-      mensaje: `El animal perdió ${kilos} kg desde el pesaje anterior.`,
-      gdp,
-    }
+    const mensaje =
+      sentido === 'hacia_adelante'
+        ? `El animal perdería ${kilos} kg hacia el pesaje ya registrado del ${nueva.fecha}.`
+        : `El animal perdió ${kilos} kg desde el pesaje anterior.`
+    return { nivel: 'advertencia', mensaje, gdp }
   }
 
   return { nivel: 'ok', mensaje: '', gdp }
