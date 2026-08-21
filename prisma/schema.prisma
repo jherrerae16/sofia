@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum EstadoAnimal {
+  activo
+  vendido
+  muerto
+  robado
+}
+
+enum TipoLote {
+  ceba
+  leche
+  otros
+}
+
+enum MetodoPesaje {
+  cinta
+  bascula
+  estimacion
+}
+
+enum TipoEventoSanitario {
+  vacuna
+  desparasitacion
+  vitamina
+  tratamiento
+}
+
+model Usuario {
+  id       String @id @default(cuid())
+  nombre   String
+  correo   String @unique
+  claveHash String
+  creadoEn DateTime @default(now())
+}
+
+/// Supuestos editables con fecha de vigencia. Cambiar uno hoy nunca reescribe la historia.
+model Parametro {
+  id        String   @id @default(cuid())
+  clave     String
+  valor     String
+  vigenteDesde DateTime @db.Date
+  creadoPorId String?
+  creadoEn  DateTime @default(now())
+
+  @@index([clave, vigenteDesde])
+}
+
+model Finca {
+  id             String @id @default(cuid())
+  nombre         String
+  hectareasUtiles Decimal @db.Decimal(6, 2)
+}
+
+model Potrero {
+  id            String  @id @default(cuid())
+  nombre        String  @unique
+  hectareas     Decimal @db.Decimal(6, 2)
+  tipoPasto     String?
+  capacidadKg   Int     @default(0)
+  tieneAgua     Boolean @default(true)
+  notas         String?
+  anuladoEn     DateTime?
+  motivoAnulacion String?
+
+  lotes       Lote[]
+  movimientosDesde Movimiento[] @relation("origen")
+  movimientosHasta Movimiento[] @relation("destino")
+}
+
+model Lote {
+  id              String   @id @default(cuid())
+  nombre          String   @unique
+  tipo            TipoLote
+  fechaApertura   DateTime @db.Date
+  fechaCierre     DateTime? @db.Date
+  potreroActualId String?
+  potreroActual   Potrero? @relation(fields: [potreroActualId], references: [id])
+  fechaEntradaPotrero DateTime? @db.Date
+
+  animales    Animal[]
+  movimientos Movimiento[]
+  eventos     EventoSanitario[]
+}
+
+model Animal {
+  id                String       @id @default(cuid())
+  chapeta           String       @unique
+  loteId            String
+  lote              Lote         @relation(fields: [loteId], references: [id])
+  sexo              String
+  raza              String?
+  cruce             String?
+  proveedor         String?
+  fechaEntrada      DateTime     @db.Date
+  edadEntradaMeses  Int?
+  condicionCorporal Int?
+  pesoEntradaKg     Decimal      @db.Decimal(5, 1)
+  /// Costo real de entrada en pesos colombianos, entero. Lo llena el plan 2.
+  costoEntradaCop   Int          @default(0)
+  estado            EstadoAnimal @default(activo)
+  fechaSalida       DateTime?    @db.Date
+  motivoSalida      String?
+
+  mediciones Medicion[]
+  eventos    EventoSanitario[]
+
+  @@index([loteId, estado])
+}
+
+model Pesaje {
+  id           String       @id @default(cuid())
+  fecha        DateTime     @db.Date
+  metodo       MetodoPesaje
+  responsable  String
+  notas        String?
+  registradoPorId String
+  creadoEn     DateTime     @default(now())
+  anuladoEn    DateTime?
+  motivoAnulacion String?
+
+  mediciones Medicion[]
+
+  @@index([fecha])
+}
+
+model Medicion {
+  id       String  @id @default(cuid())
+  pesajeId String
+  pesaje   Pesaje  @relation(fields: [pesajeId], references: [id], onDelete: Cascade)
+  animalId String
+  animal   Animal  @relation(fields: [animalId], references: [id])
+  pesoKg   Decimal @db.Decimal(5, 1)
+
+  @@unique([pesajeId, animalId])
+  @@index([animalId])
+}
+
+model Movimiento {
+  id              String   @id @default(cuid())
+  loteId          String
+  lote            Lote     @relation(fields: [loteId], references: [id])
+  potreroOrigenId String?
+  potreroOrigen   Potrero? @relation("origen", fields: [potreroOrigenId], references: [id])
+  potreroDestinoId String
+  potreroDestino  Potrero  @relation("destino", fields: [potreroDestinoId], references: [id])
+  fecha           DateTime @db.Date
+  registradoPorId String
+  creadoEn        DateTime @default(now())
+
+  @@index([loteId, fecha])
+  @@index([potreroDestinoId, fecha])
+}
+
+model EventoSanitario {
+  id            String   @id @default(cuid())
+  tipo          TipoEventoSanitario
+  fecha         DateTime @db.Date
+  producto      String
+  dosis         String?
+  responsable   String
+  proximaFecha  DateTime? @db.Date
+  notas         String?
+  animalId      String?
+  animal        Animal?  @relation(fields: [animalId], references: [id])
+  loteId        String?
+  lote          Lote?    @relation(fields: [loteId], references: [id])
+  registradoPorId String
+  creadoEn      DateTime @default(now())
+
+  @@index([proximaFecha])
+}
