@@ -8,7 +8,10 @@ export function CurvaPeso({
 }: {
   entrada: Medicion
   historial: Medicion[]
-  gdpObjetivo: number
+  // null cuando nadie ha configurado el objetivo (o quedó guardado un valor
+  // que no es un número): se oculta la línea de objetivo en vez de dibujarla
+  // en cero, que se vería como una meta que nadie fijó.
+  gdpObjetivo: number | null
 }) {
   const serie = [entrada, ...historial]
   if (serie.length < 2) {
@@ -20,8 +23,9 @@ export function CurvaPeso({
   const margen = 32
 
   const diasTotales = diasEntre(entrada.fecha, serie.at(-1)!.fecha)
-  const pesoObjetivoFinal = entrada.pesoKg + (gdpObjetivo * diasTotales) / 1000
-  const pesoMax = Math.max(...serie.map((m) => m.pesoKg), pesoObjetivoFinal)
+  const pesoObjetivoFinal =
+    gdpObjetivo === null ? null : entrada.pesoKg + (gdpObjetivo * diasTotales) / 1000
+  const pesoMax = Math.max(...serie.map((m) => m.pesoKg), pesoObjetivoFinal ?? -Infinity)
   const pesoMin = Math.min(...serie.map((m) => m.pesoKg), entrada.pesoKg)
 
   const x = (fecha: string) =>
@@ -30,19 +34,25 @@ export function CurvaPeso({
     alto - margen - ((peso - pesoMin) / Math.max(1, pesoMax - pesoMin)) * (alto - 2 * margen)
 
   const real = serie.map((m) => `${x(m.fecha)},${y(m.pesoKg)}`).join(' ')
-  const objetivo = `${x(entrada.fecha)},${y(entrada.pesoKg)} ${x(serie.at(-1)!.fecha)},${y(pesoObjetivoFinal)}`
+  const objetivo =
+    pesoObjetivoFinal === null
+      ? null
+      : `${x(entrada.fecha)},${y(entrada.pesoKg)} ${x(serie.at(-1)!.fecha)},${y(pesoObjetivoFinal)}`
 
   return (
     <figure>
       <svg viewBox={`0 0 ${ancho} ${alto}`} className="w-full" role="img" aria-label="Curva de peso">
-        <polyline points={objetivo} fill="none" stroke="#D98324" strokeWidth="2" strokeDasharray="6 4" />
+        {objetivo !== null && (
+          <polyline points={objetivo} fill="none" stroke="#D98324" strokeWidth="2" strokeDasharray="6 4" />
+        )}
         <polyline points={real} fill="none" stroke="#1B5E3F" strokeWidth="2.5" />
         {serie.map((m) => (
           <circle key={m.fecha} cx={x(m.fecha)} cy={y(m.pesoKg)} r="3.5" fill="#1B5E3F" />
         ))}
       </svg>
       <figcaption className="text-xs text-carbon/60">
-        Línea continua: peso medido. Línea punteada: el objetivo de {gdpObjetivo} g/día.
+        Línea continua: peso medido.
+        {gdpObjetivo !== null && ` Línea punteada: el objetivo de ${gdpObjetivo} g/día.`}
       </figcaption>
     </figure>
   )

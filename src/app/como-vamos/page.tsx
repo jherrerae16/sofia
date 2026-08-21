@@ -1,6 +1,6 @@
 import { hoyBogota } from '@/calc/fechas'
 import { desempeno, type Periodo } from '@/datos/desempeno'
-import { leerParametro } from '@/datos/parametros'
+import { leerGdpObjetivo } from '@/datos/parametros'
 import { Cifra } from '@/ui/Cifra'
 import { Semaforo } from '@/ui/Semaforo'
 import { formatearGdp, formatearKg, SIN_DATO } from '@/ui/formato'
@@ -21,7 +21,7 @@ export default async function ComoVamos({
   const hoy = hoyBogota()
   const { periodo = 'ultimo_pesaje' } = await searchParams
   const { filas, resumen } = await desempeno(periodo, hoy)
-  const objetivo = Number((await leerParametro('gdp_objetivo', hoy)) ?? 0)
+  const objetivo = await leerGdpObjetivo(hoy)
 
   const ordenadas = [...filas].sort((a, b) => {
     if (a.gdpPeriodo === null) return 1
@@ -53,11 +53,13 @@ export default async function ComoVamos({
           valor={formatearGdp(resumen.promedio)}
           comparacion={`basado en ${resumen.n} de ${resumen.total} animales`}
         />
-        <Cifra etiqueta="Objetivo" valor={formatearGdp(objetivo)} />
+        <Cifra etiqueta="Objetivo" valor={objetivo === null ? SIN_DATO : formatearGdp(objetivo)} />
         <Cifra
           etiqueta="Contra el objetivo"
           valor={
-            resumen.promedio === null ? SIN_DATO : formatearGdp(resumen.promedio - objetivo)
+            resumen.promedio === null || objetivo === null
+              ? SIN_DATO
+              : formatearGdp(resumen.promedio - objetivo)
           }
         />
       </div>

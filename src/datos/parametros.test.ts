@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { prisma } from './cliente'
-import { guardarParametro, leerParametro, leerUmbrales } from './parametros'
+import { guardarParametro, leerGdpObjetivo, leerParametro, leerUmbrales } from './parametros'
 
 beforeEach(async () => {
   await prisma.parametro.deleteMany()
@@ -42,5 +42,21 @@ describe('leerUmbrales', () => {
 
   it('lanza un error si faltan umbrales, en lugar de inventarlos', async () => {
     await expect(leerUmbrales('2026-10-01')).rejects.toThrow('umbral_excelente')
+  })
+})
+
+describe('leerGdpObjetivo', () => {
+  it('devuelve el objetivo cuando está configurado', async () => {
+    await guardarParametro('gdp_objetivo', '750', '2026-09-01', 'u1')
+    expect(await leerGdpObjetivo('2026-10-01')).toBe(750)
+  })
+
+  it('devuelve null cuando el parámetro no está configurado, en vez de inventar un cero', async () => {
+    expect(await leerGdpObjetivo('2026-10-01')).toBeNull()
+  })
+
+  it('devuelve null cuando el valor guardado no es un número finito', async () => {
+    await guardarParametro('gdp_objetivo', 'no-es-un-numero', '2026-09-01', 'u1')
+    expect(await leerGdpObjetivo('2026-10-01')).toBeNull()
   })
 })

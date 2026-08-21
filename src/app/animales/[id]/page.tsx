@@ -2,7 +2,7 @@ import { hoyBogota } from '@/calc/fechas'
 import { gdpAcumulada } from '@/calc/gdp'
 import { prisma } from '@/datos/cliente'
 import { aFechaISO, aKg } from '@/datos/conversion'
-import { leerParametro } from '@/datos/parametros'
+import { leerGdpObjetivo } from '@/datos/parametros'
 import { historialDeAnimal } from '@/datos/pesajes'
 import { eventosDeAnimal } from '@/datos/sanidad'
 import { Cifra } from '@/ui/Cifra'
@@ -21,7 +21,7 @@ export default async function FichaAnimal({ params }: { params: Promise<{ id: st
   const historial = await historialDeAnimal(id)
   const eventos = await eventosDeAnimal(id)
   const ultimo = historial.at(-1) ?? null
-  const gdpObjetivo = Number((await leerParametro('gdp_objetivo', hoy)) ?? 0)
+  const gdpObjetivo = await leerGdpObjetivo(hoy)
 
   return (
     <main className="p-6">

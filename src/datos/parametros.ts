@@ -64,3 +64,20 @@ export async function leerUmbrales(en: FechaISO): Promise<Umbrales> {
     bajo: await exigir('umbral_bajo', en),
   }
 }
+
+/**
+ * Objetivo de ganancia diaria configurado, o null si nadie lo ha configurado
+ * o si quedó guardado un valor que no es un número finito.
+ *
+ * A diferencia de `leerUmbrales`, un objetivo ausente no impide seguir
+ * mostrando el resto de la pantalla: por eso no lanza, sino que devuelve
+ * null para que cada pantalla decida cómo mostrar "sin dato". Lo que no
+ * puede hacer es inventar un cero: un objetivo de 0 g/día haría que la
+ * finca "cumpliera" siempre, contra una meta que nadie fijó.
+ */
+export async function leerGdpObjetivo(en: FechaISO): Promise<number | null> {
+  const valor = await leerParametro('gdp_objetivo', en)
+  if (valor === null) return null
+  const numero = Number(valor)
+  return Number.isFinite(numero) ? numero : null
+}
