@@ -1,7 +1,7 @@
 import type { MetodoPesaje } from '@prisma/client'
 import type { Medicion } from '@/calc/gdp'
 import type { FechaISO } from '@/calc/tipos'
-import { validarMedicion, type Nivel } from '@/calc/validacion'
+import { validarMedicion, veredictoMasGrave, type Nivel } from '@/calc/validacion'
 import { prisma } from './cliente'
 import { aFechaDb, aFechaISO, aKg } from './conversion'
 
@@ -70,18 +70,35 @@ export async function revisarTanda(
       // mismo de siempre: la última medición estrictamente anterior.
       const previas = historial.filter((m) => m.fecha <= fecha)
       const anterior = previas.at(-1) ?? null
+      const nueva = { fecha, pesoKg: entrada.pesoKg }
 
       const veredicto = validarMedicion(
         { fecha: aFechaISO(animal.fechaEntrada), pesoKg: aKg(animal.pesoEntradaKg) },
         anterior,
-        { fecha, pesoKg: entrada.pesoKg },
+        nueva,
       )
+
+      // Un pesaje digitado con retraso también tiene un tramo hacia
+      // adelante: la medición inmediatamente posterior a la fecha digitada,
+      // que ya estaba guardada. Mirar solo hacia atrás deja pasar un dedazo
+      // que resulta invisible contra la medición anterior pero que es
+      // físicamente imposible contra la que vino después. Se evalúa con las
+      // mismas reglas (llamando a `validarMedicion` con la nueva medición
+      // como si fuera la "entrada" y sin anterior, para que solo apliquen
+      // los umbrales de ganancia y pérdida) y se queda con el veredicto más
+      // grave. El `gdp` que se muestra sigue siendo el del tramo hacia
+      // atrás: es la cifra que el usuario espera ver en su fila.
+      const posterior = historial.find((m) => m.fecha > fecha) ?? null
+      const veredictoPosterior = posterior ? validarMedicion(nueva, null, posterior) : null
+      const definitivo = veredictoPosterior
+        ? veredictoMasGrave(veredicto, veredictoPosterior)
+        : veredicto
 
       return {
         animalId: animal.id,
         chapeta: animal.chapeta,
-        nivel: veredicto.nivel,
-        mensaje: veredicto.mensaje,
+        nivel: definitivo.nivel,
+        mensaje: definitivo.mensaje,
         gdp: veredicto.gdp,
       }
     }),

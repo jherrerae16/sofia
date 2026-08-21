@@ -71,3 +71,16 @@ export function validarMedicion(
 
   return { nivel: 'ok', mensaje: '', gdp }
 }
+
+const RANGO_NIVEL: Record<Nivel, number> = { ok: 0, advertencia: 1, rechazo: 2 }
+
+/**
+ * El más grave de dos veredictos sobre el mismo pesaje. Se usa para combinar
+ * la evaluación del tramo hacia atrás con la del tramo hacia adelante: un
+ * pesaje digitado con retraso puede verse perfectamente normal contra la
+ * medición anterior y a la vez ser imposible contra la que ya existía
+ * después. Cualquiera de los dos tramos que dispare la alarma debe ganar.
+ */
+export function veredictoMasGrave(a: Veredicto, b: Veredicto): Veredicto {
+  return RANGO_NIVEL[b.nivel] > RANGO_NIVEL[a.nivel] ? b : a
+}

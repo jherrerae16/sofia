@@ -58,6 +58,35 @@ describe('revisarTanda', () => {
     expect(revision[0].nivel).toBe('rechazo')
   })
 
+  it('advierte por una ganancia imposible en el tramo hacia adelante cuando el pesaje se digita con retraso', async () => {
+    // El pesaje del 2026-11-01 ya existe (se guardó a tiempo). Semanas después
+    // se digita, con retraso, el del 2026-10-15 — pero se escribe 160 en vez
+    // de 190. Mirando solo hacia atrás (150 -> 160 en 44 días = 227 g/día) se
+    // ve perfectamente normal; el dedazo únicamente se nota en el tramo hacia
+    // el pesaje posterior: (202 - 160) * 1000 / 17 días = 2470.58... -> 2471 g/día,
+    // por encima del umbral de 2000.
+    await guardarPesaje({
+      fecha: '2026-11-01',
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      notas: null,
+      registradoPorId: 'u1',
+      mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 202 }],
+    })
+
+    const revision = await revisarTanda(
+      [{ animalId: idPorChapeta['001'], pesoKg: 160 }],
+      '2026-10-15',
+    )
+
+    expect(revision[0].nivel).toBe('advertencia')
+    expect(revision[0].mensaje).toContain('2.471 g/día')
+    // El gdp mostrado sigue siendo el del tramo hacia atrás (150 -> 160 en 44
+    // días): (160 - 150) * 1000 / 44 = 227.27... -> 227. La advertencia se nota
+    // en el nivel y el mensaje, no en el número que ve el usuario en su fila.
+    expect(revision[0].gdp).toBe(227)
+  })
+
   it('rechaza un segundo pesaje del mismo animal en la misma fecha', async () => {
     await guardarPesaje({
       fecha: '2026-10-01',
