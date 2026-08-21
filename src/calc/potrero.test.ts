@@ -56,4 +56,12 @@ describe('evaluarCapacidad', () => {
   it('marca holgado si no hay capacidad registrada', () => {
     expect(evaluarCapacidad(10080, 0)).toBe('holgado')
   })
+
+  it('marca ajustado, no sobrecargado, al 100 % clavado -- la finca ya tuvo un caso real al 100,8 %', () => {
+    expect(evaluarCapacidad(10000, 10000)).toBe('ajustado')
+  })
+
+  it('marca sobrecargado con un solo kilo de más sobre la capacidad', () => {
+    expect(evaluarCapacidad(10001, 10000)).toBe('sobrecargado')
+  })
 })
