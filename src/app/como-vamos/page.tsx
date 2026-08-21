@@ -1,6 +1,7 @@
 import { hoyBogota } from '@/calc/fechas'
-import { desempeno, normalizarPeriodo, type Periodo } from '@/datos/desempeno'
-import { leerGdpObjetivo } from '@/datos/parametros'
+import type { ResumenPromedio } from '@/calc/lote'
+import { desempeno, normalizarPeriodo, type FilaDesempeno, type Periodo } from '@/datos/desempeno'
+import { leerGdpObjetivo, ParametroFaltanteError } from '@/datos/parametros'
 import { Cifra } from '@/ui/Cifra'
 import { Semaforo } from '@/ui/Semaforo'
 import { formatearGdp, formatearKg, SIN_DATO } from '@/ui/formato'
@@ -31,7 +32,26 @@ export default async function ComoVamos({
   const hoy = hoyBogota()
   const { periodo: periodoParam } = await searchParams
   const periodo = normalizarPeriodo(periodoParam)
-  const { filas, resumen } = await desempeno(periodo, hoy)
+
+  // El rendimiento (clasificación por umbral, y con ella el resto de la
+  // fila) no puede calcularse sin los parámetros de umbral configurados:
+  // `desempeno` lanza a propósito en vez de inventarlos. En una finca recién
+  // creada eso es esperable, y las cuatro tarjetas de la portada enlazan
+  // justo aquí — este primer día no puede tumbar toda la pantalla. Se
+  // atrapa igual que en la portada, se conserva lo que sí puede mostrarse
+  // sin umbrales (el objetivo configurado, si lo hay), y se avisa con
+  // claridad qué falta. Cualquier otro error se deja propagar hacia
+  // `error.tsx`, que es donde le corresponde a un fallo inesperado.
+  let filas: FilaDesempeno[] = []
+  let resumen: ResumenPromedio = { promedio: null, n: 0, total: 0, cobertura: 0 }
+  let errorParametros: string | null = null
+  try {
+    ;({ filas, resumen } = await desempeno(periodo, hoy))
+  } catch (error) {
+    if (!(error instanceof ParametroFaltanteError)) throw error
+    errorParametros = error.message
+  }
+
   const objetivo = await leerGdpObjetivo(hoy)
 
   const ordenadas = [...filas].sort((a, b) => {
@@ -57,6 +77,13 @@ export default async function ComoVamos({
           </a>
         ))}
       </nav>
+
+      {errorParametros && (
+        <p className="mb-4 rounded border border-ambar bg-ambar/10 p-3 text-sm text-ambar">
+          {errorParametros} Mientras tanto no se puede calcular la ganancia diaria promedio ni
+          clasificar el rendimiento por debajo del umbral.
+        </p>
+      )}
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <Cifra
@@ -90,6 +117,13 @@ export default async function ComoVamos({
           </tr>
         </thead>
         <tbody>
+          {errorParametros && ordenadas.length === 0 && (
+            <tr>
+              <td colSpan={9} className="p-2 text-center text-carbon/60">
+                Configura los umbrales de rendimiento para ver la tabla por animal.
+              </td>
+            </tr>
+          )}
           {ordenadas.map((fila) => (
             <tr key={fila.animalId} className="border-b border-tierra/10">
               <td className="p-2">

@@ -1,7 +1,12 @@
 import 'dotenv/config'
 import { prisma } from '../src/datos/cliente'
 
-const VIGENTE_DESDE = new Date('2026-09-01T00:00:00.000Z')
+// Tiene que ser una fecha ya pasada, nunca futura: `leerUmbrales` exige un
+// parámetro vigente en la fecha de hoy, y con una vigencia en el futuro la
+// finca recién creada arrancaría sin umbrales configurados hasta que
+// llegara esa fecha. "Cómo vamos" (y la portada, que enlaza justo ahí)
+// se rompía el primer día por esto.
+const VIGENTE_DESDE = new Date('2026-01-01T00:00:00.000Z')
 
 /** Valores de arranque, todos editables desde Configuración. Ninguno es una constante del sistema. */
 const PARAMETROS: Record<string, string> = {
