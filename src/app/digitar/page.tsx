@@ -3,6 +3,11 @@ import { listarAnimalesDeLote } from '@/datos/animales'
 import { listarLotes } from '@/datos/lotes'
 import { TablaPesaje } from './TablaPesaje'
 
+// Igual que en "Cómo vamos": hoy es dinámica solo porque lee `searchParams`.
+// Se declara explícito para que no se vuelva estática el día que alguien le
+// quite esa lectura y deje la lista de lotes y animales congelada.
+export const dynamic = 'force-dynamic'
+
 export default async function Digitar({
   searchParams,
 }: {

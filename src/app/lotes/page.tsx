@@ -2,6 +2,12 @@ import { hoyBogota } from '@/calc/fechas'
 import { listarLotes } from '@/datos/lotes'
 import { crearAnimalesAccion, crearLoteAccion } from './acciones'
 
+// La lista de lotes y sus animales activos cambian con cada alta: sin esto
+// Next la prerenderiza en el build (no lee ninguna API dinámica) y dar de
+// alta un lote o un animal deja la tabla vieja hasta la próxima escritura
+// que sí dispare una revalidación.
+export const dynamic = 'force-dynamic'
+
 export default async function Lotes() {
   const lotes = await listarLotes()
   const hoy = hoyBogota()

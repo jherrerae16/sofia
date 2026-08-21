@@ -13,6 +13,13 @@ const PERIODOS: { valor: Periodo; texto: string }[] = [
   { valor: 'acumulado', texto: 'Acumulado desde la entrada' },
 ]
 
+// Hoy esta ruta es dinámica solo porque lee `searchParams`: si algún día deja
+// de leerlo, Next volvería a prerenderizarla en el build y el rendimiento
+// (que también depende de la fecha de hoy y del estado vivo de la base)
+// quedaría congelado. Se declara explícito para que ese accidente no
+// dependa de que nadie le quite la lectura de parámetros.
+export const dynamic = 'force-dynamic'
+
 export default async function ComoVamos({
   searchParams,
 }: {

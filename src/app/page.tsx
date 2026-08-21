@@ -12,6 +12,13 @@ import { Cifra } from '@/ui/Cifra'
 import { formatearGdp, formatearKg } from '@/ui/formato'
 import type { ResumenPromedio } from '@/calc/lote'
 
+// Toda esta pantalla depende de la fecha de hoy y del estado vivo de la base
+// (la alarma de frescura, los pesos, los eventos vencidos): nada de esto
+// puede quedar horneado en el HTML del build. Sin esta declaración, Next
+// prerenderiza la ruta en el momento de construir porque no lee ninguna API
+// dinámica, y "Últimos datos hace N días" se congela para siempre.
+export const dynamic = 'force-dynamic'
+
 export default async function Hoy() {
   const hoy = hoyBogota()
   const estado = await frescura(hoy)

@@ -9,6 +9,12 @@ import { Cifra } from '@/ui/Cifra'
 import { CurvaPeso } from '@/ui/CurvaPeso'
 import { formatearGdp, formatearKg, SIN_DATO } from '@/ui/formato'
 
+// Hoy es dinámica solo porque lee `params`. Se declara explícito para que no
+// se vuelva estática el día que alguien deje de leerlo, y para que un pesaje
+// nuevo (que hoy no revalida esta ficha) al menos no quede además congelado
+// por el prerenderizado del build encima de eso.
+export const dynamic = 'force-dynamic'
+
 export default async function FichaAnimal({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const hoy = hoyBogota()

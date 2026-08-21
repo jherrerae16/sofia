@@ -5,6 +5,11 @@ import { formatearKg } from '@/ui/formato'
 import { crearPotreroAccion } from './acciones'
 import { MoverLoteForm } from './MoverLoteForm'
 
+// Los días de ocupación y de descanso de cada potrero se calculan contra la
+// fecha de hoy: sin esto Next la prerenderiza en el build (no lee ninguna
+// API dinámica) y esos días quedan congelados en la fecha del build.
+export const dynamic = 'force-dynamic'
+
 const ETIQUETA_CAPACIDAD = {
   holgado: { texto: 'Holgado', clase: 'text-pasto' },
   ajustado: { texto: 'Ajustado', clase: 'text-ambar' },
