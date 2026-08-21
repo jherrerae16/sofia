@@ -3726,8 +3726,12 @@ beforeEach(async () => {
   await prisma.lote.deleteMany()
   await prisma.potrero.deleteMany()
 
+  // Capacidad deliberadamente pequeña: los tres animales del lote pesan 450 kg
+  // en total, así que este potrero queda sobrecargado y la prueba puede
+  // comprobar el aviso. Con 1000 kg de capacidad el uso sería del 45 % y
+  // `evaluarCapacidad` devolvería 'holgado'.
   const chico = await prisma.potrero.create({
-    data: { nombre: 'Potrero 1', hectareas: 2, capacidadKg: 1000 },
+    data: { nombre: 'Potrero 1', hectareas: 2, capacidadKg: 400 },
   })
   const grande = await prisma.potrero.create({
     data: { nombre: 'Potrero 2', hectareas: 10, capacidadKg: 20000 },
