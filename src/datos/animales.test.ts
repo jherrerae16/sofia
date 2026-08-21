@@ -96,4 +96,41 @@ describe('crearAnimales', () => {
 
     expect(await listarAnimalesDeLote(loteId)).toHaveLength(0)
   })
+
+  it('revierte los animales ya creados si uno falla en la base de datos', async () => {
+    await crearAnimales({
+      loteId,
+      chapetas: ['001'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: null,
+      pesos: { '001': 150 },
+    })
+
+    // La chapeta nueva va ANTES que la repetida en el arreglo: así la validación
+    // previa (que solo revisa pesos) deja pasar la llamada completa y el fallo
+    // ocurre de verdad en la base, por la restricción de unicidad de la chapeta,
+    // después de que Prisma ya intentó crear '002' dentro de la misma transacción.
+    await expect(
+      crearAnimales({
+        loteId,
+        chapetas: ['002', '001'],
+        sexo: 'macho',
+        raza: null,
+        cruce: null,
+        proveedor: null,
+        fechaEntrada: '2026-09-02',
+        edadEntradaMeses: null,
+        pesos: { '001': 152, '002': 160 },
+      }),
+    ).rejects.toThrow()
+
+    const animales = await listarAnimalesDeLote(loteId)
+    expect(animales).toHaveLength(1)
+    expect(animales[0].chapeta).toBe('001')
+    expect(animales[0].pesoEntradaKg).toBe(150)
+  })
 })
