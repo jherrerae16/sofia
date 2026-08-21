@@ -1506,13 +1506,32 @@ export const aKg = aNumero
 Crear `src/datos/cliente.ts`:
 
 ```ts
+import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
 
 const global_ = globalThis as unknown as { prisma?: PrismaClient }
 
-export const prisma = global_.prisma ?? new PrismaClient()
+// Prisma 7 eliminó el motor Rust integrado: sin adaptador de driver,
+// `new PrismaClient()` falla en tiempo de ejecución con
+// "A driver adapter is required to connect to your database."
+const adaptador = new PrismaPg({ connectionString: process.env.DATABASE_URL })
+
+export const prisma = global_.prisma ?? new PrismaClient({ adapter: adaptador })
 
 if (process.env.NODE_ENV !== 'production') global_.prisma = prisma
+```
+
+Prisma 7 exige además dos cosas más que las versiones anteriores no pedían: instalar el adaptador (`npm install @prisma/adapter-pg`) y sacar la línea `url` del bloque `datasource` de `schema.prisma`, moviéndola a un archivo `prisma.config.ts` en la raíz:
+
+```ts
+import 'dotenv/config'
+import { defineConfig } from 'prisma/config'
+
+export default defineConfig({
+  datasource: {
+    url: process.env.DATABASE_URL!,
+  },
+})
 ```
 
 - [ ] **Step 7: Ejecutar y verificar que pasa**
@@ -1655,11 +1674,18 @@ export async function leerUmbrales(en: FechaISO): Promise<Umbrales> {
 - [ ] **Step 4: Escribir la semilla**
 
 Crear `prisma/seed.ts`:
+> **Prisma 7 — obligatorio en todo script que corra fuera de Next.js.** Prisma 7 eliminó el motor Rust integrado, así que `new PrismaClient()` sin adaptador falla en tiempo de ejecución con *"A driver adapter is required to connect to your database."* Ningún script debe construir su propio cliente: todos importan el que ya está configurado en `src/datos/cliente.ts`, con ruta relativa (el alias `@/` no lo resuelve `tsx`), y cargan las variables de entorno primero.
+>
+> ```ts
+> import 'dotenv/config'
+> import { prisma } from '../src/datos/cliente'
+> ```
+
+
 
 ```ts
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import 'dotenv/config'
+import { prisma } from '../src/datos/cliente'
 
 const VIGENTE_DESDE = new Date('2026-09-01T00:00:00.000Z')
 
@@ -1795,10 +1821,10 @@ No hay registro público: son dos cuentas fijas creadas desde la terminal.
 Crear `scripts/crear-usuario.ts`:
 
 ```ts
+import 'dotenv/config'
 import bcrypt from 'bcryptjs'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../src/datos/cliente'
 
-const prisma = new PrismaClient()
 const [nombre, correo, clave] = process.argv.slice(2)
 
 if (!nombre || !correo || !clave) {
@@ -4655,10 +4681,9 @@ test('un pesaje anterior al ingreso del animal no se guarda', async ({ page }) =
 Crear `e2e/preparar.ts`, que deja la base en un estado conocido antes de correr Playwright:
 
 ```ts
-import { PrismaClient } from '@prisma/client'
+import 'dotenv/config'
 import bcrypt from 'bcryptjs'
-
-const prisma = new PrismaClient()
+import { prisma } from '../src/datos/cliente'
 
 async function main() {
   await prisma.medicion.deleteMany()
