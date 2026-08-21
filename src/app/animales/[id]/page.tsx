@@ -27,8 +27,9 @@ export default async function FichaAnimal({ params }: { params: Promise<{ id: st
     <main className="p-6">
       <h1 className="font-serif text-3xl text-pasto">Chapeta {animal.chapeta}</h1>
       <p className="mb-6 text-sm text-carbon/70">
-        {animal.lote.nombre} · {animal.raza ?? 'raza sin registrar'} · entró el {entrada.fecha} con{' '}
-        {formatearKg(entrada.pesoKg)}
+        {animal.lote.nombre} · {animal.raza ?? 'raza sin registrar'} · entró el{' '}
+        <span className="cifra">{entrada.fecha}</span> con{' '}
+        <span className="cifra">{formatearKg(entrada.pesoKg)}</span>
         {animal.proveedor ? ` · ${animal.proveedor}` : ''}
       </p>
 
@@ -54,7 +55,9 @@ export default async function FichaAnimal({ params }: { params: Promise<{ id: st
                 <span className="cifra">{evento.fecha}</span> · {evento.tipo} · {evento.producto}
                 {evento.dosis ? ` (${evento.dosis})` : ''} · {evento.responsable}
                 {evento.proximaFecha && (
-                  <span className="ml-2 text-ambar">próxima: {evento.proximaFecha}</span>
+                  <span className="ml-2 text-ambar">
+                    próxima: <span className="cifra">{evento.proximaFecha}</span>
+                  </span>
                 )}
               </li>
             ))}

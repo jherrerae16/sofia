@@ -71,6 +71,51 @@ describe('registrarEvento', () => {
     expect(await prisma.eventoSanitario.count({ where: { loteId } })).toBe(1)
   })
 
+  it('un evento de lote aparece en la ficha de sus animales, pero no en la de animales de otro lote', async () => {
+    await registrarEvento({
+      tipo: 'vacuna',
+      fecha: '2026-09-05',
+      producto: 'Aftosa',
+      dosis: null,
+      responsable: 'Joseph',
+      proximaFecha: '2027-03-05',
+      notas: null,
+      animalId: null,
+      loteId,
+      registradoPorId: 'u1',
+    })
+
+    // El animal '001' pertenece a loteId: la vacunación de lote también le
+    // aplicó a él, así que eventosDeAnimal debe traer ese único evento.
+    const eventosDelAnimalDelLote = await eventosDeAnimal(animalId)
+    expect(eventosDelAnimalDelLote).toHaveLength(1)
+    expect(eventosDelAnimalDelLote[0].producto).toBe('Aftosa')
+    expect(eventosDelAnimalDelLote[0].lote).toBe('Ceba 01')
+
+    // Un animal de un lote distinto no recibió esa vacuna: sin esta mitad de
+    // la prueba, una implementación que devolviera todos los eventos de la
+    // finca también pasaría la aserción de arriba.
+    const otroLoteId = await crearLote({
+      nombre: 'Ceba 02',
+      tipo: 'ceba',
+      fechaApertura: '2026-09-01',
+    })
+    await crearAnimales({
+      loteId: otroLoteId,
+      chapetas: ['101'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: null,
+      pesos: { '101': 150 },
+    })
+    const otroAnimalId = (await listarAnimalesDeLote(otroLoteId))[0].id
+
+    expect(await eventosDeAnimal(otroAnimalId)).toHaveLength(0)
+  })
+
   it('rechaza un evento que no apunta ni a un animal ni a un lote', async () => {
     await expect(
       registrarEvento({
@@ -106,5 +151,23 @@ describe('eventosVencidos', () => {
 
     expect(await eventosVencidos('2026-12-01')).toHaveLength(0)
     expect(await eventosVencidos('2026-12-06')).toHaveLength(1)
+  })
+
+  it('un evento cuya próxima fecha es exactamente hoy todavía no cuenta como vencido', async () => {
+    await registrarEvento({
+      tipo: 'desparasitacion',
+      fecha: '2026-09-05',
+      producto: 'Ivermectina',
+      dosis: null,
+      responsable: 'Joseph',
+      proximaFecha: '2026-12-05',
+      notas: null,
+      animalId,
+      loteId: null,
+      registradoPorId: 'u1',
+    })
+
+    // eventosVencidos usa `lt` (estrictamente menor): vence mañana, no hoy.
+    expect(await eventosVencidos('2026-12-05')).toHaveLength(0)
   })
 })
