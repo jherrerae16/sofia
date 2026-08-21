@@ -75,3 +75,22 @@ export async function listarPotreros(hoy: FechaISO): Promise<PotreroVista[]> {
     }
   })
 }
+
+export async function crearPotrero(datos: {
+  nombre: string
+  hectareas: number
+  capacidadKg: number
+  tipoPasto: string | null
+  tieneAgua: boolean
+}): Promise<string> {
+  const potrero = await prisma.potrero.create({
+    data: {
+      nombre: datos.nombre,
+      hectareas: datos.hectareas,
+      capacidadKg: datos.capacidadKg,
+      tipoPasto: datos.tipoPasto,
+      tieneAgua: datos.tieneAgua,
+    },
+  })
+  return potrero.id
+}

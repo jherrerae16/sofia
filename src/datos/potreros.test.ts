@@ -3,7 +3,7 @@ import { crearAnimales } from './animales'
 import { prisma } from './cliente'
 import { crearLote } from './lotes'
 import { moverLote } from './movimientos'
-import { listarPotreros } from './potreros'
+import { crearPotrero, listarPotreros } from './potreros'
 
 beforeEach(async () => {
   await prisma.movimiento.deleteMany()
@@ -136,5 +136,35 @@ describe('listarPotreros', () => {
     expect(vista.pesoVivoKg).toBe(0)
     expect(vista.lotesOcupantes).toEqual([])
     expect(vista.diasDescanso).toBeNull()
+  })
+})
+
+describe('crearPotrero', () => {
+  it('crea un potrero y lo devuelve en el listado', async () => {
+    await crearPotrero({
+      nombre: 'La Loma',
+      hectareas: 3,
+      capacidadKg: 1000,
+      tipoPasto: 'brachiaria',
+      tieneAgua: true,
+    })
+
+    const [vista] = await listarPotreros('2026-09-21')
+    expect(vista.nombre).toBe('La Loma')
+    expect(vista.hectareas).toBe(3)
+    expect(vista.capacidadKg).toBe(1000)
+  })
+
+  it('rechaza dos potreros con el mismo nombre', async () => {
+    await crearPotrero({ nombre: 'La Loma', hectareas: 3, capacidadKg: 1000, tipoPasto: null, tieneAgua: true })
+    await expect(
+      crearPotrero({ nombre: 'La Loma', hectareas: 2, capacidadKg: 500, tipoPasto: null, tieneAgua: false }),
+    ).rejects.toThrow()
+  })
+
+  it('acepta un potrero sin tipo de pasto registrado', async () => {
+    await crearPotrero({ nombre: 'El Alto', hectareas: 4, capacidadKg: 800, tipoPasto: null, tieneAgua: false })
+    const [vista] = await listarPotreros('2026-09-21')
+    expect(vista.nombre).toBe('El Alto')
   })
 })

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { usuarioActual } from '@/auth'
 import { moverLote, revisarMovimiento, type AvisoMovimiento } from '@/datos/movimientos'
+import { crearPotrero } from '@/datos/potreros'
 
 export type EstadoMovimiento = {
   aviso: AvisoMovimiento | null
@@ -43,4 +44,15 @@ export async function moverLoteAccion(
   }
   revalidatePath('/potreros')
   return { aviso: null, movido: true, error: null }
+}
+
+export async function crearPotreroAccion(datos: FormData) {
+  await crearPotrero({
+    nombre: String(datos.get('nombre')),
+    hectareas: Number(String(datos.get('hectareas')).replace(',', '.')),
+    capacidadKg: Number(datos.get('capacidadKg')),
+    tipoPasto: (String(datos.get('tipoPasto')) || null) as string | null,
+    tieneAgua: datos.get('tieneAgua') === 'on',
+  })
+  revalidatePath('/potreros')
 }

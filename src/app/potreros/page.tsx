@@ -2,6 +2,7 @@ import { hoyBogota } from '@/calc/fechas'
 import { listarLotes } from '@/datos/lotes'
 import { listarPotreros } from '@/datos/potreros'
 import { formatearKg } from '@/ui/formato'
+import { crearPotreroAccion } from './acciones'
 import { MoverLoteForm } from './MoverLoteForm'
 
 const ETIQUETA_CAPACIDAD = {
@@ -52,6 +53,44 @@ export default async function Potreros() {
           ))}
         </tbody>
       </table>
+
+      <section className="mt-8 rounded-lg border border-tierra/20 bg-white p-4">
+        <h2 className="mb-3 font-serif text-xl text-pasto">Dar de alta un potrero</h2>
+        <form action={crearPotreroAccion} className="flex flex-wrap items-end gap-3">
+          <label className="text-sm">
+            Nombre
+            <input name="nombre" required className="ml-2 rounded border border-tierra/30 p-2" />
+          </label>
+          <label className="text-sm">
+            Hectáreas
+            <input
+              name="hectareas"
+              inputMode="decimal"
+              required
+              className="cifra ml-2 w-24 rounded border border-tierra/30 p-2"
+            />
+          </label>
+          <label className="text-sm">
+            Capacidad (kg)
+            <input
+              name="capacidadKg"
+              type="number"
+              min="0"
+              required
+              className="cifra ml-2 w-28 rounded border border-tierra/30 p-2"
+            />
+          </label>
+          <label className="text-sm">
+            Tipo de pasto
+            <input name="tipoPasto" className="ml-2 w-32 rounded border border-tierra/30 p-2" />
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input name="tieneAgua" type="checkbox" defaultChecked />
+            Tiene agua
+          </label>
+          <button className="rounded bg-pasto px-4 py-2 text-white">Dar de alta</button>
+        </form>
+      </section>
 
       <section className="mt-8 rounded-lg border border-tierra/20 bg-white p-4">
         <h2 className="mb-3 font-serif text-xl text-pasto">Mover un lote</h2>
