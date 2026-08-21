@@ -112,4 +112,155 @@ describe('desempeno', () => {
     expect(resumen.n).toBe(2)
     expect(resumen.total).toBe(3)
   })
+
+  it('con dos o más pesajes dentro de la ventana, usa el más viejo de ellos como referencia (dias_30)', async () => {
+    await crearAnimales({
+      loteId,
+      chapetas: ['004'],
+      sexo: 'macho',
+      raza: 'Brahman',
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: 14,
+      pesos: { '004': 150 },
+    })
+    const animales = await listarAnimalesDeLote(loteId)
+    const id004 = animales.find((a) => a.chapeta === '004')!.id
+
+    // Dos pesajes recientes y cercanos entre sí, ambos dentro de los últimos 30 días.
+    await guardarPesaje({
+      fecha: '2026-10-16',
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      notas: null,
+      registradoPorId: 'u1',
+      mediciones: [{ animalId: id004, pesoKg: 181.5 }],
+    })
+    await guardarPesaje({
+      fecha: '2026-10-31',
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      notas: null,
+      registradoPorId: 'u1',
+      mediciones: [{ animalId: id004, pesoKg: 192.0 }],
+    })
+
+    // Cálculo a mano:
+    // La ventana de dias_30 con hoy=2026-11-15 cubre desde 2026-10-16 (diasEntre <= 30).
+    //   diasEntre('2026-10-16','2026-11-15') = 30 -> dentro (el límite es <=, no <).
+    //   diasEntre('2026-10-31','2026-11-15') = 15 -> dentro.
+    // Los dos pesajes caen dentro de la ventana (dentro.length = 2), así que
+    // `referencia` debe tomar el más viejo de los dos (2026-10-16, 181.5 kg),
+    // NUNCA el de entrada ni el más reciente.
+    // dias = diasEntre('2026-10-16','2026-10-31') = 15
+    // gdp = (192.0 - 181.5) * 1000 / 15 = 10500 / 15 = 700 g/día (exacto)
+    // Con umbral_normal=600 y umbral_bueno=750: 700 cae en 'normal'.
+    const { filas } = await desempeno('dias_30', '2026-11-15')
+    const cuatro = filas.find((f) => f.chapeta === '004')!
+    expect(cuatro.gdpPeriodo).toBe(700)
+    expect(cuatro.clasificacion).toBe('normal')
+  })
+
+  it('con una sola medición dentro de la ventana, retrocede a la última anterior a ella (dias_60)', async () => {
+    await crearAnimales({
+      loteId,
+      chapetas: ['005'],
+      sexo: 'macho',
+      raza: 'Brahman',
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-08-01',
+      edadEntradaMeses: 16,
+      pesos: { '005': 150 },
+    })
+    const animales = await listarAnimalesDeLote(loteId)
+    const id005 = animales.find((a) => a.chapeta === '005')!.id
+
+    // Un pesaje viejo (fuera de la ventana de 60 días) y uno reciente (dentro).
+    await guardarPesaje({
+      fecha: '2026-09-01',
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      notas: null,
+      registradoPorId: 'u1',
+      mediciones: [{ animalId: id005, pesoKg: 172 }],
+    })
+    await guardarPesaje({
+      fecha: '2026-11-01',
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      notas: null,
+      registradoPorId: 'u1',
+      mediciones: [{ animalId: id005, pesoKg: 214 }],
+    })
+
+    // Cálculo a mano:
+    // La ventana de dias_60 con hoy=2026-11-15 cubre desde 2026-09-16 (diasEntre <= 60).
+    //   diasEntre('2026-09-01','2026-11-15') = 75 -> fuera de la ventana (anterior).
+    //   diasEntre('2026-11-01','2026-11-15') = 14 -> dentro.
+    // Solo una medición cae dentro (dentro.length = 1 < 2), así que `referencia`
+    // retrocede a la última anterior a la ventana: el pesaje del 2026-09-01 (172 kg).
+    // dias = diasEntre('2026-09-01','2026-11-01') = 61
+    // gdp = (214 - 172) * 1000 / 61 = 42000 / 61 = 688.524... -> redondea a 689 g/día
+    // Con umbral_normal=600 y umbral_bueno=750: 689 cae en 'normal'.
+    const { filas } = await desempeno('dias_60', '2026-11-15')
+    const cinco = filas.find((f) => f.chapeta === '005')!
+    expect(cinco.gdpPeriodo).toBe(689)
+    expect(cinco.clasificacion).toBe('normal')
+  })
+
+  it('sin ninguna medición dentro de la ventana, retrocede a la última anterior y da sin dato (dias_30)', async () => {
+    await crearAnimales({
+      loteId,
+      chapetas: ['006'],
+      sexo: 'macho',
+      raza: 'Brahman',
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-08-15',
+      edadEntradaMeses: 15,
+      pesos: { '006': 150 },
+    })
+    const animales = await listarAnimalesDeLote(loteId)
+    const id006 = animales.find((a) => a.chapeta === '006')!.id
+
+    // Dos pesajes, ambos viejos: el animal no se ha vuelto a pesar en los últimos 30 días.
+    await guardarPesaje({
+      fecha: '2026-09-01',
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      notas: null,
+      registradoPorId: 'u1',
+      mediciones: [{ animalId: id006, pesoKg: 162 }],
+    })
+    await guardarPesaje({
+      fecha: '2026-09-20',
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      notas: null,
+      registradoPorId: 'u1',
+      mediciones: [{ animalId: id006, pesoKg: 175.3 }],
+    })
+
+    // Cálculo a mano:
+    // La ventana de dias_30 con hoy=2026-11-15 cubre desde 2026-10-16 (diasEntre <= 30).
+    //   diasEntre('2026-09-01','2026-11-15') = 75 -> fuera.
+    //   diasEntre('2026-09-20','2026-11-15') = 55 -> fuera.
+    // Ningún pesaje cae dentro de la ventana (dentro.length = 0), así que `referencia`
+    // retrocede a la última anterior: el pesaje del 2026-09-20 (175.3 kg). Como ese
+    // pesaje es también el último de toda la historia del animal, `referencia` y
+    // `ultimo` terminan siendo la MISMA medición. gdpEntre compara una medición
+    // consigo misma: diasEntre da 0 días, y con dias<=0 la función devuelve null
+    // (no cero): no hay ningún tramo de tiempo que medir dentro de esta ventana.
+    // Es el resultado sensato -- no se puede afirmar una ganancia "de los últimos
+    // 30 días" cuando no hubo ningún pesaje en esos 30 días -- y coincide con la
+    // decisión de diseño de nunca acusar de "crítico" a un animal sobre el que no
+    // hay dato: clasificar(null, umbrales) da 'sin_dato'.
+    const { filas } = await desempeno('dias_30', '2026-11-15')
+    const seis = filas.find((f) => f.chapeta === '006')!
+    expect(seis.fechaUltimoPesaje).toBe('2026-09-20')
+    expect(seis.gdpPeriodo).toBeNull()
+    expect(seis.clasificacion).toBe('sin_dato')
+  })
 })
