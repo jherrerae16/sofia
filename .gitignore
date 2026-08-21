@@ -2,3 +2,10 @@ node_modules/
 .next/
 .env*
 !.env.example
+
+# Espacio de trabajo del proceso de ejecución por subagentes
+.superpowers/
+
+# Variables de entorno
+.env
+.env.test

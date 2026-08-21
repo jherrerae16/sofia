@@ -92,9 +92,6 @@ export default defineConfig({
   test: {
     include: ['src/**/*.test.ts'],
     environment: 'node',
-    // Las pruebas de src/datos comparten una sola base de Postgres y cada una
-    // la limpia en su beforeEach. En paralelo se borrarían los datos entre sí.
-    fileParallelism: false,
   },
 })
 ```
@@ -1171,7 +1168,8 @@ git commit -m "test: prueba de referencia contra los números verificados de San
 ## Task 10: Esquema de datos y base de pruebas
 
 **Files:**
-- Create: `docker-compose.yml`
+- Create: `.env`, `.env.test`, `.env.example`
+- Modify: `vitest.config.ts`
 - Create: `prisma/schema.prisma`
 - Create: `src/datos/cliente.ts`
 - Create: `src/datos/conversion.ts`
@@ -1181,37 +1179,71 @@ git commit -m "test: prueba de referencia contra los números verificados de San
 - Consumes: `FechaISO` de `src/calc/tipos.ts`, `EstadoAnimal` de `src/calc/produccion.ts`
 - Produces: `prisma` (cliente compartido); `aFechaISO(fecha: Date): FechaISO`; `aFechaDb(fecha: FechaISO): Date`; `aKg(valor: Prisma.Decimal): number`
 
-- [ ] **Step 1: Levantar Postgres local para desarrollo y pruebas**
+- [ ] **Step 1: Apuntar a las dos bases de Postgres**
 
-Crear `docker-compose.yml`:
+PostgreSQL 16 ya corre en esta máquina como servicio de Homebrew, y las dos bases
+ya están creadas (`sofia` y `sofia_test`). No hay contenedores de por medio.
 
-```yaml
-services:
-  db:
-    image: postgres:16
-    environment:
-      POSTGRES_USER: sofia
-      POSTGRES_PASSWORD: sofia
-      POSTGRES_DB: sofia
-    ports:
-      - '5433:5432'
-    volumes:
-      - sofia_db:/var/lib/postgresql/data
+Verificar antes de seguir:
 
-volumes:
-  sofia_db:
+```bash
+psql -lqt | grep -E '^ sofia'
 ```
+
+Expected: dos líneas, `sofia` y `sofia_test`.
 
 Crear `.env.example`:
 
 ```
-DATABASE_URL="postgresql://sofia:sofia@localhost:5433/sofia"
+DATABASE_URL="postgresql://jdh@localhost:5432/sofia"
 AUTH_SECRET="cambiar-por-una-cadena-larga-y-aleatoria"
 ```
 
+Crear `.env`:
+
+```
+DATABASE_URL="postgresql://jdh@localhost:5432/sofia"
+AUTH_SECRET="desarrollo-local-cambiar-en-produccion"
+```
+
+Crear `.env.test`:
+
+```
+DATABASE_URL="postgresql://jdh@localhost:5432/sofia_test"
+AUTH_SECRET="pruebas"
+```
+
+**Las pruebas van contra `sofia_test`, nunca contra `sofia`.** Cada prueba de
+`src/datos/` empieza con `deleteMany()`; apuntadas a la base de desarrollo
+borrarían los datos reales de la finca en cada corrida.
+
+Conectar la variable de entorno a Vitest en `vitest.config.ts`:
+
+```ts
+import { config } from 'dotenv'
+import { defineConfig } from 'vitest/config'
+
+config({ path: '.env.test', override: true })
+
+export default defineConfig({
+  test: {
+    include: ['src/**/*.test.ts'],
+    environment: 'node',
+    // Las pruebas de src/datos comparten una sola base y cada una la limpia en
+    // su beforeEach. En paralelo se borrarían los datos entre sí.
+    fileParallelism: false,
+  },
+})
+```
+
 ```bash
-cp .env.example .env
-docker compose up -d
+npm install -D dotenv
+```
+
+Aplicar el esquema también a la base de pruebas, cada vez que cambie:
+
+```bash
+DATABASE_URL="postgresql://jdh@localhost:5432/sofia_test" npx prisma migrate deploy
 ```
 
 - [ ] **Step 2: Escribir el esquema**
@@ -4669,9 +4701,12 @@ main().finally(() => prisma.$disconnect())
 Run:
 
 ```bash
-npx tsx e2e/preparar.ts
-npx playwright test
+DATABASE_URL="postgresql://jdh@localhost:5432/sofia_test" npx tsx e2e/preparar.ts
+DATABASE_URL="postgresql://jdh@localhost:5432/sofia_test" npx playwright test
 ```
+
+`e2e/preparar.ts` borra usuarios, lotes y animales. Corrido contra `sofia` se
+llevaría por delante los datos reales de la finca.
 
 Expected: PASS — 2 pruebas
 
