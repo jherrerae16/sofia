@@ -137,6 +137,34 @@ describe('listarPotreros', () => {
     expect(vista.lotesOcupantes).toEqual([])
     expect(vista.diasDescanso).toBeNull()
   })
+
+  it('agrega cada potrero por separado y no mezcla el peso de uno con el de otro', async () => {
+    // La finca rota el ganado entre varios potreros a la vez: un error de
+    // agregación que sumara todo junto, o que arrastrara el peso de un
+    // potrero al vecino, sería tan grave como no filtrar los lotes cerrados.
+    const laLoma = await prisma.potrero.create({
+      data: { nombre: 'La Loma', hectareas: 3, capacidadKg: 1000 },
+    })
+    const elAlto = await prisma.potrero.create({
+      data: { nombre: 'El Alto', hectareas: 5, capacidadKg: 1000 },
+    })
+    const cebaAId = await abrirLoteConPeso('Ceba A', ['a1'], 300)
+    const cebaBId = await abrirLoteConPeso('Ceba B', ['b1'], 500)
+    await moverLote({ loteId: cebaAId, potreroDestinoId: laLoma.id, fecha: '2026-09-01', registradoPorId: 'u1' })
+    await moverLote({ loteId: cebaBId, potreroDestinoId: elAlto.id, fecha: '2026-09-01', registradoPorId: 'u1' })
+
+    const vistas = await listarPotreros('2026-09-21')
+    expect(vistas).toHaveLength(2)
+    // orderBy: nombre asc -- "El Alto" antes que "La Loma".
+    expect(vistas.map((v) => v.nombre)).toEqual(['El Alto', 'La Loma'])
+
+    const vistaAlto = vistas.find((v) => v.id === elAlto.id)!
+    const vistaLoma = vistas.find((v) => v.id === laLoma.id)!
+    expect(vistaAlto.pesoVivoKg).toBe(500)
+    expect(vistaAlto.lotesOcupantes).toEqual(['Ceba B'])
+    expect(vistaLoma.pesoVivoKg).toBe(300)
+    expect(vistaLoma.lotesOcupantes).toEqual(['Ceba A'])
+  })
 })
 
 describe('crearPotrero', () => {
