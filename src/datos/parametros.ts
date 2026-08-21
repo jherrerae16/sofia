@@ -23,10 +23,29 @@ export async function guardarParametro(
   })
 }
 
+/**
+ * Se lanza cuando falta un parámetro obligatorio. Es una subclase de `Error` (no
+ * un `Error` a secas) para que quien la atrape — hoy, la portada — pueda
+ * distinguirla con `instanceof` de cualquier otro fallo inesperado y no termine
+ * ocultando un bug real detrás de un mensaje de "falta configurar".
+ */
+export class ParametroFaltanteError extends Error {
+  constructor(
+    public readonly clave: string,
+    mensaje: string,
+  ) {
+    super(mensaje)
+    this.name = 'ParametroFaltanteError'
+  }
+}
+
 async function exigir(clave: string, en: FechaISO): Promise<number> {
   const valor = await leerParametro(clave, en)
   if (valor === null) {
-    throw new Error(`Falta el parámetro ${clave} vigente en ${en}. Configúralo antes de continuar.`)
+    throw new ParametroFaltanteError(
+      clave,
+      `Falta el parámetro ${clave} vigente en ${en}. Configúralo antes de continuar.`,
+    )
   }
   return Number(valor)
 }

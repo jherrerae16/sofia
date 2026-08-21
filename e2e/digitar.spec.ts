@@ -1,4 +1,12 @@
 import { expect, test } from '@playwright/test'
+import { prisma } from '../src/datos/cliente'
+
+// playwright.config.ts ya cargó .env.test con override antes de que este
+// archivo se importara, así que `prisma` aquí apunta a la misma base de
+// pruebas que usa la app bajo prueba.
+test.afterAll(async () => {
+  await prisma.$disconnect()
+})
 
 test('digitar una tanda muestra la ganancia antes de guardar y atrapa el dedazo', async ({ page }) => {
   await page.goto('/entrar')
@@ -39,4 +47,11 @@ test('un pesaje anterior al ingreso del animal no se guarda', async ({ page }) =
   await expect(
     page.getByText('Corrige las filas en rojo antes de guardar'),
   ).toBeVisible()
+
+  // No basta con que la pantalla lo diga: si el guardia se rompiera
+  // manteniendo el mismo texto de error, esta prueba seguiría en verde sin
+  // esto. Se consulta la base directamente para demostrar que en efecto no
+  // se guardó ningún pesaje ni ninguna medición.
+  expect(await prisma.pesaje.count()).toBe(0)
+  expect(await prisma.medicion.count()).toBe(0)
 })
