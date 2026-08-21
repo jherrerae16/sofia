@@ -2598,10 +2598,14 @@ export async function crearAnimalesAccion(datos: FormData) {
   const pesos: Record<string, number> = {}
 
   for (const linea of lineas) {
-    const [chapeta, peso] = linea.split(/[\s,;]+/)
-    if (!chapeta || !peso) {
+    // Se separa SOLO en la primera aparición de espacio, coma o punto y coma.
+    // Un `split` global partiría "002 158,5" en tres pedazos y perdería el ",5":
+    // el animal entraría con 158 kg en vez de 158,5 y nadie se enteraría.
+    const partes = linea.match(/^(\S+)[\s,;]+(.+)$/)
+    if (!partes) {
       throw new Error(`Línea mal formada: "${linea}". Se espera "chapeta peso".`)
     }
+    const [, chapeta, peso] = partes
     chapetas.push(chapeta)
     pesos[chapeta] = Number(peso.replace(',', '.'))
   }
