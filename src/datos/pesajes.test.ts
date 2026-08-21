@@ -219,4 +219,46 @@ describe('pesoVivoPorLote', () => {
     const pesos = await pesoVivoPorLote()
     expect(pesos.get(loteId)).toBe(324)
   })
+
+  it('sin filtro, suma lotes de cualquier tipo -- la carga sobre el potrero no distingue leche de ceba', async () => {
+    const loteLecheId = await crearLote({ nombre: 'Leche 01', tipo: 'leche', fechaApertura: '2026-09-01' })
+    await crearAnimales({
+      loteId: loteLecheId,
+      chapetas: ['901'],
+      sexo: 'hembra',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: null,
+      pesos: { '901': 480 },
+    })
+
+    const pesos = await pesoVivoPorLote()
+    expect(pesos.get(loteId)).toBe(300) // 150 + 150, sin ningún pesaje todavía
+    expect(pesos.get(loteLecheId)).toBe(480)
+  })
+
+  it('con filtro de tipo, solo suma los lotes de ese tipo -- la portada de "Engorde" no debe contar la lechería', async () => {
+    const loteLecheId = await crearLote({ nombre: 'Leche 01', tipo: 'leche', fechaApertura: '2026-09-01' })
+    await crearAnimales({
+      loteId: loteLecheId,
+      chapetas: ['901'],
+      sexo: 'hembra',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: null,
+      pesos: { '901': 480 },
+    })
+
+    const pesosCeba = await pesoVivoPorLote('ceba')
+    expect(pesosCeba.get(loteId)).toBe(300)
+    expect(pesosCeba.has(loteLecheId)).toBe(false)
+
+    const pesosLeche = await pesoVivoPorLote('leche')
+    expect(pesosLeche.get(loteLecheId)).toBe(480)
+    expect(pesosLeche.has(loteId)).toBe(false)
+  })
 })

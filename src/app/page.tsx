@@ -41,7 +41,10 @@ export default async function Hoy() {
     errorParametros = error.message
   }
 
-  const pesos = await pesoVivoPorLote()
+  // "Peso vivo total" va bajo el encabezado "Engorde": sin filtrar por tipo
+  // de lote, sumaría también los lotes de leche, que el esquema ya admite y
+  // que la pantalla de lotes ofrece crear.
+  const pesos = await pesoVivoPorLote('ceba')
   const ultimos = await ultimoPesoPorAnimal()
   const vencidos = await eventosVencidos(hoy)
 

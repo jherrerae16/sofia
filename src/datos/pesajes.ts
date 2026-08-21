@@ -1,4 +1,4 @@
-import type { MetodoPesaje } from '@prisma/client'
+import type { MetodoPesaje, TipoLote } from '@prisma/client'
 import type { Medicion } from '@/calc/gdp'
 import type { FechaISO } from '@/calc/tipos'
 import { validarMedicion, veredictoMasGrave, type Nivel } from '@/calc/validacion'
@@ -152,10 +152,15 @@ export async function ultimoPesoPorAnimal(): Promise<Map<string, Medicion>> {
 /**
  * Peso vivo de cada lote. Un animal sin ningún pesaje cuenta con su peso de entrada:
  * excluirlo subestimaría la carga sobre el potrero, que es una alerta de manejo real.
+ *
+ * Sin `tipo`, suma lotes de cualquier tipo: es lo que necesita la carga sobre el
+ * potrero, porque el pasto no distingue entre una vaca de leche y un novillo de
+ * ceba. Con `tipo`, filtra a los lotes de ese tipo -- es lo que necesita una
+ * pantalla como la portada, que solo debe contar el engorde bajo ese título.
  */
-export async function pesoVivoPorLote(): Promise<Map<string, number>> {
+export async function pesoVivoPorLote(tipo?: TipoLote): Promise<Map<string, number>> {
   const animales = await prisma.animal.findMany({
-    where: { estado: 'activo' },
+    where: { estado: 'activo', ...(tipo ? { lote: { tipo } } : {}) },
     select: { id: true, loteId: true, pesoEntradaKg: true },
   })
   const ultimos = await ultimoPesoPorAnimal()
