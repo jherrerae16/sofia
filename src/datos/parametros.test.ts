@@ -43,6 +43,20 @@ describe('leerUmbrales', () => {
   it('lanza un error si faltan umbrales, en lugar de inventarlos', async () => {
     await expect(leerUmbrales('2026-10-01')).rejects.toThrow('umbral_excelente')
   })
+
+  it('lanza un error si un umbral guardado no es un número, en vez de clasificar todo como crítico', async () => {
+    // Si esto no se validara, `Number('no-es-un-numero')` da NaN, la
+    // comparación `gdp >= NaN` es siempre falsa, y clasificar caería siempre
+    // en 'critico' sin que nadie se entere de que la causa es un dato mal
+    // guardado, no el desempeño de los animales.
+    await guardarParametro('umbral_excelente', 'no-es-un-numero', '2026-09-01', 'u1')
+    await guardarParametro('umbral_bueno', '750', '2026-09-01', 'u1')
+    await guardarParametro('umbral_normal', '600', '2026-09-01', 'u1')
+    await guardarParametro('umbral_bajo', '400', '2026-09-01', 'u1')
+
+    await expect(leerUmbrales('2026-10-01')).rejects.toThrow('umbral_excelente')
+    await expect(leerUmbrales('2026-10-01')).rejects.toThrow(/número/)
+  })
 })
 
 describe('leerGdpObjetivo', () => {

@@ -47,7 +47,18 @@ async function exigir(clave: string, en: FechaISO): Promise<number> {
       `Falta el parámetro ${clave} vigente en ${en}. Configúralo antes de continuar.`,
     )
   }
-  return Number(valor)
+  const numero = Number(valor)
+  // Un umbral guardado como texto no numérico no puede colar como NaN: `gdp
+  // >= NaN` es siempre falso, y eso clasificaría a todos los animales como
+  // 'critico' sin que nadie se entere de que la causa es un dato mal
+  // guardado. Se rechaza igual que un parámetro ausente.
+  if (!Number.isFinite(numero)) {
+    throw new ParametroFaltanteError(
+      clave,
+      `El parámetro ${clave} vigente en ${en} no es un número (quedó guardado "${valor}"). Corrígelo antes de continuar.`,
+    )
+  }
+  return numero
 }
 
 /**
