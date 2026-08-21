@@ -1,5 +1,5 @@
 import { hoyBogota } from '@/calc/fechas'
-import { desempeno, type Periodo } from '@/datos/desempeno'
+import { desempeno, normalizarPeriodo, type Periodo } from '@/datos/desempeno'
 import { leerGdpObjetivo } from '@/datos/parametros'
 import { Cifra } from '@/ui/Cifra'
 import { Semaforo } from '@/ui/Semaforo'
@@ -16,10 +16,14 @@ const PERIODOS: { valor: Periodo; texto: string }[] = [
 export default async function ComoVamos({
   searchParams,
 }: {
-  searchParams: Promise<{ periodo?: Periodo }>
+  // Un tipo aquí es solo una afirmación de compilación: la dirección web
+  // puede traer cualquier texto (un enlace viejo, un dedazo), así que se
+  // recibe como `string` y se valida con `normalizarPeriodo` antes de usarlo.
+  searchParams: Promise<{ periodo?: string }>
 }) {
   const hoy = hoyBogota()
-  const { periodo = 'ultimo_pesaje' } = await searchParams
+  const { periodo: periodoParam } = await searchParams
+  const periodo = normalizarPeriodo(periodoParam)
   const { filas, resumen } = await desempeno(periodo, hoy)
   const objetivo = await leerGdpObjetivo(hoy)
 

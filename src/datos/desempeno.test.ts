@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { crearAnimales, listarAnimalesDeLote } from './animales'
 import { prisma } from './cliente'
-import { desempeno } from './desempeno'
+import { desempeno, normalizarPeriodo } from './desempeno'
 import { crearLote } from './lotes'
 import { guardarParametro } from './parametros'
 import { guardarPesaje } from './pesajes'
@@ -286,5 +286,25 @@ describe('desempeno', () => {
     expect(seis.fechaUltimoPesaje).toBe('2026-09-20')
     expect(seis.gdpPeriodo).toBeNull()
     expect(seis.clasificacion).toBe('sin_dato')
+  })
+})
+
+describe('normalizarPeriodo', () => {
+  it('acepta cada uno de los periodos válidos tal cual', () => {
+    expect(normalizarPeriodo('ultimo_pesaje')).toBe('ultimo_pesaje')
+    expect(normalizarPeriodo('dias_30')).toBe('dias_30')
+    expect(normalizarPeriodo('dias_60')).toBe('dias_60')
+    expect(normalizarPeriodo('dias_90')).toBe('dias_90')
+    expect(normalizarPeriodo('acumulado')).toBe('acumulado')
+  })
+
+  it('cae a ultimo_pesaje cuando el valor de la URL no es un periodo conocido', () => {
+    // Un enlace viejo o un dedazo (p. ej. "?periodo=dias_45") no debe colar
+    // silenciosamente: sin esta validación, la ventana de días queda
+    // indefinida, todas las comparaciones dan falso y la función retrocede a
+    // la ganancia acumulada disfrazada de ganancia del periodo.
+    expect(normalizarPeriodo('dias_45')).toBe('ultimo_pesaje')
+    expect(normalizarPeriodo(undefined)).toBe('ultimo_pesaje')
+    expect(normalizarPeriodo('')).toBe('ultimo_pesaje')
   })
 })

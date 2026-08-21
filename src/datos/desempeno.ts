@@ -10,6 +10,30 @@ import { historialDeAnimal } from './pesajes'
 
 export type Periodo = 'ultimo_pesaje' | 'dias_30' | 'dias_60' | 'dias_90' | 'acumulado'
 
+const PERIODOS_VALIDOS: readonly Periodo[] = [
+  'ultimo_pesaje',
+  'dias_30',
+  'dias_60',
+  'dias_90',
+  'acumulado',
+]
+
+/**
+ * Valida el periodo recibido de la URL contra la lista de periodos conocidos.
+ *
+ * Un tipo (`Periodo`) es una afirmación en tiempo de compilación, no una
+ * garantía en tiempo de ejecución: la dirección web puede traer cualquier
+ * texto. Sin esta validación, un valor que no coincide con ninguna clave de
+ * `VENTANA` deja la ventana de días indefinida, todas las comparaciones dan
+ * falso y `referencia` retrocede en silencio a la ganancia acumulada
+ * disfrazada de ganancia del periodo. Cae a 'ultimo_pesaje' cuando no coincide.
+ */
+export function normalizarPeriodo(valor: string | undefined): Periodo {
+  return (PERIODOS_VALIDOS as readonly string[]).includes(valor ?? '')
+    ? (valor as Periodo)
+    : 'ultimo_pesaje'
+}
+
 const VENTANA: Record<Exclude<Periodo, 'ultimo_pesaje' | 'acumulado'>, number> = {
   dias_30: 30,
   dias_60: 60,
