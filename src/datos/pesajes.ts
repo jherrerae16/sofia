@@ -62,8 +62,14 @@ export async function revisarTanda(
       }
 
       const historial = await historialDeAnimal(animal.id)
-      const anteriores = historial.filter((m) => m.fecha < fecha)
-      const anterior = anteriores.at(-1) ?? null
+      // Se incluye una medición de la misma fecha (no solo las estrictamente
+      // anteriores): si ya existe una, `anterior` queda apuntando a ella y
+      // `validarMedicion` la rechaza por "mismo día" más abajo. Filtrarla aquí
+      // la volvía invisible para esa regla y dejaba colar reenvíos duplicados
+      // de la tanda completa. Cuando no hay duplicado, el resultado es el
+      // mismo de siempre: la última medición estrictamente anterior.
+      const previas = historial.filter((m) => m.fecha <= fecha)
+      const anterior = previas.at(-1) ?? null
 
       const veredicto = validarMedicion(
         { fecha: aFechaISO(animal.fechaEntrada), pesoKg: aKg(animal.pesoEntradaKg) },

@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { guardarAccion, revisarAccion, type EstadoDigitacion } from './acciones'
 import { formatearGdp } from '@/ui/formato'
 
@@ -19,19 +19,80 @@ export function TablaPesaje({
   animales: { id: string; chapeta: string }[]
   hoy: string
 }) {
+  // Un guardado exitoso limpia el formulario entero: en vez de ir
+  // sincronizando a mano cada input y cada useActionState, se remonta
+  // `Formulario` cambiando `version` como key. Es más simple y más difícil
+  // de dejar a medias que resetear cada pieza por separado. El aviso de
+  // éxito vive aquí arriba, fuera del remonte, para que no desaparezca
+  // junto con el formulario que lo generó.
+  const [version, setVersion] = useState(0)
+  const [avisoGuardado, setAvisoGuardado] = useState(false)
+
+  const alGuardar = useCallback(() => {
+    setAvisoGuardado(true)
+    setVersion((v) => v + 1)
+  }, [])
+  const alEditar = useCallback(() => setAvisoGuardado(false), [])
+
+  return (
+    <div className="space-y-4">
+      {avisoGuardado && <p className="text-pasto">Pesaje guardado.</p>}
+      <Formulario key={version} animales={animales} hoy={hoy} alGuardar={alGuardar} alEditar={alEditar} />
+    </div>
+  )
+}
+
+function Formulario({
+  animales,
+  hoy,
+  alGuardar,
+  alEditar,
+}: {
+  animales: { id: string; chapeta: string }[]
+  hoy: string
+  alGuardar: () => void
+  alEditar: () => void
+}) {
   const [estado, revisar, revisando] = useActionState(revisarAccion, INICIAL)
   const [guardadoEstado, guardar, guardando] = useActionState(guardarAccion, INICIAL)
 
-  const porAnimal = new Map(estado.revision.map((r) => [r.animalId, r]))
-  const hayRechazos = estado.revision.some((r) => r.nivel === 'rechazo')
-  const yaRevisado = estado.revision.length > 0
+  // Una revisión solo sigue siendo válida mientras nadie toque un peso (ni la
+  // fecha) después de pedirla: de lo contrario el veredicto en pantalla
+  // dejaría de corresponder a lo que se enviaría. Cualquier cambio invalida
+  // la revisión vigente y el botón vuelve a pedir "Revisar" antes de guardar.
+  // Se usa useLayoutEffect (no useEffect) para que, al llegar una revisión
+  // nueva, se marque vigente antes del primer pintado y no haya un parpadeo
+  // de la columna de ganancia quedando vacía por un instante.
+  const [vigente, setVigente] = useState(true)
+  useLayoutEffect(() => setVigente(true), [estado])
+
+  useEffect(() => {
+    if (guardadoEstado.guardado) alGuardar()
+  }, [guardadoEstado, alGuardar])
+
+  function marcarEditado() {
+    setVigente(false)
+    alEditar()
+  }
+
+  const revision = vigente ? estado.revision : []
+  const porAnimal = new Map(revision.map((r) => [r.animalId, r]))
+  const hayRechazos = revision.some((r) => r.nivel === 'rechazo')
+  const yaRevisado = revision.length > 0
 
   return (
     <form action={yaRevisado && !hayRechazos ? guardar : revisar} className="space-y-4">
       <div className="flex flex-wrap gap-3">
         <label className="text-sm">
           Fecha
-          <input name="fecha" type="date" defaultValue={hoy} required className="ml-2 rounded border border-tierra/30 p-2" />
+          <input
+            name="fecha"
+            type="date"
+            defaultValue={hoy}
+            required
+            onChange={marcarEditado}
+            className="ml-2 rounded border border-tierra/30 p-2"
+          />
         </label>
         <label className="text-sm">
           Método
@@ -57,7 +118,7 @@ export function TablaPesaje({
         </thead>
         <tbody>
           {animales.map((animal) => {
-            const revision = porAnimal.get(animal.id)
+            const revisionFila = porAnimal.get(animal.id)
             return (
               <tr key={animal.id} className="border-b border-tierra/10">
                 <td className="p-2 font-medium">{animal.chapeta}</td>
@@ -66,11 +127,12 @@ export function TablaPesaje({
                     name={`peso_${animal.id}`}
                     inputMode="decimal"
                     autoComplete="off"
+                    onChange={marcarEditado}
                     className="cifra w-24 rounded border border-tierra/30 p-2 text-right"
                   />
                 </td>
-                <td className={`cifra p-2 ${revision ? COLOR_NIVEL[revision.nivel] : ''}`}>
-                  {revision ? `${formatearGdp(revision.gdp)} ${revision.mensaje}` : ''}
+                <td className={`cifra p-2 ${revisionFila ? COLOR_NIVEL[revisionFila.nivel] : ''}`}>
+                  {revisionFila ? `${formatearGdp(revisionFila.gdp)} ${revisionFila.mensaje}` : ''}
                 </td>
               </tr>
             )
@@ -85,7 +147,6 @@ export function TablaPesaje({
 
       {estado.error && <p className="text-rojo-tierra">{estado.error}</p>}
       {guardadoEstado.error && <p className="text-rojo-tierra">{guardadoEstado.error}</p>}
-      {guardadoEstado.guardado && <p className="text-pasto">Pesaje guardado.</p>}
       {hayRechazos && (
         <p className="text-rojo-tierra">
           Corrige las filas en rojo antes de guardar. No se guardará nada mientras haya rechazos.

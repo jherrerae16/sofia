@@ -57,6 +57,24 @@ describe('revisarTanda', () => {
     )
     expect(revision[0].nivel).toBe('rechazo')
   })
+
+  it('rechaza un segundo pesaje del mismo animal en la misma fecha', async () => {
+    await guardarPesaje({
+      fecha: '2026-10-01',
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      notas: null,
+      registradoPorId: 'u1',
+      mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
+    })
+
+    const revision = await revisarTanda(
+      [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
+      '2026-10-01',
+    )
+    expect(revision[0].nivel).toBe('rechazo')
+    expect(revision[0].mensaje).toContain('mismo día')
+  })
 })
 
 describe('guardarPesaje', () => {
@@ -101,6 +119,31 @@ describe('guardarPesaje', () => {
       mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 120 }],
     })
     expect(pesajeId).toBeTruthy()
+  })
+
+  it('rechaza reenviar la misma tanda en la misma fecha y no duplica el pesaje', async () => {
+    await guardarPesaje({
+      fecha: '2026-10-01',
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      notas: null,
+      registradoPorId: 'u1',
+      mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
+    })
+
+    await expect(
+      guardarPesaje({
+        fecha: '2026-10-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
+      }),
+    ).rejects.toThrow(/mismo día/)
+
+    expect(await prisma.pesaje.count()).toBe(1)
+    expect(await prisma.medicion.count()).toBe(1)
   })
 })
 

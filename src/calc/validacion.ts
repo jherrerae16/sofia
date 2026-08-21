@@ -23,7 +23,11 @@ export function validarMedicion(
   anterior: Medicion | null,
   nueva: Medicion,
 ): Veredicto {
-  if (nueva.pesoKg <= 0) {
+  // `!Number.isFinite` cubre NaN además de negativos y cero: un texto no
+  // numérico digitado por error (p. ej. "17o" en vez de "170") se convierte
+  // en NaN antes de llegar aquí, y `NaN <= 0` es `false`, así que sin este
+  // chequeo colaría como nivel 'ok' con una ganancia diaria también NaN.
+  if (!Number.isFinite(nueva.pesoKg) || nueva.pesoKg <= 0) {
     return { nivel: 'rechazo', mensaje: 'El peso debe ser mayor que cero.', gdp: null }
   }
 

@@ -32,6 +32,13 @@ describe('validarMedicion', () => {
     expect(veredicto.mensaje).toContain('mayor que cero')
   })
 
+  it('rechaza un peso que no es un número, como el que deja un texto mal digitado', () => {
+    const veredicto = validarMedicion(entrada, null, { fecha: '2026-10-01', pesoKg: Number('17o') })
+    expect(veredicto.nivel).toBe('rechazo')
+    expect(veredicto.mensaje).toContain('mayor que cero')
+    expect(veredicto.gdp).toBeNull()
+  })
+
   it('rechaza un segundo pesaje el mismo día', () => {
     const veredicto = validarMedicion(
       entrada,
