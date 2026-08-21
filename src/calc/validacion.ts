@@ -22,6 +22,7 @@ export function validarMedicion(
   entrada: { fecha: FechaISO; pesoKg: number },
   anterior: Medicion | null,
   nueva: Medicion,
+  hoy: FechaISO,
 ): Veredicto {
   // `!Number.isFinite` cubre NaN además de negativos y cero: un texto no
   // numérico digitado por error (p. ej. "17o" en vez de "170") se convierte
@@ -35,6 +36,18 @@ export function validarMedicion(
     return {
       nivel: 'rechazo',
       mensaje: `La fecha del pesaje es anterior al ingreso del animal (${entrada.fecha}).`,
+      gdp: null,
+    }
+  }
+
+  // El error clásico de enero: escribir el año que viene en vez del actual.
+  // Un pesaje "del futuro" no solo muestra una ganancia diaria absurda (o
+  // negativa): además apaga durante meses la alarma de frescura, que mide
+  // los días desde el último dato contando hacia hoy.
+  if (diasEntre(hoy, nueva.fecha) > 0) {
+    return {
+      nivel: 'rechazo',
+      mensaje: `La fecha del pesaje es posterior a hoy (${hoy}).`,
       gdp: null,
     }
   }

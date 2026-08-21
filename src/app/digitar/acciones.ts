@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import type { MetodoPesaje } from '@prisma/client'
 import { usuarioActual } from '@/auth'
+import { hoyBogota } from '@/calc/fechas'
 import { guardarPesaje, revisarTanda, type RevisionTanda } from '@/datos/pesajes'
 
 export type EstadoDigitacion = {
@@ -32,7 +33,7 @@ export async function revisarAccion(
   if (entradas.length === 0) {
     return { revision: [], guardado: false, error: 'No hay ningún peso digitado.' }
   }
-  return { revision: await revisarTanda(entradas, fecha), guardado: false, error: null }
+  return { revision: await revisarTanda(entradas, fecha, hoyBogota()), guardado: false, error: null }
 }
 
 export async function guardarAccion(
@@ -41,14 +42,17 @@ export async function guardarAccion(
 ): Promise<EstadoDigitacion> {
   const usuario = await usuarioActual()
   try {
-    await guardarPesaje({
-      fecha: String(datos.get('fecha')),
-      metodo: String(datos.get('metodo')) as MetodoPesaje,
-      responsable: String(datos.get('responsable')),
-      notas: (String(datos.get('notas')) || null) as string | null,
-      registradoPorId: usuario.id,
-      mediciones: leerEntradas(datos),
-    })
+    await guardarPesaje(
+      {
+        fecha: String(datos.get('fecha')),
+        metodo: String(datos.get('metodo')) as MetodoPesaje,
+        responsable: String(datos.get('responsable')),
+        notas: (String(datos.get('notas')) || null) as string | null,
+        registradoPorId: usuario.id,
+        mediciones: leerEntradas(datos),
+      },
+      hoyBogota(),
+    )
     revalidatePath('/como-vamos')
     revalidatePath('/')
     return { revision: [], guardado: true, error: null }

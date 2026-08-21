@@ -41,6 +41,7 @@ export async function historialDeAnimal(animalId: string): Promise<Medicion[]> {
 export async function revisarTanda(
   entradas: EntradaTanda[],
   fecha: FechaISO,
+  hoy: FechaISO,
 ): Promise<RevisionTanda[]> {
   const animales = await prisma.animal.findMany({
     where: { id: { in: entradas.map((e) => e.animalId) } },
@@ -76,6 +77,7 @@ export async function revisarTanda(
         { fecha: aFechaISO(animal.fechaEntrada), pesoKg: aKg(animal.pesoEntradaKg) },
         anterior,
         nueva,
+        hoy,
       )
 
       // Un pesaje digitado con retraso también tiene un tramo hacia
@@ -89,7 +91,7 @@ export async function revisarTanda(
       // grave. El `gdp` que se muestra sigue siendo el del tramo hacia
       // atrás: es la cifra que el usuario espera ver en su fila.
       const posterior = historial.find((m) => m.fecha > fecha) ?? null
-      const veredictoPosterior = posterior ? validarMedicion(nueva, null, posterior) : null
+      const veredictoPosterior = posterior ? validarMedicion(nueva, null, posterior, hoy) : null
       const definitivo = veredictoPosterior
         ? veredictoMasGrave(veredicto, veredictoPosterior)
         : veredicto
@@ -105,8 +107,8 @@ export async function revisarTanda(
   )
 }
 
-export async function guardarPesaje(datos: DatosPesaje): Promise<string> {
-  const revision = await revisarTanda(datos.mediciones, datos.fecha)
+export async function guardarPesaje(datos: DatosPesaje, hoy: FechaISO): Promise<string> {
+  const revision = await revisarTanda(datos.mediciones, datos.fecha, hoy)
   const rechazos = revision.filter((r) => r.nivel === 'rechazo')
   if (rechazos.length > 0) {
     throw new Error(

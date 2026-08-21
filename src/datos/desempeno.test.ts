@@ -41,25 +41,31 @@ beforeEach(async () => {
   const animales = await listarAnimalesDeLote(loteId)
   idPorChapeta = Object.fromEntries(animales.map((a) => [a.chapeta, a.id]))
 
-  await guardarPesaje({
-    fecha: '2026-10-01',
-    metodo: 'cinta',
-    responsable: 'Joseph',
-    notas: null,
-    registradoPorId: 'u1',
-    mediciones: [
-      { animalId: idPorChapeta['001'], pesoKg: 174 },
-      { animalId: idPorChapeta['002'], pesoKg: 162 },
-    ],
-  })
-  await guardarPesaje({
-    fecha: '2026-11-01',
-    metodo: 'cinta',
-    responsable: 'Joseph',
-    notas: null,
-    registradoPorId: 'u1',
-    mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 202 }],
-  })
+  await guardarPesaje(
+    {
+      fecha: '2026-10-01',
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      notas: null,
+      registradoPorId: 'u1',
+      mediciones: [
+        { animalId: idPorChapeta['001'], pesoKg: 174 },
+        { animalId: idPorChapeta['002'], pesoKg: 162 },
+      ],
+    },
+    '2026-10-01',
+  )
+  await guardarPesaje(
+    {
+      fecha: '2026-11-01',
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      notas: null,
+      registradoPorId: 'u1',
+      mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 202 }],
+    },
+    '2026-11-01',
+  )
 })
 
 describe('desempeno', () => {
@@ -129,22 +135,28 @@ describe('desempeno', () => {
     const id004 = animales.find((a) => a.chapeta === '004')!.id
 
     // Dos pesajes recientes y cercanos entre sí, ambos dentro de los últimos 30 días.
-    await guardarPesaje({
-      fecha: '2026-10-16',
-      metodo: 'cinta',
-      responsable: 'Joseph',
-      notas: null,
-      registradoPorId: 'u1',
-      mediciones: [{ animalId: id004, pesoKg: 181.5 }],
-    })
-    await guardarPesaje({
-      fecha: '2026-10-31',
-      metodo: 'cinta',
-      responsable: 'Joseph',
-      notas: null,
-      registradoPorId: 'u1',
-      mediciones: [{ animalId: id004, pesoKg: 192.0 }],
-    })
+    await guardarPesaje(
+      {
+        fecha: '2026-10-16',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: id004, pesoKg: 181.5 }],
+      },
+      '2026-10-16',
+    )
+    await guardarPesaje(
+      {
+        fecha: '2026-10-31',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: id004, pesoKg: 192.0 }],
+      },
+      '2026-10-31',
+    )
 
     // Cálculo a mano:
     // La ventana de dias_30 con hoy=2026-11-15 cubre desde 2026-10-16 (diasEntre <= 30).
@@ -178,22 +190,28 @@ describe('desempeno', () => {
     const id005 = animales.find((a) => a.chapeta === '005')!.id
 
     // Un pesaje viejo (fuera de la ventana de 60 días) y uno reciente (dentro).
-    await guardarPesaje({
-      fecha: '2026-09-01',
-      metodo: 'cinta',
-      responsable: 'Joseph',
-      notas: null,
-      registradoPorId: 'u1',
-      mediciones: [{ animalId: id005, pesoKg: 172 }],
-    })
-    await guardarPesaje({
-      fecha: '2026-11-01',
-      metodo: 'cinta',
-      responsable: 'Joseph',
-      notas: null,
-      registradoPorId: 'u1',
-      mediciones: [{ animalId: id005, pesoKg: 214 }],
-    })
+    await guardarPesaje(
+      {
+        fecha: '2026-09-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: id005, pesoKg: 172 }],
+      },
+      '2026-09-01',
+    )
+    await guardarPesaje(
+      {
+        fecha: '2026-11-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: id005, pesoKg: 214 }],
+      },
+      '2026-11-01',
+    )
 
     // Cálculo a mano:
     // La ventana de dias_60 con hoy=2026-11-15 cubre desde 2026-09-16 (diasEntre <= 60).
@@ -226,22 +244,28 @@ describe('desempeno', () => {
     const id006 = animales.find((a) => a.chapeta === '006')!.id
 
     // Dos pesajes, ambos viejos: el animal no se ha vuelto a pesar en los últimos 30 días.
-    await guardarPesaje({
-      fecha: '2026-09-01',
-      metodo: 'cinta',
-      responsable: 'Joseph',
-      notas: null,
-      registradoPorId: 'u1',
-      mediciones: [{ animalId: id006, pesoKg: 162 }],
-    })
-    await guardarPesaje({
-      fecha: '2026-09-20',
-      metodo: 'cinta',
-      responsable: 'Joseph',
-      notas: null,
-      registradoPorId: 'u1',
-      mediciones: [{ animalId: id006, pesoKg: 175.3 }],
-    })
+    await guardarPesaje(
+      {
+        fecha: '2026-09-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: id006, pesoKg: 162 }],
+      },
+      '2026-09-01',
+    )
+    await guardarPesaje(
+      {
+        fecha: '2026-09-20',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: id006, pesoKg: 175.3 }],
+      },
+      '2026-09-20',
+    )
 
     // Cálculo a mano:
     // La ventana de dias_30 con hoy=2026-11-15 cubre desde 2026-10-16 (diasEntre <= 30).

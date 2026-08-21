@@ -36,6 +36,7 @@ describe('revisarTanda', () => {
     const revision = await revisarTanda(
       [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
       '2026-10-01',
+      '2026-10-01',
     )
     expect(revision[0].gdp).toBe(800)
     expect(revision[0].nivel).toBe('ok')
@@ -45,6 +46,7 @@ describe('revisarTanda', () => {
     const revision = await revisarTanda(
       [{ animalId: idPorChapeta['001'], pesoKg: 400 }],
       '2026-10-01',
+      '2026-10-01',
     )
     expect(revision[0].nivel).toBe('advertencia')
     expect(revision[0].mensaje).toContain('g/día')
@@ -53,6 +55,7 @@ describe('revisarTanda', () => {
   it('rechaza un pesaje anterior al ingreso del animal', async () => {
     const revision = await revisarTanda(
       [{ animalId: idPorChapeta['001'], pesoKg: 150 }],
+      '2026-08-01',
       '2026-08-01',
     )
     expect(revision[0].nivel).toBe('rechazo')
@@ -65,18 +68,22 @@ describe('revisarTanda', () => {
     // ve perfectamente normal; el dedazo únicamente se nota en el tramo hacia
     // el pesaje posterior: (202 - 160) * 1000 / 17 días = 2470.58... -> 2471 g/día,
     // por encima del umbral de 2000.
-    await guardarPesaje({
-      fecha: '2026-11-01',
-      metodo: 'cinta',
-      responsable: 'Joseph',
-      notas: null,
-      registradoPorId: 'u1',
-      mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 202 }],
-    })
+    await guardarPesaje(
+      {
+        fecha: '2026-11-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 202 }],
+      },
+      '2026-11-01',
+    )
 
     const revision = await revisarTanda(
       [{ animalId: idPorChapeta['001'], pesoKg: 160 }],
       '2026-10-15',
+      '2026-11-15',
     )
 
     expect(revision[0].nivel).toBe('advertencia')
@@ -88,17 +95,21 @@ describe('revisarTanda', () => {
   })
 
   it('rechaza un segundo pesaje del mismo animal en la misma fecha', async () => {
-    await guardarPesaje({
-      fecha: '2026-10-01',
-      metodo: 'cinta',
-      responsable: 'Joseph',
-      notas: null,
-      registradoPorId: 'u1',
-      mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
-    })
+    await guardarPesaje(
+      {
+        fecha: '2026-10-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
+      },
+      '2026-10-01',
+    )
 
     const revision = await revisarTanda(
       [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
+      '2026-10-01',
       '2026-10-01',
     )
     expect(revision[0].nivel).toBe('rechazo')
@@ -108,14 +119,17 @@ describe('revisarTanda', () => {
 
 describe('guardarPesaje', () => {
   it('guarda una sesión con solo algunos animales del lote', async () => {
-    const pesajeId = await guardarPesaje({
-      fecha: '2026-10-01',
-      metodo: 'cinta',
-      responsable: 'Joseph',
-      notas: null,
-      registradoPorId: 'u1',
-      mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
-    })
+    const pesajeId = await guardarPesaje(
+      {
+        fecha: '2026-10-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
+      },
+      '2026-10-01',
+    )
 
     expect(pesajeId).toBeTruthy()
     const ultimos = await ultimoPesoPorAnimal()
@@ -125,50 +139,62 @@ describe('guardarPesaje', () => {
 
   it('no guarda nada si alguna medición es rechazable', async () => {
     await expect(
-      guardarPesaje({
-        fecha: '2026-08-01',
-        metodo: 'cinta',
-        responsable: 'Joseph',
-        notas: null,
-        registradoPorId: 'u1',
-        mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
-      }),
+      guardarPesaje(
+        {
+          fecha: '2026-08-01',
+          metodo: 'cinta',
+          responsable: 'Joseph',
+          notas: null,
+          registradoPorId: 'u1',
+          mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
+        },
+        '2026-08-01',
+      ),
     ).rejects.toThrow()
 
     expect(await prisma.pesaje.count()).toBe(0)
   })
 
   it('guarda aunque haya advertencias, porque la pérdida de peso puede ser real', async () => {
-    const pesajeId = await guardarPesaje({
-      fecha: '2026-10-01',
-      metodo: 'cinta',
-      responsable: 'Joseph',
-      notas: 'Verano fuerte',
-      registradoPorId: 'u1',
-      mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 120 }],
-    })
+    const pesajeId = await guardarPesaje(
+      {
+        fecha: '2026-10-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: 'Verano fuerte',
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 120 }],
+      },
+      '2026-10-01',
+    )
     expect(pesajeId).toBeTruthy()
   })
 
   it('rechaza reenviar la misma tanda en la misma fecha y no duplica el pesaje', async () => {
-    await guardarPesaje({
-      fecha: '2026-10-01',
-      metodo: 'cinta',
-      responsable: 'Joseph',
-      notas: null,
-      registradoPorId: 'u1',
-      mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
-    })
-
-    await expect(
-      guardarPesaje({
+    await guardarPesaje(
+      {
         fecha: '2026-10-01',
         metodo: 'cinta',
         responsable: 'Joseph',
         notas: null,
         registradoPorId: 'u1',
         mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
-      }),
+      },
+      '2026-10-01',
+    )
+
+    await expect(
+      guardarPesaje(
+        {
+          fecha: '2026-10-01',
+          metodo: 'cinta',
+          responsable: 'Joseph',
+          notas: null,
+          registradoPorId: 'u1',
+          mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
+        },
+        '2026-10-01',
+      ),
     ).rejects.toThrow(/mismo día/)
 
     expect(await prisma.pesaje.count()).toBe(1)
@@ -178,14 +204,17 @@ describe('guardarPesaje', () => {
 
 describe('pesoVivoPorLote', () => {
   it('usa el último peso medido de cada animal y el de entrada si nunca se pesó', async () => {
-    await guardarPesaje({
-      fecha: '2026-10-01',
-      metodo: 'cinta',
-      responsable: 'Joseph',
-      notas: null,
-      registradoPorId: 'u1',
-      mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
-    })
+    await guardarPesaje(
+      {
+        fecha: '2026-10-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
+      },
+      '2026-10-01',
+    )
 
     const pesos = await pesoVivoPorLote()
     expect(pesos.get(loteId)).toBe(324)

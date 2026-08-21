@@ -89,6 +89,7 @@ function Formulario({
             name="fecha"
             type="date"
             defaultValue={hoy}
+            max={hoy}
             required
             onChange={marcarEditado}
             className="ml-2 rounded border border-tierra/30 p-2"
