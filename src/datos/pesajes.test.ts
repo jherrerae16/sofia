@@ -8,6 +8,7 @@ let loteId: string
 let idPorChapeta: Record<string, string>
 
 beforeEach(async () => {
+  await prisma.movimiento.deleteMany()
   await prisma.medicion.deleteMany()
   await prisma.pesaje.deleteMany()
   await prisma.animal.deleteMany()

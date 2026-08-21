@@ -6,6 +6,7 @@ import { crearLote } from './lotes'
 let loteId: string
 
 beforeEach(async () => {
+  await prisma.movimiento.deleteMany()
   await prisma.medicion.deleteMany()
   await prisma.animal.deleteMany()
   await prisma.lote.deleteMany()

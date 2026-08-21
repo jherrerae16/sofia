@@ -1,6 +1,8 @@
 import { hoyBogota } from '@/calc/fechas'
+import { listarLotes } from '@/datos/lotes'
 import { listarPotreros } from '@/datos/potreros'
 import { formatearKg } from '@/ui/formato'
+import { moverLoteAccion } from './acciones'
 
 const ETIQUETA_CAPACIDAD = {
   holgado: { texto: 'Holgado', clase: 'text-pasto' },
@@ -9,7 +11,9 @@ const ETIQUETA_CAPACIDAD = {
 }
 
 export default async function Potreros() {
-  const potreros = await listarPotreros(hoyBogota())
+  const hoy = hoyBogota()
+  const potreros = await listarPotreros(hoy)
+  const lotes = await listarLotes()
 
   return (
     <main className="p-6">
@@ -46,6 +50,37 @@ export default async function Potreros() {
           ))}
         </tbody>
       </table>
+
+      <section className="mt-8 rounded-lg border border-tierra/20 bg-white p-4">
+        <h2 className="mb-3 font-serif text-xl text-pasto">Mover un lote</h2>
+        <form action={moverLoteAccion} className="flex flex-wrap items-end gap-3">
+          <label className="text-sm">
+            Lote
+            <select name="loteId" required className="ml-2 rounded border border-tierra/30 p-2">
+              {lotes.map((lote) => (
+                <option key={lote.id} value={lote.id}>
+                  {lote.nombre}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm">
+            A potrero
+            <select name="potreroDestinoId" required className="ml-2 rounded border border-tierra/30 p-2">
+              {potreros.map((potrero) => (
+                <option key={potrero.id} value={potrero.id}>
+                  {potrero.nombre}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm">
+            Fecha
+            <input name="fecha" type="date" defaultValue={hoy} required className="ml-2 rounded border border-tierra/30 p-2" />
+          </label>
+          <button className="rounded bg-pasto px-4 py-2 text-white">Mover</button>
+        </form>
+      </section>
     </main>
   )
 }
