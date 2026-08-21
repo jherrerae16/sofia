@@ -3,11 +3,18 @@ import type { FechaISO } from '@/calc/tipos'
 import { prisma } from './cliente'
 import { aFechaDb } from './conversion'
 
-/** Devuelve el valor de la clave vigente en la fecha dada, o null si no había ninguno. */
+/**
+ * Devuelve el valor de la clave vigente en la fecha dada, o null si no había ninguno.
+ *
+ * Ordena primero por fecha de vigencia y, entre filas con la misma vigencia, por
+ * fecha de creación descendente: corregir un umbral mal escrito significa insertar
+ * una segunda fila con la misma vigenteDesde, y sin este desempate cuál gana
+ * dependería del plan de ejecución de la base de datos, no del código.
+ */
 export async function leerParametro(clave: string, en: FechaISO): Promise<string | null> {
   const fila = await prisma.parametro.findFirst({
     where: { clave, vigenteDesde: { lte: aFechaDb(en) } },
-    orderBy: { vigenteDesde: 'desc' },
+    orderBy: [{ vigenteDesde: 'desc' }, { creadoEn: 'desc' }],
   })
   return fila?.valor ?? null
 }
