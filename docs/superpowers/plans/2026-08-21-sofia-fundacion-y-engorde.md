@@ -4745,8 +4745,18 @@ Expected: PASS — 2 pruebas
 
 - [ ] **Step 5: Ejecutar la suite completa**
 
-Run: `npm test && npx playwright test`
-Expected: PASS — todas las pruebas unitarias y las dos de extremo a extremo
+Las dos suites no se pueden encadenar sin volver a preparar los datos: las
+pruebas unitarias terminan dejando la base vacía, y las de extremo a extremo
+necesitan el usuario, el lote y los dos animales que siembra `preparar.ts`.
+El orden correcto es:
+
+```bash
+npx vitest run
+DATABASE_URL="postgresql://jdh@localhost:5432/sofia_test" npx tsx e2e/preparar.ts
+DATABASE_URL="postgresql://jdh@localhost:5432/sofia_test" npx playwright test
+```
+
+Expected: PASS — todas las pruebas unitarias, y después las dos de extremo a extremo
 
 - [ ] **Step 6: Commit**
 
