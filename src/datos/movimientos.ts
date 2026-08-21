@@ -19,16 +19,26 @@ export async function revisarMovimiento(
   potreroDestinoId: string,
 ): Promise<AvisoMovimiento> {
   const potrero = await prisma.potrero.findUniqueOrThrow({ where: { id: potreroDestinoId } })
+  const ocupantes = await prisma.lote.findMany({
+    where: { potreroActualId: potreroDestinoId, fechaCierre: null },
+    select: { id: true },
+  })
   const pesos = await pesoVivoPorLote()
   const pesoLote = pesos.get(loteId) ?? 0
+  // Lo que importa no es solo el lote que se mueve: es la carga total que
+  // queda sobre el potrero, sumando lo que ya está encima del destino.
+  const pesoOcupantesActuales = ocupantes
+    .filter((ocupante) => ocupante.id !== loteId)
+    .reduce((total, ocupante) => total + (pesos.get(ocupante.id) ?? 0), 0)
+  const pesoResultante = pesoOcupantesActuales + pesoLote
 
-  const estadoResultante = evaluarCapacidad(pesoLote, potrero.capacidadKg)
+  const estadoResultante = evaluarCapacidad(pesoResultante, potrero.capacidadKg)
 
   if (estadoResultante === 'sobrecargado') {
     return {
       permitido: true,
       estadoResultante,
-      mensaje: `${potrero.nombre} quedaría sobrecargado: ${Math.round(pesoLote)} kg vivos contra una capacidad de ${potrero.capacidadKg} kg.`,
+      mensaje: `${potrero.nombre} quedaría sobrecargado: ${Math.round(pesoResultante)} kg vivos contra una capacidad de ${potrero.capacidadKg} kg.`,
     }
   }
   if (estadoResultante === 'ajustado') {

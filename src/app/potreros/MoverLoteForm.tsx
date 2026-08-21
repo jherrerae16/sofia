@@ -1,0 +1,158 @@
+'use client'
+
+import { useActionState, useCallback, useEffect, useLayoutEffect, useState } from 'react'
+import type { EstadoCapacidad } from '@/calc/potrero'
+import { moverLoteAccion, revisarMovimientoAccion, type EstadoMovimiento } from './acciones'
+
+const INICIAL: EstadoMovimiento = { aviso: null, movido: false, error: null }
+
+const COLOR_ESTADO: Record<EstadoCapacidad, string> = {
+  holgado: 'text-pasto',
+  ajustado: 'text-ambar',
+  sobrecargado: 'text-rojo-tierra font-semibold',
+}
+
+type Opcion = { id: string; nombre: string }
+
+export function MoverLoteForm({
+  lotes,
+  potreros,
+  hoy,
+}: {
+  lotes: Opcion[]
+  potreros: Opcion[]
+  hoy: string
+}) {
+  // Al confirmar, se remonta el formulario entero (con `key={version}`) en vez
+  // de ir limpiando cada pieza de estado a mano: el aviso de la revisión
+  // anterior ya no aplica a un formulario en blanco, y así no puede sobrevivir
+  // por accidente. El aviso de éxito vive aquí arriba, fuera del remonte.
+  const [version, setVersion] = useState(0)
+  const [avisoMovido, setAvisoMovido] = useState(false)
+
+  const alMover = useCallback(() => {
+    setAvisoMovido(true)
+    setVersion((v) => v + 1)
+  }, [])
+  const alEditar = useCallback(() => setAvisoMovido(false), [])
+
+  if (lotes.length === 0 || potreros.length === 0) {
+    return (
+      <p className="text-sm text-carbon/70">
+        {potreros.length === 0
+          ? 'Todavía no hay potreros dados de alta. Crea uno arriba antes de mover un lote.'
+          : 'Todavía no hay lotes abiertos. Abre uno en la pantalla de lotes antes de mover un lote.'}
+      </p>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {avisoMovido && <p className="text-sm text-pasto">Movimiento registrado.</p>}
+      <Formulario
+        key={version}
+        lotes={lotes}
+        potreros={potreros}
+        hoy={hoy}
+        alMover={alMover}
+        alEditar={alEditar}
+      />
+    </div>
+  )
+}
+
+function Formulario({
+  lotes,
+  potreros,
+  hoy,
+  alMover,
+  alEditar,
+}: {
+  lotes: Opcion[]
+  potreros: Opcion[]
+  hoy: string
+  alMover: () => void
+  alEditar: () => void
+}) {
+  const [estadoRevision, revisar, revisando] = useActionState(revisarMovimientoAccion, INICIAL)
+  const [estadoMovimiento, mover, moviendo] = useActionState(moverLoteAccion, INICIAL)
+
+  // El aviso solo sigue siendo válido mientras nadie toque el lote, el
+  // destino o la fecha después de pedirlo: cualquier cambio lo invalida y el
+  // botón vuelve a pedir "Revisar" antes de mover, para no confirmar sobre un
+  // movimiento distinto del que se avisó.
+  const [vigente, setVigente] = useState(true)
+  useLayoutEffect(() => setVigente(true), [estadoRevision])
+
+  useEffect(() => {
+    if (estadoMovimiento.movido) alMover()
+  }, [estadoMovimiento, alMover])
+
+  function marcarEditado() {
+    setVigente(false)
+    alEditar()
+  }
+
+  const aviso = vigente ? estadoRevision.aviso : null
+  const yaRevisado = aviso !== null
+
+  return (
+    <form action={yaRevisado ? mover : revisar} className="flex flex-wrap items-end gap-3">
+      <label className="text-sm">
+        Lote
+        <select
+          name="loteId"
+          required
+          onChange={marcarEditado}
+          className="ml-2 rounded border border-tierra/30 p-2"
+        >
+          {lotes.map((lote) => (
+            <option key={lote.id} value={lote.id}>
+              {lote.nombre}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="text-sm">
+        A potrero
+        <select
+          name="potreroDestinoId"
+          required
+          onChange={marcarEditado}
+          className="ml-2 rounded border border-tierra/30 p-2"
+        >
+          {potreros.map((potrero) => (
+            <option key={potrero.id} value={potrero.id}>
+              {potrero.nombre}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="text-sm">
+        Fecha
+        <input
+          name="fecha"
+          type="date"
+          defaultValue={hoy}
+          required
+          onChange={marcarEditado}
+          className="ml-2 rounded border border-tierra/30 p-2"
+        />
+      </label>
+
+      {aviso && aviso.mensaje !== '' && (
+        <p className={`w-full text-sm ${COLOR_ESTADO[aviso.estadoResultante]}`}>{aviso.mensaje}</p>
+      )}
+      {estadoMovimiento.error && (
+        <p className="w-full text-sm text-rojo-tierra">{estadoMovimiento.error}</p>
+      )}
+
+      <button
+        disabled={revisando || moviendo}
+        className="rounded bg-pasto px-4 py-2 text-white disabled:opacity-50"
+      >
+        {yaRevisado ? 'Mover lote' : 'Revisar movimiento'}
+      </button>
+    </form>
+  )
+}

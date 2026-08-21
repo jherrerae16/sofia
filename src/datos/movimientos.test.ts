@@ -55,6 +55,54 @@ describe('revisarMovimiento', () => {
     expect(aviso.estadoResultante).toBe('holgado')
     expect(aviso.mensaje).toBe('')
   })
+
+  it('suma lo que ya está encima del destino, no solo el lote que se mueve', async () => {
+    // Caso demostrado por el revisor: "La Loma", capacidad 600 kg, ya ocupado
+    // por Ceba A (300 kg vivos); se mueve Ceba B (400 kg vivos). El total
+    // resultante es 700 kg sobre 600 -- 116 % -- y debe salir "sobrecargado",
+    // no "holgado" como si solo pesara el lote que entra (400 / 600 = 67 %).
+    const laLoma = await prisma.potrero.create({
+      data: { nombre: 'La Loma', hectareas: 3, capacidadKg: 600 },
+    })
+
+    const cebaAId = await crearLote({ nombre: 'Ceba A', tipo: 'ceba', fechaApertura: '2026-09-01' })
+    await crearAnimales({
+      loteId: cebaAId,
+      chapetas: ['a1', 'a2'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: null,
+      pesos: { a1: 150, a2: 150 },
+    })
+    await moverLote({
+      loteId: cebaAId,
+      potreroDestinoId: laLoma.id,
+      fecha: '2026-09-01',
+      registradoPorId: 'u1',
+    })
+
+    const cebaBId = await crearLote({ nombre: 'Ceba B', tipo: 'ceba', fechaApertura: '2026-09-01' })
+    await crearAnimales({
+      loteId: cebaBId,
+      chapetas: ['b1', 'b2'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: null,
+      pesos: { b1: 200, b2: 200 },
+    })
+
+    const aviso = await revisarMovimiento(cebaBId, laLoma.id)
+    expect(aviso.estadoResultante).toBe('sobrecargado')
+    expect(aviso.permitido).toBe(true)
+    expect(aviso.mensaje).toContain('700')
+    expect(aviso.mensaje).toContain('600')
+  })
 })
 
 describe('moverLote', () => {
