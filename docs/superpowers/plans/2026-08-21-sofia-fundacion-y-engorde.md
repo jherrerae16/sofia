@@ -6,7 +6,7 @@
 
 **Architecture:** Una sola aplicación Next.js que sirve interfaz y datos. Los cálculos viven en módulos puros de `src/calc/` sin importar Prisma ni React — reciben números y devuelven números, y son la única parte del sistema con cobertura de pruebas exhaustiva. El acceso a datos vive en `src/datos/`, separado de las pantallas. Las fechas cruzan la frontera de la base de datos como cadenas `YYYY-MM-DD`, nunca como objetos `Date`, para que ningún cálculo de días dependa de la zona horaria.
 
-**Tech Stack:** Next.js 15 (App Router), TypeScript en modo estricto, Tailwind CSS v4, Prisma con PostgreSQL, Vitest para pruebas unitarias, Playwright para extremo a extremo, Auth.js v5 con credenciales.
+**Tech Stack:** Next.js 16 (App Router), TypeScript en modo estricto, Tailwind CSS v4, Prisma con PostgreSQL, Vitest para pruebas unitarias, Playwright para extremo a extremo, Auth.js v5 con credenciales.
 
 ## Global Constraints
 
