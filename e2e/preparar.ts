@@ -63,6 +63,10 @@ async function main() {
   const { prisma } = await import('../src/datos/cliente')
 
   try {
+    // Los movimientos apuntan a un lote (`Movimiento_loteId_fkey`): hay que
+    // borrarlos antes de borrar los lotes, o la base rechaza el
+    // `lote.deleteMany()` de más abajo con una violación de clave foránea.
+    await prisma.movimiento.deleteMany()
     await prisma.medicion.deleteMany()
     await prisma.pesaje.deleteMany()
     await prisma.animal.deleteMany()
