@@ -338,6 +338,55 @@ describe('anularPesaje', () => {
     await expect(anularPesaje(pesajeId, 'Otro motivo.', 'u2')).rejects.toThrow(/ya está anulad/)
   })
 
+  it('no se puede anular dos veces, ni siquiera en una carrera: la condición vive en el where, no en un chequeo en memoria', async () => {
+    // Este caso es distinto del anterior: ahí las dos llamadas son
+    // secuenciales, así que la primera ya terminó de escribir cuando
+    // arranca la segunda -- eso lo protegería igual un chequeo en memoria.
+    // Aquí se lanzan las dos con Promise.allSettled, sin esperar a que la
+    // primera termine (el doble clic real, o dos pestañas). Antes de este
+    // arreglo, ambas leían `anuladoEn: null` antes de que cualquiera
+    // hubiera escrito, y ambas pasaban el chequeo -- la segunda pisaba en
+    // silencio el motivo y el autor de la primera, sin que nadie se
+    // enterara. Con la condición en el `where`, solo una puede ganar: a la
+    // otra la base de datos le devuelve cero filas afectadas (`P2025`), que
+    // se traduce al mismo mensaje de "ya está anulado".
+    const pesajeId = await guardarPesaje(
+      {
+        fecha: '2026-10-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
+      },
+      '2026-10-01',
+    )
+
+    const resultados = await Promise.allSettled([
+      anularPesaje(pesajeId, 'Motivo A, primera de la carrera.', 'u2'),
+      anularPesaje(pesajeId, 'Motivo B, segunda de la carrera.', 'u3'),
+    ])
+
+    const exitosas = resultados.filter((r) => r.status === 'fulfilled')
+    const fallidas = resultados.filter((r) => r.status === 'rejected')
+    expect(exitosas).toHaveLength(1)
+    expect(fallidas).toHaveLength(1)
+    expect((fallidas[0] as PromiseRejectedResult).reason.message).toMatch(/ya está anulad/)
+
+    // Y el motivo que quedó grabado es el de la que ganó, no una mezcla ni
+    // el de la que perdió -- la anulación sí ocurrió, una sola vez, con
+    // datos consistentes.
+    const pesaje = await prisma.pesaje.findUniqueOrThrow({ where: { id: pesajeId } })
+    expect(pesaje.anuladoEn).not.toBeNull()
+    expect(['Motivo A, primera de la carrera.', 'Motivo B, segunda de la carrera.']).toContain(
+      pesaje.motivoAnulacion,
+    )
+  })
+
+  it('traduce a español el caso de anular un pesaje que no existe', async () => {
+    await expect(anularPesaje('no-existe', 'Motivo.', 'u2')).rejects.toThrow('Este pesaje no existe.')
+  })
+
   it('saca las mediciones anuladas del historial del animal y del último peso por animal', async () => {
     const pesajeId = await guardarPesaje(
       {

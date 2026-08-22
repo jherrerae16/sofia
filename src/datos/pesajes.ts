@@ -1,4 +1,4 @@
-import type { MetodoPesaje, TipoLote } from '@prisma/client'
+import { Prisma, type MetodoPesaje, type TipoLote } from '@prisma/client'
 import type { Medicion } from '@/calc/gdp'
 import type { FechaISO } from '@/calc/tipos'
 import { validarMedicion, veredictoMasGrave, type Nivel } from '@/calc/validacion'
@@ -149,15 +149,35 @@ export async function anularPesaje(pesajeId: string, motivo: string, usuarioId: 
     throw new Error('La anulación necesita un motivo: explica por qué este pesaje ya no cuenta.')
   }
 
-  const pesaje = await prisma.pesaje.findUniqueOrThrow({ where: { id: pesajeId } })
-  if (pesaje.anuladoEn) {
-    throw new Error('Este pesaje ya está anulado.')
+  // La condición `anuladoEn: null` va en el propio `where` del update, no en
+  // un chequeo previo separado en memoria: así es la base de datos, no el
+  // proceso de Node, la que garantiza que dos anulaciones concurrentes sobre
+  // el mismo pesaje (doble clic antes de que el botón se deshabilite, dos
+  // pestañas) no puedan pisarse una a la otra. Solo una puede ganar la
+  // carrera; la que pierde no encuentra ninguna fila que cumpla el `where`
+  // y Prisma lo reporta como `P2025`.
+  try {
+    await prisma.pesaje.update({
+      where: { id: pesajeId, anuladoEn: null },
+      data: { anuladoEn: new Date(), motivoAnulacion: motivoLimpio, anuladoPorId: usuarioId },
+    })
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      // El `where` compuesto no distingue por qué no encontró fila: puede
+      // ser que el pesaje no exista, o que ya estuviera anulado (por esta
+      // misma llamada perdiendo la carrera, o por una anulación anterior).
+      // Se pregunta aparte, solo en esta rama de error -- no reabre la
+      // carrera, porque el resultado de la anulación ya quedó decidido por
+      // el `update` de arriba -- para devolver el mensaje correcto en cada
+      // caso.
+      const pesaje = await prisma.pesaje.findUnique({ where: { id: pesajeId } })
+      if (!pesaje) {
+        throw new Error('Este pesaje no existe.')
+      }
+      throw new Error('Este pesaje ya está anulado.')
+    }
+    throw error
   }
-
-  await prisma.pesaje.update({
-    where: { id: pesajeId },
-    data: { anuladoEn: new Date(), motivoAnulacion: motivoLimpio, anuladoPorId: usuarioId },
-  })
 }
 
 export type ResumenPesaje = {
@@ -178,6 +198,16 @@ export type ResumenPesaje = {
  * digitó: no hace falta ni un identificador de pesaje ni otra pantalla.
  * Incluye las ya anuladas, porque el rastro de que algo se anuló también
  * tiene que verse aquí.
+ *
+ * Supone que cada sesión de pesaje cubre animales de un solo lote: filtra
+ * por "alguna medición pertenece a este lote" y no distingue si el resto de
+ * las mediciones de esa misma sesión pertenecen a otro. Hoy eso es cierto
+ * porque el único punto de escritura (`guardarPesaje`, invocado desde
+ * `TablaPesaje`) arma cada tanda a partir de `listarAnimalesDeLote(loteId)`
+ * de un único lote -- no hay forma de mezclar lotes en una sesión desde la
+ * interfaz. Si eso cambiara algún día, anular una sesión encontrada desde un
+ * lote anularía también las mediciones que tuviera de otro lote, sin que
+ * ese otro lote la vea listada aquí para avisarlo.
  */
 export async function listarPesajesDeLote(loteId: string, limite = 10): Promise<ResumenPesaje[]> {
   const pesajes = await prisma.pesaje.findMany({

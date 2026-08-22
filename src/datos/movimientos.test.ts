@@ -104,8 +104,15 @@ describe('revisarMovimiento', () => {
     expect(aviso.mensaje).toContain('600')
   })
 
-  it('traduce a español un potrero destino inexistente u obsoleto', async () => {
+  it('traduce a español un potrero destino inexistente u obsoleto, sin dejar pasar el error crudo de Prisma', async () => {
     await expect(revisarMovimiento(loteId, 'no-existe')).rejects.toThrow(/ya no existe|cambió/)
+
+    try {
+      await revisarMovimiento(loteId, 'no-existe')
+    } catch (error) {
+      expect((error as Error).message).not.toContain('Invalid `prisma')
+      expect((error as Error).message).not.toContain('findUniqueOrThrow')
+    }
   })
 })
 
