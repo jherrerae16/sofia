@@ -40,7 +40,17 @@ Necesitas Node.js y una instancia de PostgreSQL local.
    ```bash
    DATABASE_URL="postgresql://usuario@localhost:5432/sofia"
    AUTH_SECRET="algo-largo-y-secreto"
+   # Necesaria en todo entorno donde se corra `next start` (o el equivalente
+   # del proveedor de hosting) detrás de un proxy o dominio propio -- no
+   # hace falta para `npm run dev`. Sin ella, Auth.js no confía en el
+   # encabezado Host y el login queda en bucle sobre
+   # /api/auth/callback/credentials sin establecer nunca la sesión: la
+   # plataforma queda inaccesible desde el primer despliegue real.
+   AUTH_TRUST_HOST=true
    ```
+
+   (Ver `.env.example` para la lista completa, con el porqué de cada
+   variable.)
 
 3. Aplica las migraciones y siembra los parámetros de arranque (umbrales de
    rendimiento, objetivo de ganancia diaria, peso objetivo de venta):
