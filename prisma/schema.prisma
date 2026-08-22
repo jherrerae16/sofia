@@ -91,7 +91,14 @@ model Lote {
 
 model Animal {
   id                String       @id @default(cuid())
-  chapeta           String       @unique
+  /// Única entre los animales ACTIVOS, no en toda la historia -- dos ciclos de
+  /// ceba al año reutilizan números de chapeta. La unicidad real la impone un
+  /// índice único parcial escrito a mano (Prisma no declara índices parciales
+  /// de forma nativa): ver
+  /// prisma/migrations/20260822225112_chapeta_unica_por_activo/migration.sql.
+  /// Este `@@index` de abajo es solo para las búsquedas por chapeta sin
+  /// filtrar por estado; no reemplaza la restricción de unicidad.
+  chapeta           String
   loteId            String
   lote              Lote         @relation(fields: [loteId], references: [id])
   sexo              String
@@ -116,6 +123,7 @@ model Animal {
   eventos    EventoSanitario[]
 
   @@index([loteId, estado])
+  @@index([chapeta])
 }
 
 model Pesaje {

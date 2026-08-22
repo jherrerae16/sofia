@@ -3,6 +3,7 @@ import { diasEntre } from '@/calc/fechas'
 import type { FechaISO } from '@/calc/tipos'
 import { prisma } from './cliente'
 import { aFechaDb, aFechaISO, aKg } from './conversion'
+import { ultimoPesoPorAnimal } from './pesajes'
 
 export type DatosAlta = {
   loteId: string
@@ -28,10 +29,58 @@ export type AnimalVista = {
   estado: EstadoAnimal
 }
 
+export type ConflictoChapeta = {
+  chapeta: string
+  loteNombre: string
+  fechaEntrada: FechaISO
+  pesoUltimoKg: number | null
+}
+
+function describirConflicto(c: ConflictoChapeta): string {
+  const peso = c.pesoUltimoKg === null ? 'sin pesaje todavía' : `último peso ${c.pesoUltimoKg} kg`
+  return `lote ${c.loteNombre}, entró el ${c.fechaEntrada}, ${peso}`
+}
+
+/**
+ * Una o más de las chapetas que se intentaron dar de alta ya están activas en
+ * otro animal. Se distingue de un `Error` genérico para que la interfaz
+ * pueda mostrar, por cada chapeta en conflicto, de cuál animal se trata --
+ * en qué lote está, desde cuándo, y su último peso si lo tiene -- en vez de
+ * un simple "chapeta duplicada" que obliga a ir a buscarlo a mano. El
+ * `.message` ya trae ese detalle en texto, para quien solo capture el error
+ * como un `Error` cualquiera.
+ */
+export class ChapetaDuplicadaError extends Error {
+  conflictos: ConflictoChapeta[]
+
+  constructor(conflictos: ConflictoChapeta[]) {
+    super(
+      conflictos.length === 1
+        ? `La chapeta ${conflictos[0].chapeta} ya está activa (${describirConflicto(conflictos[0])}).`
+        : `${conflictos.length} chapetas ya están activas: ` +
+            conflictos.map((c) => `${c.chapeta} (${describirConflicto(c)})`).join('; ') +
+            '.',
+    )
+    this.name = 'ChapetaDuplicadaError'
+    this.conflictos = conflictos
+  }
+}
+
 /**
  * Da de alta un lote completo en una sola transacción.
  * O entran todos o no entra ninguno: un alta a medias deja el lote descuadrado
  * y obliga a adivinar cuáles chapetas faltaron.
+ *
+ * La chapeta es única solo entre animales ACTIVOS (índice único parcial, ver
+ * `prisma/migrations/20260822225112_chapeta_unica_por_activo/migration.sql`):
+ * un animal que ya salió -- vendido, muerto o robado -- libera su número
+ * para que un lote nuevo lo reutilice. La comprobación de abajo, contra
+ * `estado: 'activo'`, es solo para dar un mensaje legible con el lote, la
+ * fecha y el último peso del animal en conflicto -- la unicidad de verdad la
+ * impone la base de datos, no esta comprobación: si dos altas simultáneas
+ * pasaran esta comprobación para la misma chapeta nueva, solo una de las dos
+ * inserciones podría ganar la carrera contra el índice, y la otra fallaría
+ * con `P2002` dentro de la transacción (capturado más abajo).
  */
 export async function crearAnimales(datos: DatosAlta): Promise<number> {
   for (const chapeta of datos.chapetas) {
@@ -52,23 +101,50 @@ export async function crearAnimales(datos: DatosAlta): Promise<number> {
     }
   }
 
-  await prisma.$transaction(
-    datos.chapetas.map((chapeta) =>
-      prisma.animal.create({
-        data: {
-          chapeta,
-          loteId: datos.loteId,
-          sexo: datos.sexo,
-          raza: datos.raza,
-          cruce: datos.cruce,
-          proveedor: datos.proveedor,
-          fechaEntrada: aFechaDb(datos.fechaEntrada),
-          edadEntradaMeses: datos.edadEntradaMeses,
-          pesoEntradaKg: datos.pesos[chapeta],
-        },
-      }),
-    ),
-  )
+  const activasExistentes = await prisma.animal.findMany({
+    where: { chapeta: { in: datos.chapetas }, estado: 'activo' },
+    select: { id: true, chapeta: true, fechaEntrada: true, lote: { select: { nombre: true } } },
+  })
+  if (activasExistentes.length > 0) {
+    const ultimos = await ultimoPesoPorAnimal()
+    throw new ChapetaDuplicadaError(
+      activasExistentes.map((animal) => ({
+        chapeta: animal.chapeta,
+        loteNombre: animal.lote.nombre,
+        fechaEntrada: aFechaISO(animal.fechaEntrada),
+        pesoUltimoKg: ultimos.get(animal.id)?.pesoKg ?? null,
+      })),
+    )
+  }
+
+  try {
+    await prisma.$transaction(
+      datos.chapetas.map((chapeta) =>
+        prisma.animal.create({
+          data: {
+            chapeta,
+            loteId: datos.loteId,
+            sexo: datos.sexo,
+            raza: datos.raza,
+            cruce: datos.cruce,
+            proveedor: datos.proveedor,
+            fechaEntrada: aFechaDb(datos.fechaEntrada),
+            edadEntradaMeses: datos.edadEntradaMeses,
+            pesoEntradaKg: datos.pesos[chapeta],
+          },
+        }),
+      ),
+    )
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      throw new Error(
+        'No se creó ningún animal: alguna chapeta de la tanda quedó activa dos veces (¿la ' +
+          'misma chapeta escrita dos veces en la planilla, o una alta simultánea que ganó la ' +
+          'carrera?). Corrige la planilla y vuelve a intentarlo.',
+      )
+    }
+    throw error
+  }
 
   return datos.chapetas.length
 }

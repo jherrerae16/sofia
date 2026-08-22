@@ -1,8 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { crearAnimales, listarAnimalesDeLote, registrarSalida } from './animales'
+import {
+  ChapetaDuplicadaError,
+  crearAnimales,
+  listarAnimalesDeLote,
+  registrarSalida,
+} from './animales'
 import { prisma } from './cliente'
 import { aKg } from './conversion'
 import { crearLote } from './lotes'
+import { guardarPesaje } from './pesajes'
 
 let loteId: string
 
@@ -37,7 +43,10 @@ describe('crearAnimales', () => {
     expect(animales[0].estado).toBe('activo')
   })
 
-  it('rechaza una chapeta repetida en la finca', async () => {
+  it('rechaza una chapeta que ya está activa', async () => {
+    // Válida solo entre animales ACTIVOS -- no en toda la historia de la
+    // finca. Este caso (una 001 activa, sin haber salido) es el que sí debe
+    // rechazarse; el de "salió y se reutiliza" tiene su propia prueba abajo.
     await crearAnimales({
       loteId,
       chapetas: ['001'],
@@ -63,6 +72,113 @@ describe('crearAnimales', () => {
         pesos: { '001': 152 },
       }),
     ).rejects.toThrow()
+  })
+
+  it('detalla en qué lote está la chapeta activa, desde cuándo y su último peso', async () => {
+    await crearAnimales({
+      loteId,
+      chapetas: ['001'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: null,
+      pesos: { '001': 150 },
+    })
+    const [activo] = await listarAnimalesDeLote(loteId)
+    await guardarPesaje(
+      {
+        fecha: '2026-10-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: activo.id, pesoKg: 180 }],
+      },
+      '2026-10-01',
+    )
+
+    const otroLoteId = await crearLote({ nombre: 'Ceba 02', tipo: 'ceba', fechaApertura: '2026-10-05' })
+
+    let error: unknown
+    try {
+      await crearAnimales({
+        loteId: otroLoteId,
+        chapetas: ['001'],
+        sexo: 'macho',
+        raza: null,
+        cruce: null,
+        proveedor: null,
+        fechaEntrada: '2026-10-05',
+        edadEntradaMeses: null,
+        pesos: { '001': 155 },
+      })
+    } catch (e) {
+      error = e
+    }
+
+    expect(error).toBeInstanceOf(ChapetaDuplicadaError)
+    const conflictos = (error as ChapetaDuplicadaError).conflictos
+    expect(conflictos).toHaveLength(1)
+    expect(conflictos[0]).toMatchObject({
+      chapeta: '001',
+      loteNombre: 'Ceba 01',
+      fechaEntrada: '2026-09-01',
+      pesoUltimoKg: 180,
+    })
+    // Ningún animal nuevo se creó en el lote destino: el alta se rechaza
+    // entera, no a medias.
+    expect(await listarAnimalesDeLote(otroLoteId)).toHaveLength(0)
+  })
+
+  it('permite reutilizar una chapeta que quedó libre porque el animal salió', async () => {
+    await crearAnimales({
+      loteId,
+      chapetas: ['001'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: null,
+      pesos: { '001': 150 },
+    })
+    const [vendido] = await listarAnimalesDeLote(loteId)
+    await registrarSalida(
+      {
+        animalIds: [vendido.id],
+        estado: 'vendido',
+        fechaSalida: '2026-10-01',
+        motivoSalida: null,
+        pesosSalida: {},
+      },
+      '2026-10-01',
+    )
+
+    const loteMarzo = await crearLote({ nombre: 'Ceba marzo', tipo: 'ceba', fechaApertura: '2027-03-01' })
+    const creados = await crearAnimales({
+      loteId: loteMarzo,
+      chapetas: ['001'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2027-03-01',
+      edadEntradaMeses: null,
+      pesos: { '001': 145 },
+    })
+
+    expect(creados).toBe(1)
+    const nuevos = await listarAnimalesDeLote(loteMarzo)
+    expect(nuevos).toHaveLength(1)
+    expect(nuevos[0].chapeta).toBe('001')
+    expect(nuevos[0].estado).toBe('activo')
+
+    // Las dos chapetas '001' coexisten: la vendida (histórica) y la activa.
+    const todas = await prisma.animal.findMany({ where: { chapeta: '001' } })
+    expect(todas).toHaveLength(2)
+    expect(todas.filter((a) => a.estado === 'activo')).toHaveLength(1)
   })
 
   it('rechaza una chapeta sin peso de entrada', async () => {
@@ -125,40 +241,85 @@ describe('crearAnimales', () => {
   })
 
   it('revierte los animales ya creados si uno falla en la base de datos', async () => {
-    await crearAnimales({
-      loteId,
-      chapetas: ['001'],
-      sexo: 'macho',
-      raza: null,
-      cruce: null,
-      proveedor: null,
-      fechaEntrada: '2026-09-01',
-      edadEntradaMeses: null,
-      pesos: { '001': 150 },
-    })
-
-    // La chapeta nueva va ANTES que la repetida en el arreglo: así la validación
-    // previa (que solo revisa pesos) deja pasar la llamada completa y el fallo
-    // ocurre de verdad en la base, por la restricción de unicidad de la chapeta,
-    // después de que Prisma ya intentó crear '002' dentro de la misma transacción.
+    // La misma chapeta escrita dos veces en la planilla por un dedazo real:
+    // la comprobación previa (que solo mira chapetas YA existentes en la
+    // base) no ve nada raro porque ninguna '001' existe todavía -- dentro del
+    // mismo lote no hay nada contra qué comparar. El fallo ocurre de verdad
+    // en la base, por el índice único parcial, cuando la transacción intenta
+    // crear la segunda '001' activa mientras la primera ya quedó creada
+    // dentro de la misma transacción.
     await expect(
       crearAnimales({
         loteId,
-        chapetas: ['002', '001'],
+        chapetas: ['001', '001'],
         sexo: 'macho',
         raza: null,
         cruce: null,
         proveedor: null,
-        fechaEntrada: '2026-09-02',
+        fechaEntrada: '2026-09-01',
         edadEntradaMeses: null,
-        pesos: { '001': 152, '002': 160 },
+        pesos: { '001': 150 },
       }),
     ).rejects.toThrow()
 
-    const animales = await listarAnimalesDeLote(loteId)
-    expect(animales).toHaveLength(1)
-    expect(animales[0].chapeta).toBe('001')
-    expect(animales[0].pesoEntradaKg).toBe(150)
+    expect(await listarAnimalesDeLote(loteId)).toHaveLength(0)
+  })
+})
+
+describe('el índice único parcial (chapeta activa)', () => {
+  // Estas dos pruebas escriben directamente con `prisma`, sin pasar por
+  // `crearAnimales`: es a propósito, para demostrar que la garantía la
+  // impone la base de datos y no la comprobación previa de la capa de
+  // aplicación (que una prueba contra `crearAnimales` no podría distinguir
+  // de una comprobación en memoria).
+  it('la base de datos rechaza una segunda chapeta activa aunque nadie la comprobara antes', async () => {
+    await prisma.animal.create({
+      data: {
+        chapeta: '777',
+        loteId,
+        sexo: 'macho',
+        fechaEntrada: new Date('2026-09-01T00:00:00.000Z'),
+        pesoEntradaKg: 150,
+      },
+    })
+
+    await expect(
+      prisma.animal.create({
+        data: {
+          chapeta: '777',
+          loteId,
+          sexo: 'macho',
+          fechaEntrada: new Date('2026-09-01T00:00:00.000Z'),
+          pesoEntradaKg: 150,
+        },
+      }),
+    ).rejects.toThrow()
+  })
+
+  it('la base de datos permite dos chapetas iguales si la primera ya no está activa', async () => {
+    await prisma.animal.create({
+      data: {
+        chapeta: '778',
+        loteId,
+        sexo: 'macho',
+        fechaEntrada: new Date('2026-09-01T00:00:00.000Z'),
+        pesoEntradaKg: 150,
+        estado: 'vendido',
+        fechaSalida: new Date('2026-09-10T00:00:00.000Z'),
+      },
+    })
+
+    await expect(
+      prisma.animal.create({
+        data: {
+          chapeta: '778',
+          loteId,
+          sexo: 'macho',
+          fechaEntrada: new Date('2026-09-01T00:00:00.000Z'),
+          pesoEntradaKg: 150,
+        },
+      }),
+    ).resolves.toBeTruthy()
   })
 })
 

@@ -1,6 +1,7 @@
 import { hoyBogota } from '@/calc/fechas'
 import { listarLotes } from '@/datos/lotes'
-import { crearAnimalesAccion, crearLoteAccion } from './acciones'
+import { AltaAnimalesForm } from './AltaAnimalesForm'
+import { crearLoteAccion } from './acciones'
 
 // La lista de lotes y sus animales activos cambian con cada alta: sin esto
 // Next la prerenderiza en el build (no lee ninguna API dinámica) y dar de
@@ -68,57 +69,7 @@ export default async function Lotes() {
           Una línea por animal, con la chapeta y el peso de entrada separados por un espacio.
           O entran todos o no entra ninguno.
         </p>
-        <form action={crearAnimalesAccion} className="space-y-3">
-          <div className="flex flex-wrap items-end gap-3">
-            <label className="text-sm">
-              Lote
-              <select name="loteId" required className="ml-2 rounded border border-tierra/30 p-2">
-                {lotes.map((lote) => (
-                  <option key={lote.id} value={lote.id}>
-                    {lote.nombre}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="text-sm">
-              Sexo
-              <select name="sexo" defaultValue="macho" className="ml-2 rounded border border-tierra/30 p-2">
-                <option value="macho">Macho</option>
-                <option value="hembra">Hembra</option>
-              </select>
-            </label>
-            <label className="text-sm">
-              Raza
-              <input name="raza" className="ml-2 w-32 rounded border border-tierra/30 p-2" />
-            </label>
-            <label className="text-sm">
-              Cruce
-              <input name="cruce" className="ml-2 w-32 rounded border border-tierra/30 p-2" />
-            </label>
-            <label className="text-sm">
-              Proveedor
-              <input name="proveedor" className="ml-2 w-40 rounded border border-tierra/30 p-2" />
-            </label>
-            <label className="text-sm">
-              Edad al entrar (meses)
-              <input name="edadEntradaMeses" type="number" className="cifra ml-2 w-20 rounded border border-tierra/30 p-2" />
-            </label>
-            <label className="text-sm">
-              Fecha de entrada
-              <input name="fechaEntrada" type="date" defaultValue={hoy} required className="ml-2 rounded border border-tierra/30 p-2" />
-            </label>
-          </div>
-          <textarea
-            name="planilla"
-            required
-            rows={10}
-            placeholder={'001 150\n002 158,5\n003 147'}
-            className="cifra w-full rounded border border-tierra/30 p-3 font-mono"
-          />
-          <button className="rounded bg-pasto px-6 py-3 font-medium text-white">
-            Dar de alta el lote
-          </button>
-        </form>
+        <AltaAnimalesForm lotes={lotes} hoy={hoy} />
       </section>
     </main>
   )
