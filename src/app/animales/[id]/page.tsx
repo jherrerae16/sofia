@@ -7,6 +7,7 @@ import { historialDeAnimal } from '@/datos/pesajes'
 import { eventosDeAnimal } from '@/datos/sanidad'
 import { Cifra } from '@/ui/Cifra'
 import { CurvaPeso } from '@/ui/CurvaPeso'
+import { ETIQUETA_TIPO_EVENTO } from '@/ui/etiquetas'
 import { formatearGdp, formatearKg, SIN_DATO } from '@/ui/formato'
 
 // Hoy es dinámica solo porque lee `params`. Se declara explícito para que no
@@ -58,7 +59,8 @@ export default async function FichaAnimal({ params }: { params: Promise<{ id: st
           <ul className="space-y-2 text-sm">
             {eventos.map((evento) => (
               <li key={evento.id} className="border-b border-tierra/10 pb-2">
-                <span className="cifra">{evento.fecha}</span> · {evento.tipo} · {evento.producto}
+                <span className="cifra">{evento.fecha}</span> · {ETIQUETA_TIPO_EVENTO[evento.tipo]} ·{' '}
+                {evento.producto}
                 {evento.dosis ? ` (${evento.dosis})` : ''} · {evento.responsable}
                 {evento.proximaFecha && (
                   <span className="ml-2 text-ambar">

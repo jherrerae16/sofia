@@ -2,15 +2,10 @@
 
 import { useActionState, useState } from 'react'
 import type { ResumenPesaje } from '@/datos/pesajes'
+import { ETIQUETA_METODO_PESAJE } from '@/ui/etiquetas'
 import { anularAccion, type EstadoAnulacion } from './acciones'
 
 const INICIAL: EstadoAnulacion = { anulado: false, error: null }
-
-const NOMBRE_METODO: Record<string, string> = {
-  cinta: 'cinta bovinométrica',
-  bascula: 'báscula',
-  estimacion: 'estimación',
-}
 
 /**
  * Vive en la misma pantalla donde se digita, porque es donde el dedazo se
@@ -50,7 +45,7 @@ function FilaPesaje({ pesaje }: { pesaje: ResumenPesaje }) {
         <div>
           <span className="cifra font-medium">{pesaje.fecha}</span>
           {' · '}
-          {NOMBRE_METODO[pesaje.metodo] ?? pesaje.metodo}
+          {ETIQUETA_METODO_PESAJE[pesaje.metodo]}
           {' · '}
           <span className="cifra">{pesaje.cantidadAnimales}</span> animal(es)
           {' · registró '}

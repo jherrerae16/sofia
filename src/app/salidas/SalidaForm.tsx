@@ -2,6 +2,7 @@
 
 import { useActionState, useLayoutEffect, useState } from 'react'
 import type { EstadoSalida } from '@/datos/animales'
+import { ETIQUETA_ESTADO_ANIMAL } from '@/ui/etiquetas'
 import { registrarSalidaAccion, type EstadoRegistroSalida } from './acciones'
 
 const INICIAL: EstadoRegistroSalida = {
@@ -11,10 +12,12 @@ const INICIAL: EstadoRegistroSalida = {
   error: null,
 }
 
+// Solo los tres motivos de salida, tomados del mapa central: 'activo' no es
+// un motivo de salida, así que no entra aquí.
 const ETIQUETA_ESTADO: Record<EstadoSalida, string> = {
-  vendido: 'Vendido',
-  muerto: 'Muerto',
-  robado: 'Robado',
+  vendido: ETIQUETA_ESTADO_ANIMAL.vendido,
+  muerto: ETIQUETA_ESTADO_ANIMAL.muerto,
+  robado: ETIQUETA_ESTADO_ANIMAL.robado,
 }
 
 type AnimalFila = { id: string; chapeta: string; pesoUltimoKg: number | null }

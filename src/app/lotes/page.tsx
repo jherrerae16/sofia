@@ -1,5 +1,6 @@
 import { hoyBogota } from '@/calc/fechas'
 import { listarLotes } from '@/datos/lotes'
+import { ETIQUETA_TIPO_LOTE } from '@/ui/etiquetas'
 import { AltaAnimalesForm } from './AltaAnimalesForm'
 import { crearLoteAccion } from './acciones'
 
@@ -31,7 +32,7 @@ export default async function Lotes() {
           {lotes.map((lote) => (
             <tr key={lote.id} className="border-b border-tierra/10">
               <td className="p-2 font-medium">{lote.nombre}</td>
-              <td className="p-2">{lote.tipo}</td>
+              <td className="p-2">{ETIQUETA_TIPO_LOTE[lote.tipo]}</td>
               <td className="cifra p-2">{lote.fechaApertura}</td>
               <td className="p-2">{lote.potreroActual ?? '—'}</td>
               <td className="cifra p-2">{lote.animalesActivos}</td>
