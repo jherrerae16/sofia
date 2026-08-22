@@ -1,7 +1,17 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { prisma } from './cliente'
 import { aFechaDb } from './conversion'
-import { guardarParametro, leerGdpObjetivo, leerParametro, leerUmbrales } from './parametros'
+import {
+  configurarParametro,
+  dejaSinVigenteHoy,
+  estadoParametro,
+  guardarParametro,
+  historialParametro,
+  leerGdpObjetivo,
+  leerParametro,
+  leerUmbrales,
+  revisarCambioParametro,
+} from './parametros'
 
 beforeEach(async () => {
   await prisma.parametro.deleteMany()
@@ -102,5 +112,137 @@ describe('leerGdpObjetivo', () => {
   it('devuelve null cuando el valor guardado no es un número finito', async () => {
     await guardarParametro('gdp_objetivo', 'no-es-un-numero', '2026-09-01', 'u1')
     expect(await leerGdpObjetivo('2026-10-01')).toBeNull()
+  })
+})
+
+describe('historialParametro', () => {
+  it('devuelve los valores del más reciente al más antiguo', async () => {
+    await guardarParametro('gdp_objetivo', '700', '2026-01-01', 'u1')
+    await guardarParametro('gdp_objetivo', '750', '2026-09-01', 'u1')
+    await guardarParametro('gdp_objetivo', '800', '2027-01-01', 'u1')
+
+    const historial = await historialParametro('gdp_objetivo')
+    expect(historial).toEqual([
+      { valor: '800', vigenteDesde: '2027-01-01' },
+      { valor: '750', vigenteDesde: '2026-09-01' },
+      { valor: '700', vigenteDesde: '2026-01-01' },
+    ])
+  })
+
+  it('devuelve una lista vacía para una clave sin configurar', async () => {
+    expect(await historialParametro('gdp_objetivo')).toEqual([])
+  })
+})
+
+describe('estadoParametro', () => {
+  it('arma el valor vigente hoy junto con el histórico completo', async () => {
+    await guardarParametro('gdp_objetivo', '700', '2026-01-01', 'u1')
+    await guardarParametro('gdp_objetivo', '800', '2027-01-01', 'u1')
+
+    const estado = await estadoParametro('gdp_objetivo', '2026-10-01')
+    expect(estado.valorVigente).toBe('700')
+    expect(estado.vigenteDesde).toBe('2026-01-01')
+    expect(estado.historial).toHaveLength(2)
+  })
+
+  it('reporta sin valor vigente cuando la única vigencia es futura', async () => {
+    await guardarParametro('gdp_objetivo', '800', '2027-01-01', 'u1')
+
+    const estado = await estadoParametro('gdp_objetivo', '2026-10-01')
+    expect(estado.valorVigente).toBeNull()
+    expect(estado.vigenteDesde).toBeNull()
+    expect(estado.historial).toHaveLength(1)
+  })
+})
+
+describe('configurarParametro — rechaza lo que no sea un número', () => {
+  it('rechaza un texto no numérico antes de guardarlo', async () => {
+    await expect(configurarParametro('gdp_objetivo', 'ochocientos', '2026-09-01', 'u1')).rejects.toThrow(/número/)
+    expect(await leerParametro('gdp_objetivo', '2026-09-01')).toBeNull()
+  })
+
+  it('acepta un número y lo guarda como el valor vigente', async () => {
+    await configurarParametro('gdp_objetivo', '800', '2026-09-01', 'u1')
+    expect(await leerParametro('gdp_objetivo', '2026-09-01')).toBe('800')
+  })
+})
+
+describe('configurarParametro — valida el orden de los umbrales', () => {
+  beforeEach(async () => {
+    await guardarParametro('umbral_excelente', '900', '2026-01-01', 'u1')
+    await guardarParametro('umbral_bueno', '750', '2026-01-01', 'u1')
+    await guardarParametro('umbral_normal', '600', '2026-01-01', 'u1')
+    await guardarParametro('umbral_bajo', '400', '2026-01-01', 'u1')
+  })
+
+  it('rechaza subir "bueno" por encima de "excelente"', async () => {
+    await expect(configurarParametro('umbral_bueno', '950', '2026-09-01', 'u1')).rejects.toThrow(
+      /excelente.*mayor.*bueno/,
+    )
+    // No debe haber quedado ninguna fila nueva: el rechazo es antes de guardar.
+    expect(await leerParametro('umbral_bueno', '2026-09-01')).toBe('750')
+  })
+
+  it('rechaza bajar "excelente" por debajo de "bueno"', async () => {
+    await expect(configurarParametro('umbral_excelente', '700', '2026-09-01', 'u1')).rejects.toThrow(/mayor/)
+  })
+
+  it('detecta el desorden aunque el umbral vecino no esté configurado (transitividad)', async () => {
+    // Deja "bueno" sin ningún valor vigente en la fecha de la prueba, para
+    // que la comparación directa entre "excelente" y "normal" (no vecinos
+    // consecutivos) sea la única forma de atrapar el desorden.
+    await prisma.parametro.deleteMany({ where: { clave: 'umbral_bueno' } })
+    await expect(configurarParametro('umbral_excelente', '500', '2026-09-01', 'u1')).rejects.toThrow(
+      /excelente.*mayor.*normal/,
+    )
+  })
+
+  it('acepta un cambio que conserva el orden', async () => {
+    await configurarParametro('umbral_excelente', '950', '2026-09-01', 'u1')
+    expect(await leerParametro('umbral_excelente', '2026-09-01')).toBe('950')
+  })
+
+  it('rechaza un umbral igual a su vecino, no solo uno menor', async () => {
+    await expect(configurarParametro('umbral_bueno', '900', '2026-09-01', 'u1')).rejects.toThrow(/mayor/)
+  })
+
+  it('valida el orden vigente en la fecha de la nueva vigencia, no en hoy', async () => {
+    // "Bueno" sube a 950 a partir de 2027-01-01. En esa fecha, "excelente"
+    // seguirá en 900 (nadie programó un cambio para entonces), así que debe
+    // rechazarse aunque hoy la comparación no aplique todavía.
+    await expect(configurarParametro('umbral_bueno', '950', '2027-01-01', 'u1')).rejects.toThrow(/mayor/)
+  })
+})
+
+describe('dejaSinVigenteHoy', () => {
+  it('avisa cuando la única vigencia que tendría la clave es futura', async () => {
+    expect(await dejaSinVigenteHoy('gdp_objetivo', '2027-01-01', '2026-10-01')).toBe(true)
+  })
+
+  it('no avisa cuando ya hay un valor anterior vigente hoy', async () => {
+    await guardarParametro('gdp_objetivo', '750', '2026-01-01', 'u1')
+    expect(await dejaSinVigenteHoy('gdp_objetivo', '2027-01-01', '2026-10-01')).toBe(false)
+  })
+
+  it('no avisa cuando la nueva vigencia es hoy o anterior', async () => {
+    expect(await dejaSinVigenteHoy('gdp_objetivo', '2026-10-01', '2026-10-01')).toBe(false)
+  })
+})
+
+describe('revisarCambioParametro', () => {
+  it('lanza si el valor no es válido, sin llegar a calcular el aviso', async () => {
+    await expect(revisarCambioParametro('gdp_objetivo', 'x', '2027-01-01', '2026-10-01')).rejects.toThrow(/número/)
+  })
+
+  it('devuelve el aviso de "sin vigente hoy" cuando aplica, sin guardar nada', async () => {
+    const revision = await revisarCambioParametro('gdp_objetivo', '800', '2027-01-01', '2026-10-01')
+    expect(revision.dejaSinVigenteHoy).toBe(true)
+    expect(await leerParametro('gdp_objetivo', '2026-10-01')).toBeNull()
+    expect(await leerParametro('gdp_objetivo', '2027-01-01')).toBeNull()
+  })
+
+  it('no avisa cuando la vigencia es hoy', async () => {
+    const revision = await revisarCambioParametro('gdp_objetivo', '800', '2026-10-01', '2026-10-01')
+    expect(revision.dejaSinVigenteHoy).toBe(false)
   })
 })
