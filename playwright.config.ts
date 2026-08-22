@@ -5,7 +5,10 @@ import { defineConfig } from '@playwright/test'
 // que Playwright (y el "npm run dev" que levanta más abajo) apunten a la base de
 // pruebas sin depender de que quien corra `npx playwright test` recuerde escribir
 // el prefijo DATABASE_URL=... en la línea de comandos.
-config({ path: '.env.test', override: true })
+// `quiet: true` calla la publicidad de terceros que dotenv imprime en cada
+// carga (enlaces externos, y con texto que cambia entre corridas): es
+// contenido inyectado en la salida de las pruebas que no aporta nada aquí.
+config({ path: '.env.test', override: true, quiet: true })
 
 export default defineConfig({
   testDir: './e2e',

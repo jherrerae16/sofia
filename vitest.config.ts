@@ -2,7 +2,10 @@ import path from 'node:path'
 import { config } from 'dotenv'
 import { defineConfig } from 'vitest/config'
 
-config({ path: '.env.test', override: true })
+// `quiet: true` calla la publicidad de terceros que dotenv imprime en cada
+// carga (enlaces externos, y con texto que cambia entre corridas): es
+// contenido inyectado en la salida de las pruebas que no aporta nada aquí.
+config({ path: '.env.test', override: true, quiet: true })
 
 export default defineConfig({
   resolve: {

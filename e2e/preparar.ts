@@ -15,7 +15,10 @@
 // `DATABASE_URL` todavía no existía en `process.env` en el momento en que
 // `cliente.ts` la leía.
 import { config } from 'dotenv'
-config({ path: '.env.test', override: true })
+// `quiet: true` calla la publicidad de terceros que dotenv imprime en cada
+// carga (enlaces externos, y con texto que cambia entre corridas): es
+// contenido inyectado en la salida de las pruebas que no aporta nada aquí.
+config({ path: '.env.test', override: true, quiet: true })
 
 // Se importa arriba, estático: `fechas.ts` no lee variables de entorno, así
 // que no le aplica la razón por la que bcrypt y el cliente de Prisma más
