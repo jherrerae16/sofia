@@ -99,3 +99,46 @@ test('una fecha de salida anterior a la entrada se rechaza sin perder la selecci
   await page.getByRole('button', { name: 'Registrar salida' }).click()
   await expect(page.getByText('Se registró la salida de 1 animal.')).toBeVisible()
 })
+
+// Hallazgo 2.1 del seguimiento: un peso de venta que implica una ganancia
+// diaria inverosímil (el dedazo clásico -- 2200 en vez de 220) no puede
+// quedar aceptado en silencio. Esta prueba es la que de verdad demuestra que
+// la advertencia se ve en pantalla y frena el guardado hasta que alguien la
+// confirma -- una prueba unitaria contra `registrarSalida` no alcanza a
+// mostrar que la interfaz la expone.
+test('un peso de venta con ganancia inverosímil se frena con una advertencia hasta confirmarla', async ({
+  page,
+}) => {
+  const lote = await sembrarLotePropio('Salidas — peso sospechoso', ['931'])
+
+  await iniciarSesion(page)
+  await page.goto(`/salidas?lote=${lote.id}`)
+
+  await page.locator('input[name^="sel_"]').check()
+  await page.selectOption('select[name="estado"]', 'vendido')
+  await page.fill('input[name="fechaSalida"]', HOY)
+  // El animal entró con 150 kg hace 30 días: 2200 kg (el mismo dedazo del
+  // hallazgo, un dígito de más sobre 220) es una ganancia imposible de creer.
+  await page.locator('input[name^="peso_"]').fill('2200')
+
+  await page.getByRole('button', { name: 'Registrar salida' }).click()
+
+  await expect(page.getByText(/Revisa estos pesos de venta/)).toBeVisible()
+  await expect(page.getByText(/Ganancia de/)).toBeVisible()
+
+  // Nada se guardó todavía: el animal sigue activo.
+  const animales = await prisma.animal.findMany({ where: { loteId: lote.id } })
+  expect(animales[0].estado).toBe('activo')
+
+  // El peso digitado y la selección siguen ahí -- no hay que volver a
+  // escribir nada, solo confirmar.
+  await expect(page.locator('input[name^="peso_"]')).toHaveValue('2200')
+  await expect(page.locator('input[name^="sel_"]')).toBeChecked()
+
+  await page.getByRole('checkbox', { name: /Confirmo que el peso está bien/ }).check()
+  await page.getByRole('button', { name: 'Registrar salida' }).click()
+
+  await expect(page.getByText('Se registró la salida de 1 animal.')).toBeVisible()
+  const guardado = await prisma.animal.findUniqueOrThrow({ where: { id: animales[0].id } })
+  expect(guardado.estado).toBe('vendido')
+})

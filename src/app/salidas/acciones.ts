@@ -2,7 +2,12 @@
 
 import { revalidatePath } from 'next/cache'
 import { hoyBogota } from '@/calc/fechas'
-import { registrarSalida, type EstadoSalida } from '@/datos/animales'
+import {
+  PesoSalidaSospechosoError,
+  registrarSalida,
+  type AdvertenciaPesoSalida,
+  type EstadoSalida,
+} from '@/datos/animales'
 
 /**
  * Lo que se envió, capturado tal cual llegó -- la selección de chapetas, el
@@ -18,6 +23,7 @@ export type DatosSalidaEnviados = {
   fechaSalida: string
   motivoSalida: string
   pesos: Record<string, string>
+  confirmarPesosSospechosos: boolean
 }
 
 export type EstadoRegistroSalida = {
@@ -25,6 +31,13 @@ export type EstadoRegistroSalida = {
   cantidad: number
   datosEnviados: DatosSalidaEnviados | null
   error: string | null
+  /**
+   * Ganancia diaria o pérdida inverosímil en uno o más pesos de venta de la
+   * tanda -- ver `PesoSalidaSospechosoError` en `src/datos/animales.ts`. No
+   * es un `error`: nada se rechazó de plano, se frenó a la espera de que el
+   * ganadero confirme que el peso está bien tal como se digitó.
+   */
+  advertencias: AdvertenciaPesoSalida[] | null
 }
 
 function leerSeleccion(datos: FormData): string[] {
@@ -62,6 +75,10 @@ export async function registrarSalidaAccion(
   const fechaSalida = String(datos.get('fechaSalida'))
   const motivoSalida = String(datos.get('motivoSalida') ?? '')
   const { numeros, textos } = leerPesos(datos, animalIds)
+  // El único campo de esta pantalla que no viene de un `<input>`/`<select>`
+  // normal: es una casilla que solo se muestra (y solo importa) después de
+  // una advertencia de peso -- ver el comentario grande en `SalidaForm.tsx`.
+  const confirmarPesosSospechosos = datos.get('confirmarPesosSospechosos') === 'on'
 
   const datosEnviados: DatosSalidaEnviados = {
     animalIds,
@@ -69,6 +86,7 @@ export async function registrarSalidaAccion(
     fechaSalida,
     motivoSalida,
     pesos: textos,
+    confirmarPesosSospechosos,
   }
 
   if (animalIds.length === 0) {
@@ -77,6 +95,7 @@ export async function registrarSalidaAccion(
       cantidad: 0,
       datosEnviados,
       error: 'Selecciona al menos un animal antes de registrar la salida.',
+      advertencias: null,
     }
   }
 
@@ -88,6 +107,7 @@ export async function registrarSalidaAccion(
         fechaSalida,
         motivoSalida: motivoSalida.trim() || null,
         pesosSalida: numeros,
+        confirmarPesosSospechosos,
       },
       hoyBogota(),
     )
@@ -101,8 +121,23 @@ export async function registrarSalidaAccion(
     revalidatePath('/como-vamos')
     revalidatePath('/potreros')
     revalidatePath('/')
-    return { registrado: true, cantidad, datosEnviados: null, error: null }
+    return { registrado: true, cantidad, datosEnviados: null, error: null, advertencias: null }
   } catch (error) {
-    return { registrado: false, cantidad: 0, datosEnviados, error: (error as Error).message }
+    if (error instanceof PesoSalidaSospechosoError) {
+      return {
+        registrado: false,
+        cantidad: 0,
+        datosEnviados,
+        error: null,
+        advertencias: error.advertencias,
+      }
+    }
+    return {
+      registrado: false,
+      cantidad: 0,
+      datosEnviados,
+      error: (error as Error).message,
+      advertencias: null,
+    }
   }
 }

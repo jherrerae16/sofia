@@ -9,6 +9,7 @@ const INICIAL: EstadoRegistroSalida = {
   cantidad: 0,
   datosEnviados: null,
   error: null,
+  advertencias: null,
 }
 
 const ETIQUETA_ESTADO: Record<EstadoSalida, string> = {
@@ -215,6 +216,34 @@ export function SalidaForm({
             El peso de venta es el último peso real del animal; no incluye comprador ni precio --
             eso se registra aparte.
           </p>
+
+          {estado.advertencias && estado.advertencias.length > 0 && (
+            <div className="space-y-2 rounded border border-ambar/40 bg-ambar/10 p-3 text-sm">
+              <p className="font-medium text-ambar">
+                Revisa estos pesos de venta antes de seguir -- ninguno se guardó todavía:
+              </p>
+              <ul className="list-disc space-y-1 pl-5 text-carbon/80">
+                {estado.advertencias.map((advertencia) => (
+                  <li key={advertencia.chapeta}>
+                    Chapeta <span className="cifra font-medium">{advertencia.chapeta}</span>:{' '}
+                    {advertencia.mensaje}
+                  </li>
+                ))}
+              </ul>
+              <label className="flex items-center gap-2 text-carbon">
+                <input
+                  key={poblarKey}
+                  type="checkbox"
+                  name="confirmarPesosSospechosos"
+                  required
+                  defaultChecked={datosEnviados?.confirmarPesosSospechosos ?? false}
+                  onChange={marcarEditado}
+                  className="h-4 w-4"
+                />
+                Confirmo que el peso está bien, aunque sea inusual.
+              </label>
+            </div>
+          )}
 
           {estado.error && <p className="text-rojo-tierra">{estado.error}</p>}
 
