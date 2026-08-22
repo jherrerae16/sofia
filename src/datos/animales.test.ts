@@ -368,6 +368,15 @@ describe('registrarSalida', () => {
     expect(aKg(guardado001.pesoSalidaKg!)).toBe(220)
     const guardado002 = await prisma.animal.findUniqueOrThrow({ where: { id: a002.id } })
     expect(aKg(guardado002.pesoSalidaKg!)).toBe(215.5)
+
+    // Hallazgo 2.4: sin estos tres campos en `AnimalVista`, un animal que ya
+    // salió se veía idéntico a uno activo en cualquier pantalla que use
+    // `listarAnimalesDeLote` -- no había de dónde mostrar por qué salió.
+    const [vista001] = await listarAnimalesDeLote(loteId)
+    expect(vista001.estado).toBe('vendido')
+    expect(vista001.fechaSalida).toBe('2026-11-01')
+    expect(vista001.motivoSalida).toBeNull()
+    expect(vista001.pesoSalidaKg).toBe(220)
   })
 
   it('acepta una venta sin motivo', async () => {

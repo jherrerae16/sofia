@@ -28,6 +28,15 @@ export type AnimalVista = {
   fechaEntrada: FechaISO
   pesoEntradaKg: number
   estado: EstadoAnimal
+  /**
+   * Datos de la salida (hallazgo 2.4): sin ellos, un animal vendido, muerto o
+   * robado se veía idéntico a uno activo en cualquier pantalla que solo
+   * mostrara `estado`, y la lista de "qué salió de este lote" no tenía de
+   * dónde salir. Los tres quedan en null mientras el animal siga activo.
+   */
+  fechaSalida: FechaISO | null
+  motivoSalida: string | null
+  pesoSalidaKg: number | null
 }
 
 export type ConflictoChapeta = {
@@ -373,5 +382,8 @@ export async function listarAnimalesDeLote(loteId: string): Promise<AnimalVista[
     fechaEntrada: aFechaISO(animal.fechaEntrada),
     pesoEntradaKg: aKg(animal.pesoEntradaKg),
     estado: animal.estado,
+    fechaSalida: animal.fechaSalida ? aFechaISO(animal.fechaSalida) : null,
+    motivoSalida: animal.motivoSalida,
+    pesoSalidaKg: animal.pesoSalidaKg ? aKg(animal.pesoSalidaKg) : null,
   }))
 }

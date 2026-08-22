@@ -142,3 +142,34 @@ test('un peso de venta con ganancia inverosímil se frena con una advertencia ha
   const guardado = await prisma.animal.findUniqueOrThrow({ where: { id: animales[0].id } })
   expect(guardado.estado).toBe('vendido')
 })
+
+// Hallazgo 2.4: lo que sale de la finca quedaba invisible -- ni la pantalla
+// de Salidas ni la ficha del animal mostraban nada distinto de un animal
+// activo. Esta prueba registra una muerte con su motivo y comprueba que
+// ambas pantallas lo muestran.
+test('un animal muerto se ve distinto de uno activo, en Salidas y en su propia ficha', async ({
+  page,
+}) => {
+  const lote = await sembrarLotePropio('Salidas — visibilidad de la muerte', ['941'])
+  const [animal] = await prisma.animal.findMany({ where: { loteId: lote.id } })
+
+  await iniciarSesion(page)
+  await page.goto(`/salidas?lote=${lote.id}`)
+
+  await page.locator('input[name^="sel_"]').check()
+  await page.selectOption('select[name="estado"]', 'muerto')
+  await page.fill('input[name="fechaSalida"]', HOY)
+  await page.fill('input[name="motivoSalida"]', 'Neumonía, no respondió al tratamiento')
+  await page.getByRole('button', { name: 'Registrar salida' }).click()
+  await expect(page.getByText('Se registró la salida de 1 animal.')).toBeVisible()
+
+  // La pantalla de Salidas ahora muestra qué salió de este lote y por qué.
+  await expect(page.getByRole('heading', { name: 'Qué salió de este lote' })).toBeVisible()
+  await expect(page.getByText('941')).toBeVisible()
+  await expect(page.getByText('Neumonía, no respondió al tratamiento')).toBeVisible()
+
+  // Y la ficha del propio animal ya no se ve idéntica a la de uno activo.
+  await page.goto(`/animales/${animal.id}`)
+  await expect(page.getByText('Muerto', { exact: false })).toBeVisible()
+  await expect(page.getByText('Neumonía, no respondió al tratamiento')).toBeVisible()
+})
