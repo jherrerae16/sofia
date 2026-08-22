@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { hoyBogota } from '@/calc/fechas'
 import { listarAnimalesDeLote } from '@/datos/animales'
 import { listarLotes } from '@/datos/lotes'
@@ -27,7 +28,7 @@ export default async function Digitar({
 
       <nav className="mb-6 flex gap-2">
         {lotes.map((lote) => (
-          <a
+          <Link
             key={lote.id}
             href={`/digitar?lote=${lote.id}`}
             className={`rounded px-3 py-1 text-sm ${
@@ -35,11 +36,12 @@ export default async function Digitar({
             }`}
           >
             {lote.nombre} ({lote.animalesActivos})
-          </a>
+          </Link>
         ))}
       </nav>
 
       <TablaPesaje
+        loteId={loteId}
         animales={animales.filter((a) => a.estado === 'activo')}
         hoy={hoyBogota()}
       />

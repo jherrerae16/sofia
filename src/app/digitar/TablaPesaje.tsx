@@ -13,9 +13,11 @@ const COLOR_NIVEL = {
 }
 
 export function TablaPesaje({
+  loteId,
   animales,
   hoy,
 }: {
+  loteId: string | undefined
   animales: { id: string; chapeta: string }[]
   hoy: string
 }) {
@@ -37,7 +39,21 @@ export function TablaPesaje({
   return (
     <div className="space-y-4">
       {avisoGuardado && <p className="text-pasto">Pesaje guardado.</p>}
-      <Formulario key={version} animales={animales} hoy={hoy} alGuardar={alGuardar} alEditar={alEditar} />
+      {/* El identificador del lote va en la clave, no solo `version`: el
+          enlace de arriba es de Next (navegación de cliente, sin recarga
+          completa), así que cambiar de lote por sí solo no reiniciaría este
+          estado. Sin el lote en la clave, una revisión pedida en el lote
+          viejo seguiría vigente al llegar al lote nuevo -- con el botón
+          diciendo "Guardar pesaje" y a punto de aplicarle a otro lote una
+          revisión que no le corresponde. Esto no es una nota de precaución:
+          es lo que hace que ese invariante sea imposible, no solo esperado. */}
+      <Formulario
+        key={`${loteId ?? 'sin-lote'}-${version}`}
+        animales={animales}
+        hoy={hoy}
+        alGuardar={alGuardar}
+        alEditar={alEditar}
+      />
     </div>
   )
 }
