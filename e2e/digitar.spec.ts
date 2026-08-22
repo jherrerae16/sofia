@@ -66,3 +66,55 @@ test('un pesaje anterior al ingreso del animal no se guarda', async ({ page }) =
   expect(await prisma.pesaje.count()).toBe(0)
   expect(await prisma.medicion.count()).toBe(0)
 })
+
+test('guardar tras revisar persiste exactamente lo digitado, no lo que el formulario reinició', async ({
+  page,
+}) => {
+  // Prueba de la regresión de E1: React 19 vacía los campos no controlados
+  // del <form> en cuanto se envía la revisión (antes incluso de que vuelva
+  // la respuesta del servidor). Antes del arreglo, el segundo envío
+  // ("Guardar pesaje") reenviaba ese formulario ya vaciado -- fecha por
+  // omisión, pesos en blanco -- y `guardarPesaje` creaba un pesaje sin
+  // ninguna medición, con la fecha de hoy, mientras la pantalla decía
+  // "Pesaje guardado.". No basta con comprobar el aviso en pantalla: hay que
+  // consultar la base directamente y comparar contra lo que se digitó.
+  await iniciarSesion(page)
+
+  // 10 días atrás de hoy, y no hoy: si el arreglo no sirviera y el segundo
+  // envío se reenviara con la fecha por omisión (hoy), esta prueba lo
+  // atraparía porque la fecha guardada no coincidiría con la digitada.
+  const fechaDigitada = sumarDias(HOY, -10)
+
+  await page.goto('/digitar')
+  await page.fill('input[name="fecha"]', fechaDigitada)
+
+  const campos = page.locator('input[name^="peso_"]')
+  await campos.nth(0).fill('160')
+  await campos.nth(1).fill('165')
+
+  await page.getByRole('button', { name: 'Revisar antes de guardar' }).click()
+  await expect(page.getByRole('button', { name: 'Guardar pesaje' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Guardar pesaje' }).click()
+  await expect(page.getByText('Pesaje guardado.')).toBeVisible()
+
+  const animales = await prisma.animal.findMany({ where: { chapeta: { in: ['001', '002'] } } })
+  const idPorChapeta = Object.fromEntries(animales.map((a) => [a.chapeta, a.id]))
+
+  const pesaje = await prisma.pesaje.findFirstOrThrow({
+    orderBy: { creadoEn: 'desc' },
+    include: { mediciones: true },
+  })
+
+  // La fecha guardada tiene que ser la digitada, no la fecha por omisión del
+  // formulario reiniciado -- que sería la de hoy.
+  expect(pesaje.fecha.toISOString().slice(0, 10)).toBe(fechaDigitada)
+  expect(pesaje.fecha.toISOString().slice(0, 10)).not.toBe(HOY)
+
+  // Y las mediciones tienen que ser las dos que se digitaron y revisaron, no
+  // cero mediciones (que es lo que quedaba antes de este arreglo).
+  expect(pesaje.mediciones).toHaveLength(2)
+  const pesoPorAnimal = new Map(pesaje.mediciones.map((m) => [m.animalId, Number(m.pesoKg)]))
+  expect(pesoPorAnimal.get(idPorChapeta['001'])).toBe(160)
+  expect(pesoPorAnimal.get(idPorChapeta['002'])).toBe(165)
+})

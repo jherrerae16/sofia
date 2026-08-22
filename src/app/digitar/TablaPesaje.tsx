@@ -4,7 +4,7 @@ import { useActionState, useCallback, useEffect, useLayoutEffect, useState } fro
 import { guardarAccion, revisarAccion, type EstadoDigitacion } from './acciones'
 import { formatearGdp } from '@/ui/formato'
 
-const INICIAL: EstadoDigitacion = { revision: [], guardado: false, error: null }
+const INICIAL: EstadoDigitacion = { revision: [], datosRevisados: null, guardado: false, error: null }
 
 const COLOR_NIVEL = {
   ok: 'text-pasto',
@@ -92,12 +92,36 @@ function Formulario({
   }
 
   const revision = vigente ? estado.revision : []
+  const datosRevisados = vigente ? estado.datosRevisados : null
   const porAnimal = new Map(revision.map((r) => [r.animalId, r]))
   const hayRechazos = revision.some((r) => r.nivel === 'rechazo')
   const yaRevisado = revision.length > 0
 
+  // React 19 vacía los campos no controlados de este `<form>` en cuanto se
+  // dispara CUALQUIER envío suyo -- incluida la propia revisión, y antes
+  // incluso de que vuelva la respuesta del servidor (es el mecanismo
+  // pensado para formularios de "agregar y limpiar", no para uno que se
+  // reutiliza dos veces). Para cuando el usuario alcanza a leer la revisión
+  // y hacer clic en "Guardar pesaje", el DOM ya no tiene ni la fecha ni los
+  // pesos que se revisaron. Releer el `<form>` en ese segundo envío es
+  // exactamente el bug: se guardaría lo que quedó en el formulario
+  // reiniciado, no lo que el usuario digitó y vio en la tabla.
+  //
+  // La única fuente confiable es `datosRevisados`: el objeto que ya viajó
+  // al servidor -- y volvió -- en el momento exacto de la revisión, el
+  // mismo que produjo la columna "Ganancia que resultaría" que el usuario
+  // está leyendo en pantalla. `confirmarGuardar` ignora el `FormData` de
+  // ese segundo envío (que ya no sirve de nada) y guarda ese objeto
+  // directamente. Así lo que se guarda es, por construcción, lo mismo que
+  // se revisó y lo mismo que está en pantalla: no hay un segundo lugar
+  // del que puedan divergir.
+  async function confirmarGuardar(_formData: FormData) {
+    if (!datosRevisados) return
+    guardar(datosRevisados)
+  }
+
   return (
-    <form action={yaRevisado && !hayRechazos ? guardar : revisar} className="space-y-4">
+    <form action={yaRevisado && !hayRechazos ? confirmarGuardar : revisar} className="space-y-4">
       <div className="flex flex-wrap gap-3">
         <label className="text-sm">
           Fecha

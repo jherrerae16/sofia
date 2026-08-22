@@ -4,7 +4,7 @@ import { useActionState, useCallback, useEffect, useLayoutEffect, useState } fro
 import type { EstadoCapacidad } from '@/calc/potrero'
 import { moverLoteAccion, revisarMovimientoAccion, type EstadoMovimiento } from './acciones'
 
-const INICIAL: EstadoMovimiento = { aviso: null, movido: false, error: null }
+const INICIAL: EstadoMovimiento = { aviso: null, datosRevisados: null, movido: false, error: null }
 
 const COLOR_ESTADO: Record<EstadoCapacidad, string> = {
   holgado: 'text-pasto',
@@ -94,10 +94,24 @@ function Formulario({
   }
 
   const aviso = vigente ? estadoRevision.aviso : null
+  const datosRevisados = vigente ? estadoRevision.datosRevisados : null
   const yaRevisado = aviso !== null
 
+  // Mismo mecanismo que en `TablaPesaje.tsx` (ver el comentario grande allá):
+  // React 19 vacía los campos no controlados de este `<form>` en cuanto se
+  // envía la revisión, antes incluso de que vuelva la respuesta del
+  // servidor. Para el segundo envío ("Mover lote") el DOM ya no tiene el
+  // lote, el potrero ni la fecha que se revisaron. `confirmarMover` ignora
+  // el `FormData` de ese envío y usa en su lugar `datosRevisados`, el mismo
+  // objeto que produjo el aviso de capacidad que el usuario está leyendo:
+  // lo que se mueve es, por construcción, lo mismo que se revisó.
+  async function confirmarMover(_formData: FormData) {
+    if (!datosRevisados) return
+    mover(datosRevisados)
+  }
+
   return (
-    <form action={yaRevisado ? mover : revisar} className="flex flex-wrap items-end gap-3">
+    <form action={yaRevisado ? confirmarMover : revisar} className="flex flex-wrap items-end gap-3">
       <label className="text-sm">
         Lote
         <select

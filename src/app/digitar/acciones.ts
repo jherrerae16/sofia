@@ -4,10 +4,32 @@ import { revalidatePath } from 'next/cache'
 import type { MetodoPesaje } from '@prisma/client'
 import { usuarioActual } from '@/auth'
 import { hoyBogota } from '@/calc/fechas'
-import { anularPesaje, guardarPesaje, revisarTanda, type RevisionTanda } from '@/datos/pesajes'
+import {
+  anularPesaje,
+  guardarPesaje,
+  revisarTanda,
+  type EntradaTanda,
+  type RevisionTanda,
+} from '@/datos/pesajes'
+
+/**
+ * Lo que se revisó, capturado tal cual llegó en el envío de "Revisar": la
+ * fecha, el método, el responsable, las notas y cada peso digitado. Es lo
+ * único de lo que puede partir `guardarAccion` -- ver el comentario grande
+ * en `TablaPesaje.tsx` sobre por qué no puede volver a leer el `<form>` para
+ * el segundo envío.
+ */
+export type DatosRevisados = {
+  fecha: string
+  metodo: MetodoPesaje
+  responsable: string
+  notas: string | null
+  mediciones: EntradaTanda[]
+}
 
 export type EstadoDigitacion = {
   revision: RevisionTanda[]
+  datosRevisados: DatosRevisados | null
   guardado: boolean
   error: string | null
 }
@@ -36,34 +58,55 @@ export async function revisarAccion(
   const fecha = String(datos.get('fecha'))
   const entradas = leerEntradas(datos)
   if (entradas.length === 0) {
-    return { revision: [], guardado: false, error: 'No hay ningún peso digitado.' }
+    return { revision: [], datosRevisados: null, guardado: false, error: 'No hay ningún peso digitado.' }
   }
-  return { revision: await revisarTanda(entradas, fecha, hoyBogota()), guardado: false, error: null }
+  const datosRevisados: DatosRevisados = {
+    fecha,
+    metodo: String(datos.get('metodo')) as MetodoPesaje,
+    responsable: String(datos.get('responsable')),
+    notas: (String(datos.get('notas')) || null) as string | null,
+    mediciones: entradas,
+  }
+  return {
+    revision: await revisarTanda(entradas, fecha, hoyBogota()),
+    datosRevisados,
+    guardado: false,
+    error: null,
+  }
 }
 
+/**
+ * A propósito, recibe `DatosRevisados` -- el objeto que ya viajó al servidor
+ * (y volvió) en la revisión -- y no `FormData`. Un Server Action puede
+ * recibir cualquier argumento serializable, no solo el `FormData` de un
+ * envío nativo: eso es lo que permite que `TablaPesaje` invoque esta acción
+ * pasándole directamente lo que se revisó, en vez de tener que releer el
+ * `<form>` (que React ya vació) por segunda vez. Ver el comentario grande en
+ * `TablaPesaje.tsx`.
+ */
 export async function guardarAccion(
   _estado: EstadoDigitacion,
-  datos: FormData,
+  datos: DatosRevisados,
 ): Promise<EstadoDigitacion> {
   const usuario = await usuarioActual()
   try {
     await guardarPesaje(
       {
-        fecha: String(datos.get('fecha')),
-        metodo: String(datos.get('metodo')) as MetodoPesaje,
-        responsable: String(datos.get('responsable')),
-        notas: (String(datos.get('notas')) || null) as string | null,
+        fecha: datos.fecha,
+        metodo: datos.metodo,
+        responsable: datos.responsable,
+        notas: datos.notas,
         registradoPorId: usuario.id,
-        mediciones: leerEntradas(datos),
+        mediciones: datos.mediciones,
       },
       hoyBogota(),
     )
     revalidatePath('/como-vamos')
     revalidatePath('/')
     revalidatePath('/digitar')
-    return { revision: [], guardado: true, error: null }
+    return { revision: [], datosRevisados: null, guardado: true, error: null }
   } catch (error) {
-    return { revision: [], guardado: false, error: (error as Error).message }
+    return { revision: [], datosRevisados: null, guardado: false, error: (error as Error).message }
   }
 }
 
