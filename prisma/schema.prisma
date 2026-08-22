@@ -107,6 +107,10 @@ model Animal {
   estado            EstadoAnimal @default(activo)
   fechaSalida       DateTime?    @db.Date
   motivoSalida      String?
+  /// Último peso real del animal, tomado al momento de la salida. Es un dato
+  /// de engorde (no de plata): el precio, el comprador y las comisiones son
+  /// del plan 2.
+  pesoSalidaKg      Decimal?     @db.Decimal(5, 1)
 
   mediciones Medicion[]
   eventos    EventoSanitario[]

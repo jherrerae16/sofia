@@ -50,12 +50,16 @@ export default async function Hoy() {
 
   const animales = await prisma.animal.findMany({
     where: { lote: { tipo: 'ceba' } },
-    select: { id: true, estado: true, pesoEntradaKg: true },
+    select: { id: true, estado: true, pesoEntradaKg: true, pesoSalidaKg: true },
   })
   const paraProduccion: AnimalProduccion[] = animales.map((animal) => ({
     estado: animal.estado,
     pesoEntradaKg: aKg(animal.pesoEntradaKg),
-    pesoUltimoKg: ultimos.get(animal.id)?.pesoKg ?? null,
+    // El peso de venta, cuando se registró, es el último peso real del
+    // animal -- más reciente que el último pesaje de rutina, que pudo haber
+    // sido semanas antes de la feria. Sin peso de venta (muerte, robo, o una
+    // venta a la que no se le digitó peso) se cae al último pesaje conocido.
+    pesoUltimoKg: animal.pesoSalidaKg ? aKg(animal.pesoSalidaKg) : ultimos.get(animal.id)?.pesoKg ?? null,
   }))
   // Cuántos animales de ceba están vivos no depende de los umbrales: se cuenta
   // aparte para que esa cifra siga disponible aunque falte el parámetro.
