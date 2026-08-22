@@ -82,15 +82,20 @@ async function main() {
   const { prisma } = await import('../src/datos/cliente')
 
   try {
-    // Los eventos sanitarios y los movimientos apuntan a un animal o a un
-    // lote (`EventoSanitario_animalId_fkey`, `EventoSanitario_loteId_fkey`,
-    // `Movimiento_loteId_fkey`): hay que borrarlos antes de borrar animales
-    // y lotes, o la base rechaza esos `deleteMany()` con una violación de
-    // clave foránea. Hoy ninguna prueba de navegador crea todavía un evento
-    // sanitario, así que este `deleteMany()` no borra nada en la práctica --
-    // pero está aquí desde ya, no el día que la primera prueba lo necesite,
-    // que es tarde: para entonces ya habría reventado con el mismo error de
-    // clave foránea que ya se corrigió una vez para `Movimiento`.
+    // `Movimiento_loteId_fkey` sí es una clave foránea normal (`loteId` no es
+    // opcional en `Movimiento`), así que ese `deleteMany()` sí evita una
+    // violación de clave foránea al borrar lotes más abajo. Pero
+    // `animalId` y `loteId` SON opcionales en `EventoSanitario`
+    // (`EventoSanitario_animalId_fkey`, `EventoSanitario_loteId_fkey`): sin
+    // este `deleteMany()`, borrar el animal o el lote de una corrida
+    // anterior no violaría ninguna clave foránea -- Prisma simplemente
+    // pondría esos campos en `null` en el evento sanitario huérfano. La
+    // razón de borrarlo primero es otra: dejar cada corrida con datos
+    // limpios, sin eventos sanitarios sueltos (apuntando a `null`) que se
+    // fueran acumulando de una corrida a la siguiente. Hoy ninguna prueba
+    // de navegador crea todavía un evento sanitario, así que este
+    // `deleteMany()` no borra nada en la práctica -- pero está aquí desde
+    // ya, no el día que la primera prueba lo necesite.
     await prisma.eventoSanitario.deleteMany()
     await prisma.movimiento.deleteMany()
     await prisma.medicion.deleteMany()
