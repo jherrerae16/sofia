@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatearGdp, formatearKg, formatearPesos } from './formato'
+import { formatearGdp, formatearHectareas, formatearKg, formatearPesos } from './formato'
 
 describe('formatearGdp', () => {
   it('muestra gramos por día con separador de miles', () => {
@@ -28,5 +28,15 @@ describe('formatearKg', () => {
 describe('formatearPesos', () => {
   it('muestra pesos colombianos sin decimales', () => {
     expect(formatearPesos(54760000)).toBe('$54.760.000')
+  })
+})
+
+describe('formatearHectareas', () => {
+  it('usa coma decimal, al estilo colombiano', () => {
+    expect(formatearHectareas(7.5)).toBe('7,5')
+  })
+
+  it('fija un decimal aunque el número sea entero', () => {
+    expect(formatearHectareas(8)).toBe('8,0')
   })
 })

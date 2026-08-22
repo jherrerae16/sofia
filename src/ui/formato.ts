@@ -19,3 +19,8 @@ export function formatearKg(kg: number | null): string {
 export function formatearPesos(cop: number): string {
   return `$${enteros.format(cop)}`
 }
+
+/** Hectáreas con coma decimal y un decimal fijo, al estilo colombiano: `8` se lee `8,0`. */
+export function formatearHectareas(hectareas: number): string {
+  return unDecimal.format(hectareas)
+}

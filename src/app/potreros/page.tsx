@@ -1,7 +1,7 @@
 import { hoyBogota } from '@/calc/fechas'
 import { listarLotes } from '@/datos/lotes'
 import { listarPotreros } from '@/datos/potreros'
-import { formatearKg } from '@/ui/formato'
+import { formatearHectareas, formatearKg } from '@/ui/formato'
 import { crearPotreroAccion } from './acciones'
 import { MoverLoteForm } from './MoverLoteForm'
 
@@ -40,7 +40,7 @@ export default async function Potreros() {
           {potreros.map((potrero) => (
             <tr key={potrero.id} className="border-b border-tierra/10">
               <td className="p-2">{potrero.nombre}</td>
-              <td className="cifra p-2">{potrero.hectareas}</td>
+              <td className="cifra p-2">{formatearHectareas(potrero.hectareas)}</td>
               <td className="p-2">
                 {potrero.lotesOcupantes.length > 0 ? potrero.lotesOcupantes.join(', ') : '—'}
               </td>
