@@ -103,6 +103,10 @@ describe('revisarMovimiento', () => {
     expect(aviso.mensaje).toContain('700')
     expect(aviso.mensaje).toContain('600')
   })
+
+  it('traduce a español un potrero destino inexistente u obsoleto', async () => {
+    await expect(revisarMovimiento(loteId, 'no-existe')).rejects.toThrow(/ya no existe|cambió/)
+  })
 })
 
 describe('moverLote', () => {
@@ -133,5 +137,34 @@ describe('moverLote', () => {
     await expect(
       moverLote({ loteId, potreroDestinoId: potreroGrandeId, fecha: '2026-09-10', registradoPorId: 'u1' }),
     ).rejects.toThrow('ya está')
+  })
+
+  // Dos personas pueden usar la plataforma a la vez: si una cierra o borra el
+  // lote mientras la otra todavía tiene el formulario de mover abierto, el
+  // identificador que llega aquí queda obsoleto. Antes de este arreglo,
+  // `findUniqueOrThrow` dejaba pasar el texto crudo de Prisma
+  // ("Invalid `prisma.lote.findUniqueOrThrow()` invocation...") hasta la
+  // pantalla, en inglés y sin sentido para el ganadero.
+  it('traduce a español un lote inexistente u obsoleto, sin dejar pasar el error crudo de Prisma', async () => {
+    await expect(
+      moverLote({
+        loteId: 'no-existe',
+        potreroDestinoId: potreroGrandeId,
+        fecha: '2026-09-05',
+        registradoPorId: 'u1',
+      }),
+    ).rejects.toThrow(/ya no existe|cambió/)
+
+    try {
+      await moverLote({
+        loteId: 'no-existe',
+        potreroDestinoId: potreroGrandeId,
+        fecha: '2026-09-05',
+        registradoPorId: 'u1',
+      })
+    } catch (error) {
+      expect((error as Error).message).not.toContain('Invalid `prisma')
+      expect((error as Error).message).not.toContain('findUniqueOrThrow')
+    }
   })
 })

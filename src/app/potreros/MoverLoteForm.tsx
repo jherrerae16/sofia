@@ -143,6 +143,9 @@ function Formulario({
       {aviso && aviso.mensaje !== '' && (
         <p className={`w-full text-sm ${COLOR_ESTADO[aviso.estadoResultante]}`}>{aviso.mensaje}</p>
       )}
+      {estadoRevision.error && (
+        <p className="w-full text-sm text-rojo-tierra">{estadoRevision.error}</p>
+      )}
       {estadoMovimiento.error && (
         <p className="w-full text-sm text-rojo-tierra">{estadoMovimiento.error}</p>
       )}

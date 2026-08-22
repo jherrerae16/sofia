@@ -18,7 +18,20 @@ export async function revisarMovimiento(
   loteId: string,
   potreroDestinoId: string,
 ): Promise<AvisoMovimiento> {
-  const potrero = await prisma.potrero.findUniqueOrThrow({ where: { id: potreroDestinoId } })
+  // `findUnique` + verificación manual, no `findUniqueOrThrow`: dos personas
+  // pueden estar usando la plataforma a la vez, y si el potrero se anula o
+  // se borra mientras este formulario sigue abierto en otra pantalla, el
+  // identificador que llega aquí queda obsoleto. `findUniqueOrThrow` dejaría
+  // pasar hasta la pantalla el texto crudo de Prisma, en inglés y sin
+  // sentido para el ganadero -- este mensaje sí le sirve para entender qué
+  // pasó y qué hacer (recargar).
+  const potrero = await prisma.potrero.findUnique({ where: { id: potreroDestinoId } })
+  if (!potrero) {
+    throw new Error(
+      'Este potrero ya no existe o cambió mientras tenías el formulario abierto. Recarga la página e intenta de nuevo.',
+    )
+  }
+
   const ocupantes = await prisma.lote.findMany({
     where: { potreroActualId: potreroDestinoId, fechaCierre: null },
     select: { id: true },
@@ -57,7 +70,16 @@ export async function moverLote(datos: {
   fecha: FechaISO
   registradoPorId: string
 }): Promise<void> {
-  const lote = await prisma.lote.findUniqueOrThrow({ where: { id: datos.loteId } })
+  // Misma razón que en `revisarMovimiento`: el lote pudo cerrarse o
+  // borrarse entre que se abrió el formulario y que se envió. El mensaje
+  // traducido reemplaza el error crudo de Prisma que antes llegaba a la
+  // pantalla sin traducir.
+  const lote = await prisma.lote.findUnique({ where: { id: datos.loteId } })
+  if (!lote) {
+    throw new Error(
+      'Este lote ya no existe o cambió mientras tenías el formulario abierto. Recarga la página e intenta de nuevo.',
+    )
+  }
 
   if (lote.potreroActualId === datos.potreroDestinoId) {
     throw new Error('El lote ya está en ese potrero.')

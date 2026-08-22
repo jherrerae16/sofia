@@ -23,8 +23,12 @@ export async function revisarMovimientoAccion(
 ): Promise<EstadoMovimiento> {
   const loteId = String(datos.get('loteId'))
   const potreroDestinoId = String(datos.get('potreroDestinoId'))
-  const aviso = await revisarMovimiento(loteId, potreroDestinoId)
-  return { aviso, movido: false, error: null }
+  try {
+    const aviso = await revisarMovimiento(loteId, potreroDestinoId)
+    return { aviso, movido: false, error: null }
+  } catch (error) {
+    return { aviso: null, movido: false, error: (error as Error).message }
+  }
 }
 
 export async function moverLoteAccion(
