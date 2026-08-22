@@ -79,9 +79,16 @@ async function main() {
   const { prisma } = await import('../src/datos/cliente')
 
   try {
-    // Los movimientos apuntan a un lote (`Movimiento_loteId_fkey`): hay que
-    // borrarlos antes de borrar los lotes, o la base rechaza el
-    // `lote.deleteMany()` de más abajo con una violación de clave foránea.
+    // Los eventos sanitarios y los movimientos apuntan a un animal o a un
+    // lote (`EventoSanitario_animalId_fkey`, `EventoSanitario_loteId_fkey`,
+    // `Movimiento_loteId_fkey`): hay que borrarlos antes de borrar animales
+    // y lotes, o la base rechaza esos `deleteMany()` con una violación de
+    // clave foránea. Hoy ninguna prueba de navegador crea todavía un evento
+    // sanitario, así que este `deleteMany()` no borra nada en la práctica --
+    // pero está aquí desde ya, no el día que la primera prueba lo necesite,
+    // que es tarde: para entonces ya habría reventado con el mismo error de
+    // clave foránea que ya se corrigió una vez para `Movimiento`.
+    await prisma.eventoSanitario.deleteMany()
     await prisma.movimiento.deleteMany()
     await prisma.medicion.deleteMany()
     await prisma.pesaje.deleteMany()
