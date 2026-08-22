@@ -124,6 +124,7 @@ model Pesaje {
   creadoEn     DateTime     @default(now())
   anuladoEn    DateTime?
   motivoAnulacion String?
+  anuladoPorId String?
 
   mediciones Medicion[]
 

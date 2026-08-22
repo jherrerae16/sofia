@@ -4,11 +4,16 @@ import { revalidatePath } from 'next/cache'
 import type { MetodoPesaje } from '@prisma/client'
 import { usuarioActual } from '@/auth'
 import { hoyBogota } from '@/calc/fechas'
-import { guardarPesaje, revisarTanda, type RevisionTanda } from '@/datos/pesajes'
+import { anularPesaje, guardarPesaje, revisarTanda, type RevisionTanda } from '@/datos/pesajes'
 
 export type EstadoDigitacion = {
   revision: RevisionTanda[]
   guardado: boolean
+  error: string | null
+}
+
+export type EstadoAnulacion = {
+  anulado: boolean
   error: string | null
 }
 
@@ -55,8 +60,31 @@ export async function guardarAccion(
     )
     revalidatePath('/como-vamos')
     revalidatePath('/')
+    revalidatePath('/digitar')
     return { revision: [], guardado: true, error: null }
   } catch (error) {
     return { revision: [], guardado: false, error: (error as Error).message }
   }
+}
+
+/**
+ * Anula una sesión completa de pesaje. No borra nada -- ver `anularPesaje`
+ * en `src/datos/pesajes.ts`. Revalida las mismas pantallas que guardar un
+ * pesaje nuevo, porque anular tiene el mismo alcance: cambia el último peso
+ * por animal, la ganancia diaria y todo lo que se calcula a partir de eso.
+ */
+export async function anularAccion(
+  _estado: EstadoAnulacion,
+  datos: FormData,
+): Promise<EstadoAnulacion> {
+  const usuario = await usuarioActual()
+  try {
+    await anularPesaje(String(datos.get('pesajeId')), String(datos.get('motivo')), usuario.id)
+  } catch (error) {
+    return { anulado: false, error: (error as Error).message }
+  }
+  revalidatePath('/como-vamos')
+  revalidatePath('/')
+  revalidatePath('/digitar')
+  return { anulado: true, error: null }
 }

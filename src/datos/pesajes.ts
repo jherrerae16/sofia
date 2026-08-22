@@ -135,6 +135,70 @@ export async function guardarPesaje(datos: DatosPesaje, hoy: FechaISO): Promise<
   return pesaje.id
 }
 
+/**
+ * Anula una sesión de pesaje completa: no borra nada, solo la marca fuera de
+ * cuenta. Las mediciones se conservan en la base -- son las consultas que ya
+ * filtran por `anuladoEn: null` (`historialDeAnimal`, `ultimoPesoPorAnimal`,
+ * `frescura`) las que dejan de verlas. Exige un motivo no vacío: una
+ * anulación sin explicación deja un hueco en los datos tan malo como el dato
+ * que se quiso corregir, porque nadie sabrá después por qué desapareció.
+ */
+export async function anularPesaje(pesajeId: string, motivo: string, usuarioId: string): Promise<void> {
+  const motivoLimpio = motivo.trim()
+  if (motivoLimpio === '') {
+    throw new Error('La anulación necesita un motivo: explica por qué este pesaje ya no cuenta.')
+  }
+
+  const pesaje = await prisma.pesaje.findUniqueOrThrow({ where: { id: pesajeId } })
+  if (pesaje.anuladoEn) {
+    throw new Error('Este pesaje ya está anulado.')
+  }
+
+  await prisma.pesaje.update({
+    where: { id: pesajeId },
+    data: { anuladoEn: new Date(), motivoAnulacion: motivoLimpio, anuladoPorId: usuarioId },
+  })
+}
+
+export type ResumenPesaje = {
+  id: string
+  fecha: FechaISO
+  metodo: MetodoPesaje
+  responsable: string
+  notas: string | null
+  cantidadAnimales: number
+  anuladoEn: FechaISO | null
+  motivoAnulacion: string | null
+}
+
+/**
+ * Las últimas sesiones de pesaje que tocaron animales de este lote, más
+ * recientes primero. Es lo que necesita el ganadero para encontrar -- y
+ * eventualmente anular -- la tanda que acaba de digitar mal, justo donde la
+ * digitó: no hace falta ni un identificador de pesaje ni otra pantalla.
+ * Incluye las ya anuladas, porque el rastro de que algo se anuló también
+ * tiene que verse aquí.
+ */
+export async function listarPesajesDeLote(loteId: string, limite = 10): Promise<ResumenPesaje[]> {
+  const pesajes = await prisma.pesaje.findMany({
+    where: { mediciones: { some: { animal: { loteId } } } },
+    include: { _count: { select: { mediciones: true } } },
+    orderBy: { creadoEn: 'desc' },
+    take: limite,
+  })
+
+  return pesajes.map((pesaje) => ({
+    id: pesaje.id,
+    fecha: aFechaISO(pesaje.fecha),
+    metodo: pesaje.metodo,
+    responsable: pesaje.responsable,
+    notas: pesaje.notas,
+    cantidadAnimales: pesaje._count.mediciones,
+    anuladoEn: pesaje.anuladoEn ? aFechaISO(pesaje.anuladoEn) : null,
+    motivoAnulacion: pesaje.motivoAnulacion,
+  }))
+}
+
 export async function ultimoPesoPorAnimal(): Promise<Map<string, Medicion>> {
   const filas = await prisma.medicion.findMany({
     where: { pesaje: { anuladoEn: null } },

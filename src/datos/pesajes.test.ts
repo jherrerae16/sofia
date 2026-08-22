@@ -1,8 +1,17 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { crearAnimales, listarAnimalesDeLote } from './animales'
 import { prisma } from './cliente'
+import { frescura } from './frescura'
 import { crearLote } from './lotes'
-import { guardarPesaje, pesoVivoPorLote, revisarTanda, ultimoPesoPorAnimal } from './pesajes'
+import {
+  anularPesaje,
+  guardarPesaje,
+  historialDeAnimal,
+  listarPesajesDeLote,
+  pesoVivoPorLote,
+  revisarTanda,
+  ultimoPesoPorAnimal,
+} from './pesajes'
 
 let loteId: string
 let idPorChapeta: Record<string, string>
@@ -260,5 +269,186 @@ describe('pesoVivoPorLote', () => {
     const pesosLeche = await pesoVivoPorLote('leche')
     expect(pesosLeche.get(loteLecheId)).toBe(480)
     expect(pesosLeche.has(loteId)).toBe(false)
+  })
+})
+
+describe('anularPesaje', () => {
+  it('exige un motivo no vacío', async () => {
+    const pesajeId = await guardarPesaje(
+      {
+        fecha: '2026-10-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
+      },
+      '2026-10-01',
+    )
+
+    await expect(anularPesaje(pesajeId, '', 'u2')).rejects.toThrow(/motivo/)
+    await expect(anularPesaje(pesajeId, '   ', 'u2')).rejects.toThrow(/motivo/)
+
+    const pesaje = await prisma.pesaje.findUniqueOrThrow({ where: { id: pesajeId } })
+    expect(pesaje.anuladoEn).toBeNull()
+  })
+
+  it('marca la sesión como anulada, con motivo, fecha y quién anuló, sin borrar nada', async () => {
+    const pesajeId = await guardarPesaje(
+      {
+        fecha: '2026-10-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [
+          { animalId: idPorChapeta['001'], pesoKg: 174 },
+          { animalId: idPorChapeta['002'], pesoKg: 176 },
+        ],
+      },
+      '2026-10-01',
+    )
+
+    await anularPesaje(pesajeId, 'Se digitó 174 en vez de 147: dedazo detectado tarde.', 'u2')
+
+    const pesaje = await prisma.pesaje.findUniqueOrThrow({ where: { id: pesajeId } })
+    expect(pesaje.anuladoEn).not.toBeNull()
+    expect(pesaje.motivoAnulacion).toBe('Se digitó 174 en vez de 147: dedazo detectado tarde.')
+    expect(pesaje.anuladoPorId).toBe('u2')
+
+    // No borra nada: las mediciones siguen en la base.
+    const mediciones = await prisma.medicion.findMany({ where: { pesajeId } })
+    expect(mediciones).toHaveLength(2)
+  })
+
+  it('no se puede anular dos veces', async () => {
+    const pesajeId = await guardarPesaje(
+      {
+        fecha: '2026-10-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
+      },
+      '2026-10-01',
+    )
+
+    await anularPesaje(pesajeId, 'Motivo original.', 'u2')
+    await expect(anularPesaje(pesajeId, 'Otro motivo.', 'u2')).rejects.toThrow(/ya está anulad/)
+  })
+
+  it('saca las mediciones anuladas del historial del animal y del último peso por animal', async () => {
+    const pesajeId = await guardarPesaje(
+      {
+        fecha: '2026-10-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
+      },
+      '2026-10-01',
+    )
+
+    expect(await historialDeAnimal(idPorChapeta['001'])).toHaveLength(1)
+    expect((await ultimoPesoPorAnimal()).has(idPorChapeta['001'])).toBe(true)
+
+    await anularPesaje(pesajeId, 'Dedazo: el animal 001 no fue pesado ese día.', 'u2')
+
+    expect(await historialDeAnimal(idPorChapeta['001'])).toHaveLength(0)
+    expect((await ultimoPesoPorAnimal()).has(idPorChapeta['001'])).toBe(false)
+  })
+
+  it('saca el pesaje anulado del cálculo de frescura', async () => {
+    const pesajeId = await guardarPesaje(
+      {
+        fecha: '2026-10-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 174 }],
+      },
+      '2026-10-01',
+    )
+
+    expect((await frescura('2026-10-05')).ultimaFecha).toBe('2026-10-01')
+
+    await anularPesaje(pesajeId, 'Fecha digitada mal, se corregirá con un pesaje nuevo.', 'u2')
+
+    expect((await frescura('2026-10-05')).ultimaFecha).toBeNull()
+  })
+})
+
+describe('listarPesajesDeLote', () => {
+  it('lista las sesiones que tocaron el lote, más recientes primero, con la anulación visible', async () => {
+    const primero = await guardarPesaje(
+      {
+        fecha: '2026-10-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [
+          { animalId: idPorChapeta['001'], pesoKg: 174 },
+          { animalId: idPorChapeta['002'], pesoKg: 176 },
+        ],
+      },
+      '2026-10-01',
+    )
+    const segundo = await guardarPesaje(
+      {
+        fecha: '2026-10-15',
+        metodo: 'bascula',
+        responsable: 'Sofanor',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: idPorChapeta['001'], pesoKg: 180 }],
+      },
+      '2026-10-15',
+    )
+
+    let lista = await listarPesajesDeLote(loteId)
+    expect(lista.map((p) => p.id)).toEqual([segundo, primero])
+    expect(lista[0].cantidadAnimales).toBe(1)
+    expect(lista[1].cantidadAnimales).toBe(2)
+    expect(lista[1].anuladoEn).toBeNull()
+
+    await anularPesaje(primero, 'Dedazo en el 001.', 'u2')
+    lista = await listarPesajesDeLote(loteId)
+    const anulado = lista.find((p) => p.id === primero)
+    expect(anulado?.anuladoEn).not.toBeNull()
+    expect(anulado?.motivoAnulacion).toBe('Dedazo en el 001.')
+  })
+
+  it('no mezcla sesiones de otro lote', async () => {
+    const otroLoteId = await crearLote({ nombre: 'Ceba 02', tipo: 'ceba', fechaApertura: '2026-09-01' })
+    await crearAnimales({
+      loteId: otroLoteId,
+      chapetas: ['501'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: null,
+      pesos: { '501': 150 },
+    })
+    const otroAnimalId = (await listarAnimalesDeLote(otroLoteId))[0].id
+    await guardarPesaje(
+      {
+        fecha: '2026-10-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: otroAnimalId, pesoKg: 174 }],
+      },
+      '2026-10-01',
+    )
+
+    expect(await listarPesajesDeLote(loteId)).toHaveLength(0)
+    expect(await listarPesajesDeLote(otroLoteId)).toHaveLength(1)
   })
 })

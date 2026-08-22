@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { hoyBogota } from '@/calc/fechas'
 import { listarAnimalesDeLote } from '@/datos/animales'
 import { listarLotes } from '@/datos/lotes'
+import { listarPesajesDeLote } from '@/datos/pesajes'
+import { PesajesRecientes } from './PesajesRecientes'
 import { TablaPesaje } from './TablaPesaje'
 
 // Igual que en "Cómo vamos": hoy es dinámica solo porque lee `searchParams`.
@@ -18,6 +20,7 @@ export default async function Digitar({
   const lotes = await listarLotes()
   const loteId = loteSeleccionado ?? lotes[0]?.id
   const animales = loteId ? await listarAnimalesDeLote(loteId) : []
+  const pesajesRecientes = loteId ? await listarPesajesDeLote(loteId) : []
 
   return (
     <main className="p-6">
@@ -45,6 +48,8 @@ export default async function Digitar({
         animales={animales.filter((a) => a.estado === 'activo')}
         hoy={hoyBogota()}
       />
+
+      <PesajesRecientes pesajes={pesajesRecientes} />
     </main>
   )
 }
