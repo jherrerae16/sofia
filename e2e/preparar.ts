@@ -109,6 +109,14 @@ async function main() {
     // `npm run test:e2e` chocaría contra esos mismos nombres.
     await prisma.potrero.deleteMany()
     await prisma.usuario.deleteMany()
+    // e2e/configuracion.spec.ts es la primera prueba de navegador que toca
+    // Parametro y Finca: sin limpiarlos aquí, cada corrida de
+    // `npm run test:e2e` iría agregando vigencias nuevas encima de las de la
+    // corrida anterior, y esa prueba dejaría de poder afirmar con certeza
+    // cuál es "el" valor vigente hoy o cuántas filas trae el histórico.
+    await prisma.parametro.deleteMany()
+    await prisma.finca.deleteMany()
+    await prisma.finca.create({ data: { nombre: 'Santa Verónica', hectareasUtiles: 35 } })
 
     await prisma.usuario.create({
       data: {

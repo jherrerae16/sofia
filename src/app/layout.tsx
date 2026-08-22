@@ -18,6 +18,7 @@ const ENLACES = [
   { href: '/salidas', texto: 'Salidas' },
   { href: '/lotes', texto: 'Lotes' },
   { href: '/potreros', texto: 'Potreros' },
+  { href: '/configuracion', texto: 'Configuración' },
 ]
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
