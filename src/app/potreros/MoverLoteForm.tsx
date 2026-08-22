@@ -82,7 +82,19 @@ function Formulario({
   // botón vuelve a pedir "Revisar" antes de mover, para no confirmar sobre un
   // movimiento distinto del que se avisó.
   const [vigente, setVigente] = useState(true)
-  useLayoutEffect(() => setVigente(true), [estadoRevision])
+  // Mismo mecanismo que en `TablaPesaje.tsx` (ver el comentario grande allá
+  // y el de `poblarKey`): React vació los campos al enviarse la revisión, así
+  // que sin esto la pantalla mostraría el lote y el potrero reseteados a la
+  // primera opción de cada lista mientras "Mover lote" mueve en realidad lo
+  // que sí se revisó (`datosRevisados`) -- correcto por debajo, pero
+  // contradicho por lo que el ganadero está leyendo para decidir si confirma.
+  // `poblarKey` cambia una vez por revisión y fuerza a recrear los campos con
+  // `defaultValue` tomado de `datosRevisados`; no depende de ninguna tecla.
+  const [poblarKey, setPoblarKey] = useState(0)
+  useLayoutEffect(() => {
+    setVigente(true)
+    setPoblarKey((k) => k + 1)
+  }, [estadoRevision])
 
   useEffect(() => {
     if (estadoMovimiento.movido) alMover()
@@ -96,6 +108,11 @@ function Formulario({
   const aviso = vigente ? estadoRevision.aviso : null
   const datosRevisados = vigente ? estadoRevision.datosRevisados : null
   const yaRevisado = aviso !== null
+
+  // Base para repoblar, igual que `revisados` en `TablaPesaje.tsx`: a
+  // propósito NO gateada por `vigente`, porque el remonte que la usa ocurre
+  // en el mismo efecto que pone `vigente` en `true`.
+  const revisados = estadoRevision.datosRevisados
 
   // Mismo mecanismo que en `TablaPesaje.tsx` (ver el comentario grande allá):
   // React 19 vacía los campos no controlados de este `<form>` en cuanto se
@@ -115,8 +132,10 @@ function Formulario({
       <label className="text-sm">
         Lote
         <select
+          key={poblarKey}
           name="loteId"
           required
+          defaultValue={revisados?.loteId}
           onChange={marcarEditado}
           className="ml-2 rounded border border-tierra/30 p-2"
         >
@@ -130,8 +149,10 @@ function Formulario({
       <label className="text-sm">
         A potrero
         <select
+          key={poblarKey}
           name="potreroDestinoId"
           required
+          defaultValue={revisados?.potreroDestinoId}
           onChange={marcarEditado}
           className="ml-2 rounded border border-tierra/30 p-2"
         >
@@ -145,9 +166,10 @@ function Formulario({
       <label className="text-sm">
         Fecha
         <input
+          key={poblarKey}
           name="fecha"
           type="date"
-          defaultValue={hoy}
+          defaultValue={revisados?.fecha ?? hoy}
           required
           onChange={marcarEditado}
           className="ml-2 rounded border border-tierra/30 p-2"

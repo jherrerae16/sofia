@@ -12,6 +12,14 @@ config({ path: '.env.test', override: true, quiet: true })
 
 export default defineConfig({
   testDir: './e2e',
+  // Un solo worker: los archivos de prueba comparten `sofia_test` sin
+  // aislamiento por prueba (cada uno confía en lo que `e2e/preparar.ts`
+  // sembró una vez al principio, no en un `beforeEach` propio). Con más de
+  // un worker, Playwright correría dos archivos a la vez sobre la misma
+  // base -- por ejemplo `digitar.spec.ts` y `mover-lote.spec.ts` leyendo y
+  // escribiendo lotes al mismo tiempo -- y eso sería una carrera de datos,
+  // no una prueba.
+  workers: 1,
   use: { baseURL: 'http://localhost:3000' },
   webServer: {
     command: 'npm run dev',

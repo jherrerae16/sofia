@@ -97,6 +97,12 @@ async function main() {
     await prisma.pesaje.deleteMany()
     await prisma.animal.deleteMany()
     await prisma.lote.deleteMany()
+    // Los potreros no tienen ninguna prueba que dependa de datos limpios
+    // hasta la que mueve un lote (`e2e/mover-lote.spec.ts`): esa prueba
+    // crea sus propios potreros con nombres fijos (`@unique` en el
+    // esquema), así que sin este `deleteMany()` la segunda corrida de
+    // `npm run test:e2e` chocaría contra esos mismos nombres.
+    await prisma.potrero.deleteMany()
     await prisma.usuario.deleteMany()
 
     await prisma.usuario.create({
