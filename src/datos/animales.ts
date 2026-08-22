@@ -38,6 +38,14 @@ export async function crearAnimales(datos: DatosAlta): Promise<number> {
     if (peso === undefined) {
       throw new Error(`Falta el peso de entrada de la chapeta ${chapeta}.`)
     }
+    // Un texto no numérico digitado por error (p. ej. "15o" en vez de "150")
+    // llega aquí como NaN, no como `undefined` -- y `NaN <= 0` es `false`,
+    // así que sin este chequeo colaba hasta Prisma con un error genérico que
+    // no le dice al ganadero qué línea de la planilla corregir. Misma
+    // guardia que ya existe en `validarMedicion` para el mismo error.
+    if (!Number.isFinite(peso)) {
+      throw new Error(`El peso de entrada de la chapeta ${chapeta} no es un número.`)
+    }
     if (peso <= 0) {
       throw new Error(`El peso de entrada de la chapeta ${chapeta} debe ser mayor que cero.`)
     }

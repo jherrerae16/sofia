@@ -80,6 +80,31 @@ describe('crearAnimales', () => {
     ).rejects.toThrow('002')
   })
 
+  it('rechaza un peso de entrada no numérico', async () => {
+    // El formulario de alta manda el peso ya convertido con `Number(texto)`:
+    // un texto no numérico (p. ej. "15o" en vez de "150", el mismo dedazo
+    // clásico de la "o" por el "0") llega aquí como NaN, no como
+    // `undefined`. `NaN <= 0` es `false`, así que sin esta guardia colaba
+    // hasta Prisma y el ganadero veía una pantalla de error genérica sin
+    // saber qué línea de la planilla corregir. Es la misma guardia que ya
+    // existe en `validarMedicion` para el mismo error.
+    await expect(
+      crearAnimales({
+        loteId,
+        chapetas: ['001', '002'],
+        sexo: 'macho',
+        raza: null,
+        cruce: null,
+        proveedor: null,
+        fechaEntrada: '2026-09-01',
+        edadEntradaMeses: null,
+        pesos: { '001': 150, '002': NaN },
+      }),
+    ).rejects.toThrow('002')
+
+    expect(await listarAnimalesDeLote(loteId)).toHaveLength(0)
+  })
+
   it('no crea ningún animal si uno falla', async () => {
     await expect(
       crearAnimales({
