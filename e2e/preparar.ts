@@ -17,6 +17,22 @@
 import { config } from 'dotenv'
 config({ path: '.env.test', override: true })
 
+// Se importa arriba, estático: `fechas.ts` no lee variables de entorno, así
+// que no le aplica la razón por la que bcrypt y el cliente de Prisma más
+// abajo sí se importan dinámicamente.
+import { hoyBogota, sumarDias } from '../src/calc/fechas'
+import { aFechaDb } from '../src/datos/conversion'
+
+// Relativa a hoy, no absoluta: una fecha de entrada fija (como la
+// `2026-09-01` que tenía este archivo antes) se queda quieta mientras
+// `hoyBogota()` avanza cada día. Tarde o temprano la fecha de entrada queda
+// por delante de hoy, y entonces no cabe ningún pesaje válido entre la
+// entrada y hoy (el pesaje tiene que ser posterior a la entrada y no
+// posterior a hoy) -- que es exactamente lo que le pasó a las pruebas de
+// navegador. Sembrar la entrada 30 días atrás de hoy es una ventana que
+// nunca caduca.
+const FECHA_ENTRADA = sumarDias(hoyBogota(), -30)
+
 /**
  * Segunda capa de protección, independiente de la carga de `.env.test` de
  * arriba: si por lo que sea `DATABASE_URL` termina apuntando a otra base (una
@@ -82,7 +98,7 @@ async function main() {
     })
 
     const lote = await prisma.lote.create({
-      data: { nombre: 'Ceba 01', tipo: 'ceba', fechaApertura: new Date('2026-09-01T00:00:00.000Z') },
+      data: { nombre: 'Ceba 01', tipo: 'ceba', fechaApertura: aFechaDb(FECHA_ENTRADA) },
     })
 
     for (const chapeta of ['001', '002']) {
@@ -92,7 +108,7 @@ async function main() {
           loteId: lote.id,
           sexo: 'macho',
           raza: 'Brahman',
-          fechaEntrada: new Date('2026-09-01T00:00:00.000Z'),
+          fechaEntrada: aFechaDb(FECHA_ENTRADA),
           pesoEntradaKg: 150,
         },
       })
