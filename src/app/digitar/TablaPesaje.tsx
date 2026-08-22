@@ -80,7 +80,21 @@ function Formulario({
   // nueva, se marque vigente antes del primer pintado y no haya un parpadeo
   // de la columna de ganancia quedando vacía por un instante.
   const [vigente, setVigente] = useState(true)
-  useLayoutEffect(() => setVigente(true), [estado])
+  // React vació los campos del `<form>` al enviarse la revisión (ver el
+  // comentario grande más abajo), así que cuando `estado` trae una revisión
+  // nueva hay que repoblarlos con lo que de verdad se revisó -- no dejarlos
+  // en blanco. Los campos siguen sin controlar (nada de `value` +
+  // `onChange` por tecla, que es justo lo que la fluidez exigida prohíbe):
+  // en vez de eso, `poblarKey` cambia una vez por revisión y se usa como
+  // `key` en cada campo, lo que fuerza a React a recrearlo con un
+  // `defaultValue` nuevo tomado de `datosRevisados`. Cambia solo cuando
+  // `estado` cambia (una revisión de verdad), nunca por tecla ni por
+  // `marcarEditado`, así que no le cuesta nada a la fluidez de digitar.
+  const [poblarKey, setPoblarKey] = useState(0)
+  useLayoutEffect(() => {
+    setVigente(true)
+    setPoblarKey((k) => k + 1)
+  }, [estado])
 
   useEffect(() => {
     if (guardadoEstado.guardado) alGuardar()
@@ -96,6 +110,13 @@ function Formulario({
   const porAnimal = new Map(revision.map((r) => [r.animalId, r]))
   const hayRechazos = revision.some((r) => r.nivel === 'rechazo')
   const yaRevisado = revision.length > 0
+
+  // Base para repoblar los campos tras una revisión -- a propósito, NO
+  // gateada por `vigente`: el remonte que la usa (vía `poblarKey`) ocurre
+  // siempre en el mismo efecto que pone `vigente` en `true`, así que cuando
+  // se repuebla, `estado.datosRevisados` y "lo vigente" son la misma cosa.
+  const revisados = estado.datosRevisados
+  const pesosPorAnimal = new Map(revisados?.mediciones.map((m) => [m.animalId, m.pesoKg]) ?? [])
 
   // React 19 vacía los campos no controlados de este `<form>` en cuanto se
   // dispara CUALQUIER envío suyo -- incluida la propia revisión, y antes
@@ -115,6 +136,20 @@ function Formulario({
   // directamente. Así lo que se guarda es, por construcción, lo mismo que
   // se revisó y lo mismo que está en pantalla: no hay un segundo lugar
   // del que puedan divergir.
+  //
+  // "Lo mismo que está en pantalla" no era cierto hasta el `poblarKey` de
+  // arriba: antes de eso, el vaciado que hace React seguía siendo visible
+  // para el usuario -- lo que se iba a guardar (`datosRevisados`) ya era
+  // correcto, pero la pantalla que el usuario lee para decidir si guardar
+  // mostraba otra cosa (56 campos en blanco). Peor todavía: si el usuario
+  // corregía UN campo sobre ese formulario vacío y volvía a revisar, el
+  // segundo `FormData` solo traía ese campo -- `datosRevisados` se
+  // sobrescribía con una tanda de una sola medición, y esa sí se guardaba
+  // completa y "correctamente" según este mismo mecanismo. Repoblar los
+  // campos cierra ambos huecos a la vez: la pantalla vuelve a coincidir con
+  // `datosRevisados`, y por eso corregir una fila ya no depende de que las
+  // otras 55 hayan sobrevivido un vaciado que nunca ocurrió donde el
+  // usuario podía verlo.
   async function confirmarGuardar(_formData: FormData) {
     if (!datosRevisados) return
     guardar(datosRevisados)
@@ -126,9 +161,10 @@ function Formulario({
         <label className="text-sm">
           Fecha
           <input
+            key={poblarKey}
             name="fecha"
             type="date"
-            defaultValue={hoy}
+            defaultValue={revisados?.fecha ?? hoy}
             max={hoy}
             required
             onChange={marcarEditado}
@@ -137,7 +173,13 @@ function Formulario({
         </label>
         <label className="text-sm">
           Método
-          <select name="metodo" defaultValue="cinta" className="ml-2 rounded border border-tierra/30 p-2">
+          <select
+            key={poblarKey}
+            name="metodo"
+            defaultValue={revisados?.metodo ?? 'cinta'}
+            onChange={marcarEditado}
+            className="ml-2 rounded border border-tierra/30 p-2"
+          >
             <option value="cinta">Cinta bovinométrica</option>
             <option value="bascula">Báscula</option>
             <option value="estimacion">Estimación</option>
@@ -145,7 +187,14 @@ function Formulario({
         </label>
         <label className="text-sm">
           Pesó
-          <input name="responsable" defaultValue="Joseph" required className="ml-2 rounded border border-tierra/30 p-2" />
+          <input
+            key={poblarKey}
+            name="responsable"
+            defaultValue={revisados?.responsable ?? 'Joseph'}
+            required
+            onChange={marcarEditado}
+            className="ml-2 rounded border border-tierra/30 p-2"
+          />
         </label>
       </div>
 
@@ -165,9 +214,11 @@ function Formulario({
                 <td className="p-2 font-medium">{animal.chapeta}</td>
                 <td className="p-2">
                   <input
+                    key={poblarKey}
                     name={`peso_${animal.id}`}
                     inputMode="decimal"
                     autoComplete="off"
+                    defaultValue={pesosPorAnimal.get(animal.id) ?? ''}
                     onChange={marcarEditado}
                     className="cifra w-24 rounded border border-tierra/30 p-2 text-right"
                   />
@@ -183,7 +234,13 @@ function Formulario({
 
       <label className="block text-sm">
         Notas
-        <input name="notas" className="ml-2 w-96 rounded border border-tierra/30 p-2" />
+        <input
+          key={poblarKey}
+          name="notas"
+          defaultValue={revisados?.notas ?? ''}
+          onChange={marcarEditado}
+          className="ml-2 w-96 rounded border border-tierra/30 p-2"
+        />
       </label>
 
       {estado.error && <p className="text-rojo-tierra">{estado.error}</p>}

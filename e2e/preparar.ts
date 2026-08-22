@@ -111,7 +111,11 @@ async function main() {
       data: { nombre: 'Ceba 01', tipo: 'ceba', fechaApertura: aFechaDb(FECHA_ENTRADA) },
     })
 
-    for (const chapeta of ['001', '002']) {
+    // Cinco chapetas, no dos: la prueba de F1 en digitar.spec.ts (corregir
+    // una fila después de revisar no debe borrar las demás) necesita varias
+    // filas digitadas a la vez para poder demostrar que sobreviven todas,
+    // no solo la que se corrigió.
+    for (const chapeta of ['001', '002', '003', '004', '005']) {
       await prisma.animal.create({
         data: {
           chapeta,

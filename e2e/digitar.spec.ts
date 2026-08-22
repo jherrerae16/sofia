@@ -118,3 +118,110 @@ test('guardar tras revisar persiste exactamente lo digitado, no lo que el formul
   expect(pesoPorAnimal.get(idPorChapeta['001'])).toBe(160)
   expect(pesoPorAnimal.get(idPorChapeta['002'])).toBe(165)
 })
+
+test('corregir una fila después de revisar no borra las demás mediciones digitadas', async ({
+  page,
+}) => {
+  // Prueba de F1: antes de este arreglo, React vaciaba los 5 campos de peso
+  // en cuanto se enviaba "Revisar" (antes incluso de que volviera la
+  // revisión). Corregir SOLO la fila rechazada y volver a revisar mandaba
+  // un `FormData` con una sola medición -- las otras 4 nunca sobrevivieron
+  // en pantalla para poder reenviarse. `guardarPesaje` terminaba
+  // persistiendo 1 medición de las 5 digitadas, con la pantalla diciendo
+  // "Pesaje guardado." en verde igual. El arreglo repuebla los campos con
+  // lo que se revisó, así que la corrección se hace sobre un formulario
+  // completo, no sobre uno vaciado.
+  await iniciarSesion(page)
+  const fechaDigitada = sumarDias(HOY, -6)
+
+  await page.goto('/digitar')
+  await page.fill('input[name="fecha"]', fechaDigitada)
+
+  const campos = page.locator('input[name^="peso_"]')
+  // Fila 3 (chapeta 003) lleva el dedazo: "0" es un peso imposible
+  // (`El peso debe ser mayor que cero.`) y por eso nivel 'rechazo', no solo
+  // 'advertencia' -- la fila roja que bloquea guardar, como en el encargo.
+  const pesosDigitados = ['162', '167', '0', '158', '156']
+  for (let i = 0; i < pesosDigitados.length; i++) {
+    await campos.nth(i).fill(pesosDigitados[i])
+  }
+
+  await page.getByRole('button', { name: 'Revisar antes de guardar' }).click()
+  await expect(
+    page.getByText('Corrige las filas en rojo antes de guardar', { exact: false }),
+  ).toBeVisible()
+
+  // F1/F2: tras revisar, la pantalla tiene que seguir mostrando los 5 pesos
+  // digitados (y la fecha), no los campos en blanco que React dejó en el
+  // DOM al enviar. Si esta comprobación fallara, ya demostraría F2 por sí
+  // sola -- pero además es la precondición de la que depende el resto de
+  // esta prueba (F1): sin los otros 4 campos repoblados, la corrección de
+  // abajo los perdería.
+  await expect(page.locator('input[name="fecha"]')).toHaveValue(fechaDigitada)
+  for (let i = 0; i < pesosDigitados.length; i++) {
+    if (i === 2) continue // la fila rechazada se corrige más abajo
+    await expect(campos.nth(i)).toHaveValue(pesosDigitados[i])
+  }
+
+  // Corrige EXCLUSIVAMENTE la fila marcada, tal como pide la pantalla.
+  await campos.nth(2).fill('148')
+
+  await page.getByRole('button', { name: 'Revisar antes de guardar' }).click()
+  await expect(page.getByRole('button', { name: 'Guardar pesaje' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Guardar pesaje' }).click()
+  await expect(page.getByText('Pesaje guardado.')).toBeVisible()
+
+  // No basta con leer la pantalla: se consulta la base directamente para
+  // comprobar que las 5 mediciones digitadas se guardaron, no solo la fila
+  // que se corrigió al final.
+  const animales = await prisma.animal.findMany({
+    where: { chapeta: { in: ['001', '002', '003', '004', '005'] } },
+  })
+  const idPorChapeta = Object.fromEntries(animales.map((a) => [a.chapeta, a.id]))
+
+  const pesaje = await prisma.pesaje.findFirstOrThrow({
+    orderBy: { creadoEn: 'desc' },
+    include: { mediciones: true },
+  })
+
+  expect(pesaje.fecha.toISOString().slice(0, 10)).toBe(fechaDigitada)
+  expect(pesaje.mediciones).toHaveLength(5)
+  const pesoPorAnimal = new Map(pesaje.mediciones.map((m) => [m.animalId, Number(m.pesoKg)]))
+  expect(pesoPorAnimal.get(idPorChapeta['001'])).toBe(162)
+  expect(pesoPorAnimal.get(idPorChapeta['002'])).toBe(167)
+  expect(pesoPorAnimal.get(idPorChapeta['003'])).toBe(148)
+  expect(pesoPorAnimal.get(idPorChapeta['004'])).toBe(158)
+  expect(pesoPorAnimal.get(idPorChapeta['005'])).toBe(156)
+})
+
+test('cambiar método, responsable o notas después de revisar obliga a revisar de nuevo', async ({
+  page,
+}) => {
+  // Prueba de F3: antes de este arreglo, "Método", "Pesó" y "Notas" no
+  // tenían `onChange`, así que cambiarlos después de revisar dejaba el
+  // botón diciendo "Guardar pesaje" -- listo para guardar con el valor
+  // viejo de `datosRevisados` mientras la pantalla ya mostraba otro.
+  await iniciarSesion(page)
+  await page.goto('/digitar')
+  await page.fill('input[name="fecha"]', sumarDias(HOY, -4))
+  await page.locator('input[name^="peso_"]').first().fill('160')
+
+  await page.getByRole('button', { name: 'Revisar antes de guardar' }).click()
+  await expect(page.getByRole('button', { name: 'Guardar pesaje' })).toBeVisible()
+
+  await page.selectOption('select[name="metodo"]', 'bascula')
+  await expect(page.getByRole('button', { name: 'Revisar antes de guardar' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Revisar antes de guardar' }).click()
+  await expect(page.getByRole('button', { name: 'Guardar pesaje' })).toBeVisible()
+
+  await page.fill('input[name="responsable"]', 'Amalia')
+  await expect(page.getByRole('button', { name: 'Revisar antes de guardar' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Revisar antes de guardar' }).click()
+  await expect(page.getByRole('button', { name: 'Guardar pesaje' })).toBeVisible()
+
+  await page.fill('input[name="notas"]', 'peso a ojo, se cayó la báscula')
+  await expect(page.getByRole('button', { name: 'Revisar antes de guardar' })).toBeVisible()
+})
