@@ -20,7 +20,7 @@ export function Cifra({
         {valor}
       </div>
       {proyectado && <div className="text-xs text-ambar">proyectado</div>}
-      {comparacion && <div className="mt-1 text-xs text-carbon/60">{comparacion}</div>}
+      {comparacion && <div className="cifra mt-1 text-xs text-carbon/60">{comparacion}</div>}
     </div>
   )
 }
