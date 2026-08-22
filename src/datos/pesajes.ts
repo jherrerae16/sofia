@@ -110,6 +110,16 @@ export async function revisarTanda(
 }
 
 export async function guardarPesaje(datos: DatosPesaje, hoy: FechaISO): Promise<string> {
+  // `revisarAccion` ya rechaza esto en la interfaz, pero esa validación vive
+  // en el server action, no aquí: una tanda vacía que llegara por cualquier
+  // otro camino -- un formulario que se reenvía ya vacío, un llamador
+  // futuro que no pase por `revisarAccion` -- crearía un pesaje real con
+  // fecha de hoy y cero mediciones, apagando en silencio la alarma de
+  // frescura sin que ninguna medición rechazada lo delatara más abajo.
+  if (datos.mediciones.length === 0) {
+    throw new Error('No se guardó nada: no hay ningún peso en la tanda.')
+  }
+
   const revision = await revisarTanda(datos.mediciones, datos.fecha, hoy)
   const rechazos = revision.filter((r) => r.nivel === 'rechazo')
   if (rechazos.length > 0) {

@@ -146,6 +146,32 @@ describe('guardarPesaje', () => {
     expect(ultimos.has(idPorChapeta['002'])).toBe(false)
   })
 
+  it('rechaza una tanda sin ninguna medición', async () => {
+    // `revisarAccion` ya rechaza esto en la interfaz ("No hay ningún peso
+    // digitado"), pero esa validación vive en el server action, no en
+    // `guardarPesaje`. Sin esta guardia, una tanda vacía que llegara hasta
+    // aquí por cualquier otro camino -- el mismo que abrió E1, cuando el
+    // segundo envío reenviaba el formulario ya vacío -- crearía un pesaje
+    // real, con fecha de hoy y cero mediciones, apagando en silencio la
+    // alarma de frescura. Es la red que debió atrapar E1 desde el primer
+    // día.
+    await expect(
+      guardarPesaje(
+        {
+          fecha: '2026-10-01',
+          metodo: 'cinta',
+          responsable: 'Joseph',
+          notas: null,
+          registradoPorId: 'u1',
+          mediciones: [],
+        },
+        '2026-10-01',
+      ),
+    ).rejects.toThrow(/ningún peso/)
+
+    expect(await prisma.pesaje.count()).toBe(0)
+  })
+
   it('no guarda nada si alguna medición es rechazable', async () => {
     await expect(
       guardarPesaje(
