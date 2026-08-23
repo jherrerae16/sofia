@@ -8,9 +8,9 @@ import { capitalizar, formatearGdp } from '@/ui/formato'
 const INICIAL: EstadoDigitacion = { revision: [], datosRevisados: null, guardado: false, error: null }
 
 const COLOR_NIVEL = {
-  ok: 'text-pasto',
-  advertencia: 'text-ambar',
-  rechazo: 'text-rojo-tierra font-semibold',
+  ok: 'text-monte',
+  advertencia: 'text-barro',
+  rechazo: 'text-barro font-semibold',
 }
 
 export function TablaPesaje({
@@ -39,7 +39,7 @@ export function TablaPesaje({
 
   return (
     <div className="space-y-4">
-      {avisoGuardado && <p className="text-pasto">Pesaje guardado.</p>}
+      {avisoGuardado && <p className="text-monte">Pesaje guardado.</p>}
       {/* El identificador del lote va en la clave, no solo `version`: el
           enlace de arriba es de Next (navegación de cliente, sin recarga
           completa), así que cambiar de lote por sí solo no reiniciaría este
@@ -252,17 +252,17 @@ function Formulario({
         />
       </label>
 
-      {estado.error && <p className="text-rojo-tierra">{estado.error}</p>}
-      {guardadoEstado.error && <p className="text-rojo-tierra">{guardadoEstado.error}</p>}
+      {estado.error && <p className="text-barro">{estado.error}</p>}
+      {guardadoEstado.error && <p className="text-barro">{guardadoEstado.error}</p>}
       {hayRechazos && (
-        <p className="text-rojo-tierra">
+        <p className="text-barro">
           Corrige las filas en rojo antes de guardar. No se guardará nada mientras haya rechazos.
         </p>
       )}
 
       <button
         disabled={revisando || guardando}
-        className="rounded bg-pasto px-6 py-3 font-medium text-white disabled:opacity-50"
+        className="rounded bg-monte px-6 py-3 font-medium text-crema disabled:opacity-50"
       >
         {yaRevisado && !hayRechazos ? 'Guardar pesaje' : 'Revisar antes de guardar'}
       </button>

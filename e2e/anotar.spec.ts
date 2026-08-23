@@ -1,35 +1,47 @@
 import { expect, test } from '@playwright/test'
 import { hoyBogota, sumarDias } from '../src/calc/fechas'
 import { prisma } from '../src/datos/cliente'
+import { entrar } from './sesion'
 
-// playwright.config.ts ya cargó .env.test con override antes de que este
-// archivo se importara, así que `prisma` aquí apunta a la misma base de
-// pruebas que usa la app bajo prueba.
 test.afterAll(async () => {
   await prisma.$disconnect()
 })
 
 // e2e/preparar.ts siembra la fecha de entrada de los animales 30 días atrás
-// de hoy (ver el comentario allá) -- estas pruebas usan las mismas fechas
-// relativas, no fechas absolutas, para no volver a caducar contra el reloj
-// real como ya le pasó a este archivo con `2026-10-01`/`2026-08-01`.
+// de hoy: estas pruebas usan las mismas fechas relativas, no absolutas, para
+// no volver a caducar contra el reloj real.
 const HOY = hoyBogota()
 
-async function iniciarSesion(page: import('@playwright/test').Page) {
-  await page.goto('/entrar')
-  await page.fill('input[name="correo"]', 'joseph@ejemplo.com')
-  await page.fill('input[name="clave"]', 'claveDePrueba')
-  await page.click('button')
-  // El envío pasa por un server action asíncrono: sin esperar a que la
-  // redirección a "/" termine, el goto siguiente corta la petición a mitad
-  // de camino y la sesión nunca queda establecida.
-  await page.waitForURL((url) => url.pathname === '/')
-}
+test.beforeEach(async ({ page }) => {
+  await entrar(page)
+})
+
+test('Anotar ofrece los seis modos, en orden', async ({ page }) => {
+  await page.goto('/anotar/pesos')
+  // El orden es el de frecuencia real: se pesa todas las semanas, se vende
+  // dos veces al año.
+  await expect(page.getByTestId('modos').getByRole('link')).toHaveText([
+    'Pesos',
+    'Venta o muerte',
+    'Novedad',
+    'Mover lote',
+    'Entrada de ganado',
+    'Sanidad',
+  ])
+})
+
+test('el modo en el que estás queda marcado, y solo ese', async ({ page }) => {
+  await page.goto('/anotar/pesos')
+  await expect(page.getByTestId('modos').locator('[aria-current="page"]')).toHaveText(['Pesos'])
+})
+
+test('el titular de Anotar dice qué se está anotando', async ({ page }) => {
+  await page.goto('/anotar/pesos')
+  await expect(page.locator('h1')).toContainText('Pasa la libreta')
+})
 
 test('digitar una tanda muestra la ganancia antes de guardar y atrapa el dedazo', async ({ page }) => {
-  await iniciarSesion(page)
-
-  await page.goto('/digitar')
+  await page.goto('/anotar/pesos')
   // Hoy mismo: 30 días después de la entrada sembrada (150 kg), igual que
   // antes de este arreglo, solo que relativa en vez de fija.
   await page.fill('input[name="fecha"]', HOY)
@@ -45,9 +57,7 @@ test('digitar una tanda muestra la ganancia antes de guardar y atrapa el dedazo'
 })
 
 test('un pesaje anterior al ingreso del animal no se guarda', async ({ page }) => {
-  await iniciarSesion(page)
-
-  await page.goto('/digitar')
+  await page.goto('/anotar/pesos')
   // 5 días antes de la entrada sembrada (30 días atrás de hoy): siempre
   // anterior al ingreso, sin importar cuándo corra esta prueba.
   await page.fill('input[name="fecha"]', sumarDias(HOY, -35))
@@ -84,14 +94,12 @@ test('guardar tras revisar persiste exactamente lo digitado, no lo que el formul
   // ninguna medición, con la fecha de hoy, mientras la pantalla decía
   // "Pesaje guardado.". No basta con comprobar el aviso en pantalla: hay que
   // consultar la base directamente y comparar contra lo que se digitó.
-  await iniciarSesion(page)
-
   // 10 días atrás de hoy, y no hoy: si el arreglo no sirviera y el segundo
   // envío se reenviara con la fecha por omisión (hoy), esta prueba lo
   // atraparía porque la fecha guardada no coincidiría con la digitada.
   const fechaDigitada = sumarDias(HOY, -10)
 
-  await page.goto('/digitar')
+  await page.goto('/anotar/pesos')
   await page.fill('input[name="fecha"]', fechaDigitada)
 
   const campos = page.locator('input[name^="peso_"]')
@@ -137,10 +145,9 @@ test('corregir una fila después de revisar no borra las demás mediciones digit
   // "Pesaje guardado." en verde igual. El arreglo repuebla los campos con
   // lo que se revisó, así que la corrección se hace sobre un formulario
   // completo, no sobre uno vaciado.
-  await iniciarSesion(page)
   const fechaDigitada = sumarDias(HOY, -6)
 
-  await page.goto('/digitar')
+  await page.goto('/anotar/pesos')
   await page.fill('input[name="fecha"]', fechaDigitada)
 
   const campos = page.locator('input[name^="peso_"]')
@@ -208,8 +215,7 @@ test('cambiar método, responsable o notas después de revisar obliga a revisar 
   // tenían `onChange`, así que cambiarlos después de revisar dejaba el
   // botón diciendo "Guardar pesaje" -- listo para guardar con el valor
   // viejo de `datosRevisados` mientras la pantalla ya mostraba otro.
-  await iniciarSesion(page)
-  await page.goto('/digitar')
+  await page.goto('/anotar/pesos')
   await page.fill('input[name="fecha"]', sumarDias(HOY, -4))
   await page.locator('input[name^="peso_"]').first().fill('160')
 

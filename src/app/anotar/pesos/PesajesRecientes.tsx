@@ -20,7 +20,7 @@ export function PesajesRecientes({ pesajes }: { pesajes: ResumenPesaje[] }) {
 
   return (
     <section className="mt-8 rounded-lg border border-tierra/20 bg-white p-4">
-      <h2 className="mb-1 font-serif text-xl text-pasto">Pesajes recientes de este lote</h2>
+      <h2 className="mb-1 rotulo">Pesajes recientes de este lote</h2>
       <p className="mb-3 text-sm text-carbon/70">
         Si una sesión quedó mal digitada, anúlala aquí. Anular no borra nada: las mediciones
         quedan guardadas, pero dejan de contar en el historial, el último peso y todo lo que se
@@ -61,7 +61,7 @@ function FilaPesaje({ pesaje }: { pesaje: ResumenPesaje }) {
             <button
               type="button"
               onClick={() => setAbierto(true)}
-              className="rounded border border-rojo-tierra px-3 py-1 text-xs text-rojo-tierra"
+              className="rounded border border-barro px-3 py-1 text-xs text-barro"
             >
               Anular esta sesión
             </button>
@@ -76,7 +76,7 @@ function FilaPesaje({ pesaje }: { pesaje: ResumenPesaje }) {
       {!pesaje.anuladoEn && abierto && (
         <form
           action={anular}
-          className="mt-3 space-y-2 rounded border border-rojo-tierra/30 bg-rojo-tierra/5 p-3"
+          className="mt-3 space-y-2 rounded border border-barro/30 bg-barro/5 p-3"
         >
           <input type="hidden" name="pesajeId" value={pesaje.id} />
           <p className="text-carbon/70">
@@ -94,11 +94,11 @@ function FilaPesaje({ pesaje }: { pesaje: ResumenPesaje }) {
               className="mt-1 w-full rounded border border-tierra/30 p-2"
             />
           </label>
-          {estado.error && <p className="text-rojo-tierra">{estado.error}</p>}
+          {estado.error && <p className="text-barro">{estado.error}</p>}
           <div className="flex gap-2">
             <button
               disabled={anulando}
-              className="rounded bg-rojo-tierra px-4 py-2 text-white disabled:opacity-50"
+              className="rounded bg-barro px-4 py-2 text-crema disabled:opacity-50"
             >
               {anulando ? 'Anulando…' : 'Confirmar anulación'}
             </button>

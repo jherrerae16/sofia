@@ -101,9 +101,8 @@ export async function guardarAccion(
       },
       hoyBogota(),
     )
-    revalidatePath('/como-vamos')
     revalidatePath('/')
-    revalidatePath('/digitar')
+    revalidatePath('/anotar/pesos')
     return { revision: [], datosRevisados: null, guardado: true, error: null }
   } catch (error) {
     return { revision: [], datosRevisados: null, guardado: false, error: (error as Error).message }
@@ -126,8 +125,7 @@ export async function anularAccion(
   } catch (error) {
     return { anulado: false, error: (error as Error).message }
   }
-  revalidatePath('/como-vamos')
   revalidatePath('/')
-  revalidatePath('/digitar')
+  revalidatePath('/anotar/pesos')
   return { anulado: true, error: null }
 }

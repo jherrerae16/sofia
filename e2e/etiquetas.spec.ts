@@ -33,7 +33,7 @@ test('el selector de método de pesaje muestra las tres opciones con mayúscula 
   page,
 }) => {
   await iniciarSesion(page)
-  await page.goto('/digitar')
+  await page.goto('/anotar/pesos')
 
   const opciones = page.locator('select[name="metodo"] option')
   // Las tres, ni una de más ni de menos: si el esquema agregara un cuarto

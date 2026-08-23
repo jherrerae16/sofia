@@ -117,7 +117,7 @@ export async function registrarSalidaAccion(
     // potrero donde pastaba (carga).
     revalidatePath('/salidas')
     revalidatePath('/lotes')
-    revalidatePath('/digitar')
+    revalidatePath('/anotar/pesos')
     revalidatePath('/como-vamos')
     revalidatePath('/potreros')
     revalidatePath('/')
