@@ -113,3 +113,34 @@ test('sin umbrales configurados la portada no se cae: dice qué falta y sigue mo
     }
   }
 })
+
+test('la gráfica dibuja un punto por pesaje más el de la entrada, y la trayectoria objetivo', async ({
+  page,
+}) => {
+  const grafica = page.getByRole('img', { name: /peso promedio del lote/i })
+  await expect(grafica).toBeVisible()
+  // La entrada más las dos tandas sembradas.
+  await expect(grafica.locator('circle')).toHaveCount(3)
+  await expect(grafica.locator('path.meta')).toHaveCount(1)
+})
+
+test('el pie de la gráfica avisa que la última tanda no alcanzó a todos', async ({ page }) => {
+  // Es la razón de ser de la gráfica: un promedio calculado sobre diez de
+  // catorce se lee como si fueran los catorce si nadie lo dice.
+  await expect(page.locator('figcaption')).toContainText('cubrió 10 de 14')
+})
+
+test('sin gdp objetivo la gráfica se dibuja sin trayectoria, no vacía', async ({ page }) => {
+  await prisma.parametro.deleteMany({ where: { clave: 'gdp_objetivo' } })
+  try {
+    await irAlLoteConHistoria(page)
+    const grafica = page.getByRole('img', { name: /peso promedio del lote/i })
+    await expect(grafica).toBeVisible()
+    await expect(grafica.locator('circle')).toHaveCount(3)
+    await expect(grafica.locator('path.meta')).toHaveCount(0)
+  } finally {
+    await prisma.parametro.create({
+      data: { clave: 'gdp_objetivo', valor: '750', vigenteDesde: new Date('2000-01-01T00:00:00.000Z') },
+    })
+  }
+})

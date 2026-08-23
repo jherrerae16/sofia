@@ -16,6 +16,8 @@ import {
 import { pesoVivoPorLote, ultimaTandaDeLote } from '@/datos/pesajes'
 import { listarPotreros } from '@/datos/potreros'
 import { eventosVencidos } from '@/datos/sanidad'
+import { serieDePesoPromedio } from '@/datos/serie'
+import { GraficaLote } from './GraficaLote'
 import { Cinta, type Celda } from '@/ui/Cinta'
 import { ETIQUETA_TIPO_EVENTO } from '@/ui/etiquetas'
 import { capitalizar, formatearGdp, formatearKg, separarUnidad, SIN_DATO } from '@/ui/formato'
@@ -204,6 +206,9 @@ export default async function Ganado({
       )}
 
       <Cinta celdas={celdas} />
+
+      <h2 className="rotulo mb-4 mt-13">Cómo viene engordando el lote</h2>
+      <GraficaLote serie={await serieDePesoPromedio(lote.id, hoy)} />
 
       <Pie />
     </Marco>
