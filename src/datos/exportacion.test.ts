@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { crearAnimales, registrarSalida } from './animales'
+import { crearAnimales, listarAnimalesDeLote, registrarSalida } from './animales'
 import { prisma } from './cliente'
-import { registrarEvento } from './sanidad'
+import { anularAplicacion, registrarEvento, ultimasAplicaciones } from './sanidad'
 import { datosExportacionCompleta } from './exportacion'
 import { limpiarTablasOperativas } from './limpieza-pruebas'
 import { crearLote } from './lotes'
@@ -334,5 +334,53 @@ describe('datosExportacionCompleta', () => {
     await prisma.finca.deleteMany()
     const datos = await datosExportacionCompleta()
     expect(datos.finca).toBeNull()
+  })
+})
+
+describe('el respaldo no miente por omisión sobre la sanidad anulada', () => {
+  it('una aplicación anulada sigue en el respaldo, con su motivo y quién la anuló', async () => {
+    const loteId = await crearLote({
+      nombre: 'Ceba Anulada',
+      tipo: 'ceba',
+      fechaApertura: '2026-09-01',
+    })
+    await crearAnimales({
+      loteId,
+      chapetas: ['777'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: null,
+      pesos: { '777': 150 },
+    })
+    const animalId = (await listarAnimalesDeLote(loteId))[0].id
+
+    await registrarEvento({
+      tipo: 'vacuna',
+      fecha: '2026-09-05',
+      producto: 'Aftosa',
+      dosis: '2 ml',
+      responsable: 'Joseph',
+      proximaFecha: null,
+      notas: null,
+      animalId,
+      loteId: null,
+      registradoPorId: 'u1',
+    })
+    const [aplicacion] = await ultimasAplicaciones(loteId, '2026-09-20')
+    await anularAplicacion(aplicacion.animalIds, aplicacion.claveTanda, 'Dedazo del producto', 'u1')
+
+    const datos = await datosExportacionCompleta()
+    const fila = datos.eventos.find((evento) => evento.chapeta === '777')!
+
+    // El respaldo incluye lo anulado a propósito, igual que con los pesajes y
+    // las novedades: si desapareciera, el archivo diría que esa vacuna nunca
+    // se anotó, y quien lo lea no sabrá que hubo una corrección.
+    expect(fila).toBeDefined()
+    expect(fila.anuladoEn).not.toBeNull()
+    expect(fila.motivoAnulacion).toBe('Dedazo del producto')
+    expect(fila.anuladoPor).not.toBeNull()
   })
 })

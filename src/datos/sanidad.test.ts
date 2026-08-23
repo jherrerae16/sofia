@@ -3,7 +3,14 @@ import { crearAnimales, listarAnimalesDeLote, registrarSalida } from './animales
 import { prisma } from './cliente'
 import { limpiarTablasOperativas } from './limpieza-pruebas'
 import { crearLote } from './lotes'
-import { eventosDeAnimal, eventosVencidos, registrarEvento } from './sanidad'
+import {
+  anularAplicacion,
+  candidatosDeAplicacion,
+  eventosDeAnimal,
+  eventosVencidos,
+  registrarEvento,
+  ultimasAplicaciones,
+} from './sanidad'
 
 let loteId: string
 let animalId: string
@@ -385,5 +392,220 @@ describe('eventosVencidos solo mira la última aplicación de cada tipo', () => 
     // Se vendió en octubre: desparasitarlo en noviembre no es tarea de nadie.
     // Un aviso por un animal que ya no está es ruido que entierra los de verdad.
     expect(await eventosVencidos('2026-11-20')).toHaveLength(0)
+  })
+})
+
+describe('candidatosDeAplicacion', () => {
+  it('marca aplicable al que ya había entrado y apagado al que no, con la razón escrita', async () => {
+    await crearAnimales({
+      loteId,
+      chapetas: ['050'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-10-01',
+      edadEntradaMeses: null,
+      pesos: { '050': 160 },
+    })
+
+    const candidatos = await candidatosDeAplicacion(loteId, '2026-09-05')
+    const recienLlegado = candidatos.find((c) => c.chapeta === '050')!
+    const yaEstaba = candidatos.find((c) => c.chapeta === '001')!
+
+    expect(yaEstaba.aplicable).toBe(true)
+    expect(yaEstaba.razon).toBeNull()
+    // Sale en la lista, apagado y con la razón: si simplemente faltara, el
+    // dueño creería que se le perdió un animal.
+    expect(recienLlegado.aplicable).toBe(false)
+    expect(recienLlegado.razon).toContain('2026-10-01')
+  })
+
+  it('un animal que ya salió de la finca no es candidato, y lo dice', async () => {
+    await registrarSalida(
+      {
+        animalIds: [animalId],
+        estado: 'vendido',
+        fechaSalida: '2026-09-10',
+        motivoSalida: null,
+        pesosSalida: {},
+        confirmarPesosSospechosos: true,
+      },
+      '2026-09-20',
+    )
+
+    const candidato = (await candidatosDeAplicacion(loteId, '2026-09-20')).find(
+      (c) => c.chapeta === '001',
+    )!
+
+    expect(candidato.aplicable).toBe(false)
+    expect(candidato.razon).toContain('Vendido')
+  })
+})
+
+describe('ultimasAplicaciones', () => {
+  it('trae una fila por tanda, no una por animal, y dice a cuántos les tocó', async () => {
+    await crearAnimales({
+      loteId,
+      chapetas: ['002', '003'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: null,
+      pesos: { '002': 150, '003': 150 },
+    })
+    await registrarEvento({
+      tipo: 'vacuna',
+      fecha: '2026-09-05',
+      producto: 'Aftosa',
+      dosis: '2 ml',
+      responsable: 'Joseph',
+      proximaFecha: '2027-03-05',
+      notas: null,
+      animalId: null,
+      loteId,
+      registradoPorId: 'u1',
+    })
+
+    const aplicaciones = await ultimasAplicaciones(loteId, '2026-09-20')
+
+    // Tres filas en la base, una sola línea en pantalla.
+    expect(aplicaciones).toHaveLength(1)
+    expect(aplicaciones[0].aQuienes).toBe('Ceba 01 · 3 animales')
+    expect(aplicaciones[0].animalIds).toHaveLength(3)
+    expect(aplicaciones[0].vencida).toBe(false)
+  })
+
+  it('una aplicación a un solo animal se nombra por su chapeta', async () => {
+    await registrarEvento({
+      tipo: 'tratamiento',
+      fecha: '2026-09-06',
+      producto: 'Oxitetraciclina',
+      dosis: '20 ml',
+      responsable: 'Joseph',
+      proximaFecha: null,
+      notas: 'Herida en la pata',
+      animalId,
+      loteId: null,
+      registradoPorId: 'u1',
+    })
+
+    const [aplicacion] = await ultimasAplicaciones(loteId, '2026-09-20')
+    expect(aplicacion.aQuienes).toBe('Solo 001')
+  })
+
+  it('marca como vencida la que ya cumplió su próxima fecha', async () => {
+    await registrarEvento({
+      tipo: 'desparasitacion',
+      fecha: '2026-09-05',
+      producto: 'Ivermectina',
+      dosis: null,
+      responsable: 'Joseph',
+      proximaFecha: '2026-10-05',
+      notas: null,
+      animalId,
+      loteId: null,
+      registradoPorId: 'u1',
+    })
+
+    expect((await ultimasAplicaciones(loteId, '2026-10-20'))[0].vencida).toBe(true)
+    expect((await ultimasAplicaciones(loteId, '2026-10-01'))[0].vencida).toBe(false)
+  })
+})
+
+describe('anularAplicacion', () => {
+  it('anula la tanda entera, no una sola fila, y apaga su alerta', async () => {
+    await crearAnimales({
+      loteId,
+      chapetas: ['002'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: null,
+      pesos: { '002': 150 },
+    })
+    await registrarEvento({
+      tipo: 'desparasitacion',
+      fecha: '2026-09-05',
+      producto: 'Ivermectina',
+      dosis: null,
+      responsable: 'Joseph',
+      proximaFecha: '2026-10-05',
+      notas: null,
+      animalId: null,
+      loteId,
+      registradoPorId: 'u1',
+    })
+
+    const [antes] = await ultimasAplicaciones(loteId, '2026-10-20')
+    expect(antes.vencida).toBe(true)
+    expect(antes.animalIds).toHaveLength(2)
+
+    await anularAplicacion(antes.animalIds, antes.claveTanda, 'Se anotó el producto equivocado', 'u1')
+
+    expect(await ultimasAplicaciones(loteId, '2026-10-20')).toHaveLength(0)
+    // Y deja de gritar en la portada.
+    expect(await eventosVencidos('2026-10-20')).toHaveLength(0)
+    // Y desaparece de la ficha del animal.
+    expect(await eventosDeAnimal(animalId)).toHaveLength(0)
+    // Pero no se borró: sigue en la base, con su motivo, para el respaldo.
+    expect(await prisma.eventoSanitario.count()).toBe(2)
+    const anulado = await prisma.eventoSanitario.findFirstOrThrow()
+    expect(anulado.motivoAnulacion).toBe('Se anotó el producto equivocado')
+    expect(anulado.anuladoPorId).toBe('u1')
+  })
+
+  it('anular exige un motivo', async () => {
+    await registrarEvento({
+      tipo: 'vacuna',
+      fecha: '2026-09-05',
+      producto: 'Aftosa',
+      dosis: null,
+      responsable: 'Joseph',
+      proximaFecha: null,
+      notas: null,
+      animalId,
+      loteId: null,
+      registradoPorId: 'u1',
+    })
+    const [aplicacion] = await ultimasAplicaciones(loteId, '2026-09-20')
+
+    // Sin motivo, la anulación deja un hueco tan malo como el dato que quiso
+    // corregir: nadie sabrá después por qué desapareció.
+    await expect(
+      anularAplicacion(aplicacion.animalIds, aplicacion.claveTanda, '   ', 'u1'),
+    ).rejects.toThrow('motivo')
+  })
+
+  it('anular una tanda no toca las otras del mismo animal', async () => {
+    for (const [tipo, producto] of [
+      ['vacuna', 'Aftosa'],
+      ['desparasitacion', 'Ivermectina'],
+    ] as const) {
+      await registrarEvento({
+        tipo,
+        fecha: '2026-09-05',
+        producto,
+        dosis: null,
+        responsable: 'Joseph',
+        proximaFecha: null,
+        notas: null,
+        animalId,
+        loteId: null,
+        registradoPorId: 'u1',
+      })
+    }
+
+    const aplicaciones = await ultimasAplicaciones(loteId, '2026-09-20')
+    const aftosa = aplicaciones.find((a) => a.producto === 'Aftosa')!
+    await anularAplicacion(aftosa.animalIds, aftosa.claveTanda, 'Dedazo', 'u1')
+
+    const quedan = await ultimasAplicaciones(loteId, '2026-09-20')
+    expect(quedan).toHaveLength(1)
+    expect(quedan[0].producto).toBe('Ivermectina')
   })
 })

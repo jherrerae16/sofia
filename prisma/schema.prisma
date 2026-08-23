@@ -210,6 +210,13 @@ model EventoSanitario {
   lote          Lote?    @relation(fields: [loteId], references: [id])
   registradoPorId String
   creadoEn      DateTime @default(now())
+  /// Los eventos no se borran, se anulan: igual que los pesajes y las
+  /// novedades. La fila sobrevive con su motivo para el respaldo a Excel, y
+  /// desaparece de la ficha del animal, de las alertas y de la tabla de
+  /// "lo último que les has puesto".
+  anuladoEn       DateTime?
+  motivoAnulacion String?
+  anuladoPorId    String?
 
   @@index([proximaFecha])
   @@index([animalId, tipo, fecha])

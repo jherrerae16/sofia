@@ -103,6 +103,15 @@ export type FilaEventoExport = {
   loteAnimal: string | null
   lote: string | null
   registradoPor: string | null
+  /**
+   * El respaldo incluye lo anulado a propósito, igual que con los pesajes y
+   * las novedades: si la aplicación anulada desapareciera, el archivo diría
+   * que esa vacuna nunca se anotó y quien lo lea no sabría que hubo una
+   * corrección.
+   */
+  anuladoEn: Date | null
+  motivoAnulacion: string | null
+  anuladoPor: string | null
 }
 
 export type FilaParametroExport = {
@@ -295,6 +304,9 @@ export async function datosExportacionCompleta(): Promise<DatosExportacion> {
       loteAnimal: evento.animal?.lote.nombre ?? null,
       lote: evento.lote?.nombre ?? null,
       registradoPor: nombreUsuario(evento.registradoPorId),
+      anuladoEn: evento.anuladoEn,
+      motivoAnulacion: evento.motivoAnulacion,
+      anuladoPor: evento.anuladoPorId ? nombreUsuario(evento.anuladoPorId) : null,
     })),
 
     parametros: parametros.map((parametro) => ({

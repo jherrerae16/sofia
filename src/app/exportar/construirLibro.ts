@@ -128,6 +128,10 @@ const COLUMNAS_EVENTOS: Column<FilaEventoExport>[] = [
   { ...columnaAncha('Lote del animal', 18), cell: (f) => celdaTexto(f.loteAnimal) },
   { ...columnaAncha('Lote del evento', 18), cell: (f) => celdaTexto(f.lote) },
   { ...columnaAncha('Registrado por', 18), cell: (f) => celdaTexto(f.registradoPor) },
+  { ...columnaAncha('Anulada', 10), cell: (f) => celdaTexto(f.anuladoEn ? 'Sí' : '') },
+  { ...columnaAncha('Motivo de anulación', 26), cell: (f) => celdaTexto(f.motivoAnulacion) },
+  { ...columnaAncha('Anulada por', 18), cell: (f) => celdaTexto(f.anuladoPor) },
+  { ...columnaAncha('Fecha de anulación', 18), cell: (f) => celdaFechaHora(f.anuladoEn) },
 ]
 
 const COLUMNAS_PARAMETROS: Column<FilaParametroExport>[] = [
