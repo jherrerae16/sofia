@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { crearAnimales, listarAnimalesDeLote } from './animales'
 import { prisma } from './cliente'
 import { desempeno, normalizarPeriodo } from './desempeno'
+import { limpiarTablasOperativas } from './limpieza-pruebas'
 import { crearLote } from './lotes'
 import { guardarParametro } from './parametros'
 import { guardarPesaje } from './pesajes'
@@ -10,11 +11,10 @@ let loteId: string
 let idPorChapeta: Record<string, string>
 
 beforeEach(async () => {
-  await prisma.movimiento.deleteMany()
-  await prisma.medicion.deleteMany()
-  await prisma.pesaje.deleteMany()
-  await prisma.animal.deleteMany()
-  await prisma.lote.deleteMany()
+  await limpiarTablasOperativas()
+  // Parametro no participa del grafo de llaves foráneas de arriba -- nada
+  // lo referencia ni él referencia a nadie -- así que se limpia aparte, con
+  // el mismo criterio que parametros.test.ts.
   await prisma.parametro.deleteMany()
 
   for (const [clave, valor] of Object.entries({

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { crearAnimales } from './animales'
 import { prisma } from './cliente'
+import { limpiarTablasOperativas } from './limpieza-pruebas'
 import { crearLote } from './lotes'
 import { moverLote, revisarMovimiento } from './movimientos'
 
@@ -9,11 +10,7 @@ let potreroChicoId: string
 let potreroGrandeId: string
 
 beforeEach(async () => {
-  await prisma.movimiento.deleteMany()
-  await prisma.medicion.deleteMany()
-  await prisma.animal.deleteMany()
-  await prisma.lote.deleteMany()
-  await prisma.potrero.deleteMany()
+  await limpiarTablasOperativas()
 
   // El brief original fijaba capacidadKg en 1000, pero con 3 animales de 150 kg
   // (450 kg totales) eso da 'holgado' (45 % de uso), no 'sobrecargado' como pide

@@ -10,16 +10,14 @@ import {
 } from './animales'
 import { prisma } from './cliente'
 import { aKg } from './conversion'
+import { limpiarTablasOperativas } from './limpieza-pruebas'
 import { crearLote } from './lotes'
 import { guardarPesaje } from './pesajes'
 
 let loteId: string
 
 beforeEach(async () => {
-  await prisma.movimiento.deleteMany()
-  await prisma.medicion.deleteMany()
-  await prisma.animal.deleteMany()
-  await prisma.lote.deleteMany()
+  await limpiarTablasOperativas()
   loteId = await crearLote({ nombre: 'Ceba 01', tipo: 'ceba', fechaApertura: '2026-09-01' })
 })
 

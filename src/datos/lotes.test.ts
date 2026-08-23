@@ -1,12 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { prisma } from './cliente'
+import { limpiarTablasOperativas } from './limpieza-pruebas'
 import { crearLote, listarLotes } from './lotes'
 
 beforeEach(async () => {
-  await prisma.medicion.deleteMany()
-  await prisma.animal.deleteMany()
-  await prisma.movimiento.deleteMany()
-  await prisma.lote.deleteMany()
+  await limpiarTablasOperativas()
 })
 
 describe('crearLote', () => {

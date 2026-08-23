@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { crearLote } from './lotes'
-import { crearPotrero } from './potreros'
 import { prisma } from './cliente'
+import { limpiarTablasOperativas } from './limpieza-pruebas'
+import { crearLote } from './lotes'
 import {
   anularNovedad,
   cerrarSuministro,
@@ -10,16 +10,14 @@ import {
   registrarHecho,
   registrarSuministro,
 } from './novedades'
+import { crearPotrero } from './potreros'
 
 let loteId: string
 let otroLoteId: string
 let potreroId: string
 
 beforeEach(async () => {
-  await prisma.novedad.deleteMany()
-  await prisma.animal.deleteMany()
-  await prisma.lote.deleteMany()
-  await prisma.potrero.deleteMany()
+  await limpiarTablasOperativas()
   loteId = await crearLote({ nombre: 'Ceba 01', tipo: 'ceba', fechaApertura: '2026-08-01' })
   otroLoteId = await crearLote({ nombre: 'Ceba 02', tipo: 'ceba', fechaApertura: '2026-08-01' })
   potreroId = await crearPotrero({

@@ -1,16 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { crearAnimales } from './animales'
 import { prisma } from './cliente'
+import { limpiarTablasOperativas } from './limpieza-pruebas'
 import { crearLote } from './lotes'
 import { moverLote } from './movimientos'
 import { crearPotrero, listarPotreros } from './potreros'
 
 beforeEach(async () => {
-  await prisma.movimiento.deleteMany()
-  await prisma.medicion.deleteMany()
-  await prisma.animal.deleteMany()
-  await prisma.lote.deleteMany()
-  await prisma.potrero.deleteMany()
+  await limpiarTablasOperativas()
 })
 
 async function abrirLoteConPeso(nombre: string, chapetas: string[], pesoKg: number) {

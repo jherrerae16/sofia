@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { crearAnimales, listarAnimalesDeLote } from './animales'
 import { prisma } from './cliente'
+import { limpiarTablasOperativas } from './limpieza-pruebas'
 import { crearLote } from './lotes'
 import { eventosDeAnimal, eventosVencidos, registrarEvento } from './sanidad'
 
@@ -8,15 +9,7 @@ let loteId: string
 let animalId: string
 
 beforeEach(async () => {
-  // Además de lo que pide el brief, se limpian movimiento y medicion: son
-  // relaciones existentes hacia lote/animal, y sin borrarlas primero el
-  // deleteMany de lote de más abajo choca con las filas que deja
-  // movimientos.test.ts al correr toda la suite en el mismo orden.
-  await prisma.eventoSanitario.deleteMany()
-  await prisma.movimiento.deleteMany()
-  await prisma.medicion.deleteMany()
-  await prisma.animal.deleteMany()
-  await prisma.lote.deleteMany()
+  await limpiarTablasOperativas()
 
   loteId = await crearLote({ nombre: 'Ceba 01', tipo: 'ceba', fechaApertura: '2026-09-01' })
   await crearAnimales({
