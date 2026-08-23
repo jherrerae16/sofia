@@ -127,6 +127,12 @@ async function main() {
     // src/datos/parametros.ts): se siembran con una vigencia ya pasada, igual
     // que en prisma/seed.ts, para que "Configuración" muestre un valor vigente
     // desde la primera corrida sin que ninguna prueba tenga que configurarlo.
+    //
+    // Los umbrales, el gdp objetivo y el peso de venta NO se siembran aquí, a
+    // propósito: `e2e/configuracion.spec.ts` afirma sobre varios de ellos que
+    // están "sin configurar todavía", y sembrarlos le quita el piso a esas
+    // pruebas. La pantalla Ganado los necesita, así que los siembra y los
+    // recoge su propio archivo de pruebas.
     await prisma.parametro.create({
       data: { clave: 'hectareas_utiles', valor: '35', vigenteDesde: new Date('2000-01-01T00:00:00.000Z') },
     })
@@ -159,9 +165,115 @@ async function main() {
         },
       })
     }
+
+    await sembrarLoteDeLaPortada(prisma)
   } finally {
     await prisma.$disconnect()
   }
+}
+
+/**
+ * Un segundo lote, aparte de "Ceba 01", con la historia completa que la
+ * pantalla Ganado necesita para poder decir algo: catorce animales, dos
+ * tandas de pesaje (la última cubriendo diez de los catorce), un potrero
+ * debajo y una desparasitación ya vencida.
+ *
+ * Va en un lote propio y no encima de "Ceba 01" a propósito: las pruebas de
+ * digitar, salidas y lotes leen los pesos de ese lote y afirman cosas sobre
+ * él. Meterle dos tandas de historia cambiaría lo que esas pruebas ven sin
+ * que ninguna de ellas lo hubiera pedido.
+ */
+async function sembrarLoteDeLaPortada(
+  prisma: typeof import('../src/datos/cliente')['prisma'],
+): Promise<void> {
+  const HOY = hoyBogota()
+  const ENTRADA = sumarDias(HOY, -90)
+  const TANDA_VIEJA = sumarDias(HOY, -60)
+  const TANDA_NUEVA = sumarDias(HOY, -20)
+
+  const potrero = await prisma.potrero.create({
+    data: {
+      nombre: 'La Loma',
+      hectareas: 8,
+      capacidadKg: 8000,
+      tipoPasto: 'colosuana',
+      tieneAgua: true,
+    },
+  })
+
+  const lote = await prisma.lote.create({
+    data: {
+      nombre: 'Ceba 02',
+      tipo: 'ceba',
+      fechaApertura: aFechaDb(ENTRADA),
+      potreroActualId: potrero.id,
+      fechaEntradaPotrero: aFechaDb(sumarDias(HOY, -25)),
+    },
+  })
+
+  const chapetas = Array.from({ length: 14 }, (_, i) => String(i + 1).padStart(3, '0'))
+  const animales = []
+  for (const chapeta of chapetas) {
+    animales.push(
+      await prisma.animal.create({
+        data: {
+          chapeta: `C2-${chapeta}`,
+          loteId: lote.id,
+          sexo: 'macho',
+          raza: 'Brangus',
+          fechaEntrada: aFechaDb(ENTRADA),
+          pesoEntradaKg: 150,
+        },
+      }),
+    )
+  }
+
+  // Primera tanda: los catorce, treinta días después de entrar, a 700 g/día.
+  await prisma.pesaje.create({
+    data: {
+      fecha: aFechaDb(TANDA_VIEJA),
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      registradoPorId: 'siembra',
+      mediciones: { create: animales.map((animal) => ({ animalId: animal.id, pesoKg: 171 })) },
+    },
+  })
+
+  // Segunda tanda: solo diez de los catorce -- los cuatro últimos no se
+  // dejaron pesar, que es el caso que la gráfica tiene que saber avisar. De
+  // los diez, cuatro vienen quedados (250 g/día, por debajo del umbral bajo
+  // de 400) y seis vienen bien (800 g/día).
+  await prisma.pesaje.create({
+    data: {
+      fecha: aFechaDb(TANDA_NUEVA),
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      registradoPorId: 'siembra',
+      mediciones: {
+        create: animales.slice(0, 10).map((animal, i) => ({
+          animalId: animal.id,
+          pesoKg: i < 4 ? 181 : 203,
+        })),
+      },
+    },
+  })
+
+  // Una desparasitación cuya próxima fecha ya pasó: es el aviso que la
+  // portada tiene que mostrar y que la pantalla de Sanidad tendrá que poder
+  // apagar. Una fila por animal, que es como cuelga la historia sanitaria.
+  await prisma.eventoSanitario.createMany({
+    data: animales.map((animal) => ({
+      tipo: 'desparasitacion' as const,
+      fecha: aFechaDb(sumarDias(HOY, -80)),
+      producto: 'Ivermectina 1%',
+      dosis: '1 ml / 50 kg',
+      responsable: 'Joseph',
+      proximaFecha: aFechaDb(sumarDias(HOY, -12)),
+      animalId: animal.id,
+      loteId: lote.id,
+      registradoPorId: 'siembra',
+    })),
+  })
 }
 
 main().catch((error: Error) => {

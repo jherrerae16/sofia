@@ -62,9 +62,15 @@ test('un pesaje anterior al ingreso del animal no se guarda', async ({ page }) =
   // No basta con que la pantalla lo diga: si el guardia se rompiera
   // manteniendo el mismo texto de error, esta prueba seguiría en verde sin
   // esto. Se consulta la base directamente para demostrar que en efecto no
-  // se guardó ningún pesaje ni ninguna medición.
-  expect(await prisma.pesaje.count()).toBe(0)
-  expect(await prisma.medicion.count()).toBe(0)
+  // se guardó ningún pesaje.
+  //
+  // Se cuenta por la fecha del intento y no con un `count()` global: la
+  // siembra trae la historia de otro lote (ver `sembrarLoteDeLaPortada` en
+  // e2e/preparar.ts), así que un cero global dejó de significar "no se
+  // guardó nada" para pasar a significar "no existe ningún pesaje en toda la
+  // finca", que es otra afirmación y no la que esta prueba quiere hacer.
+  const intentado = new Date(`${sumarDias(HOY, -35)}T00:00:00.000Z`)
+  expect(await prisma.pesaje.count({ where: { fecha: intentado } })).toBe(0)
 })
 
 test('guardar tras revisar persiste exactamente lo digitado, no lo que el formulario reinició', async ({
