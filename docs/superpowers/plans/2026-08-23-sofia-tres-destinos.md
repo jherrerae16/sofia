@@ -2475,7 +2475,7 @@ git commit -m "diseño: la ficha del animal cuenta todo lo que le ha pasado en u
 
 **La copia de todo** es el botón de `/exportar` con el texto que explica qué es: la salida del dueño. La ruta `/exportar` no cambia.
 
-- [ ] **Step 1: Mudar las pruebas y verlas fallar**
+- [x] **Step 1: Mudar las pruebas y verlas fallar**
 
 Llevar `e2e/configuracion.spec.ts` y `e2e/potreros.spec.ts` a `e2e/finca.spec.ts` cambiando las URLs a `/finca`, y agregar:
 
@@ -2512,7 +2512,7 @@ Borrar `e2e/configuracion.spec.ts` y `e2e/potreros.spec.ts`.
 Run: `npx playwright test e2e/finca.spec.ts`
 Expected: FAIL — `/finca` solo dice «La finca».
 
-- [ ] **Step 2: Mudar la configuración**
+- [x] **Step 2: Mudar la configuración**
 
 ```bash
 git mv src/app/configuracion/FormularioParametro.tsx src/app/finca/FormularioParametro.tsx
@@ -2523,7 +2523,7 @@ git mv src/app/configuracion/acciones.ts src/app/finca/acciones.ts
 
 Agregar `crearPotreroAccion` a `src/app/finca/acciones.ts`, sacándola de donde quedó en la Tarea 7.
 
-- [ ] **Step 3: Escribir los dos componentes y la pantalla**
+- [x] **Step 3: Escribir los dos componentes y la pantalla**
 
 `src/app/finca/TarjetaPotrero.tsx` — la tarjeta descrita arriba, con `data-testid="potrero"`. Un potrero descansando va sobre `bg-crema` (más apagado) y uno ocupado sobre `bg-crema-2`; la barra usa `evaluarCapacidad` de `src/calc/potrero.ts` para decidir si va en barro.
 
@@ -2531,12 +2531,12 @@ Agregar `crearPotreroAccion` a `src/app/finca/acciones.ts`, sacándola de donde 
 
 `src/app/finca/page.tsx` — el titular («Santa Verónica · 35 hectáreas útiles», con el nombre y las hectáreas leídos de la base, nunca escritos), los tres bloques, y **sin** el pie con el nombre completo (va solo en Ganado).
 
-- [ ] **Step 4: Correr las pruebas y verlas pasar**
+- [x] **Step 4: Correr las pruebas y verlas pasar**
 
 Run: `npx playwright test e2e/finca.spec.ts && npx vitest run && npx tsc --noEmit`
 Expected: PASS — las cuatro nuevas y todas las mudadas de configuración y potreros.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A src/app/finca src/app/configuracion e2e
