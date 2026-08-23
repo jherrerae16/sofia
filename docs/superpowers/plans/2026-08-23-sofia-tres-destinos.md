@@ -1196,7 +1196,7 @@ git commit -m "diseño: la curva del lote contra su trayectoria objetivo, con la
 
 Cada tarja lleva chapeta, gdp grande, unidad y una línea de pie con el peso. Barra inferior de 3px: barro si va quedado, monte si está listo, tinta al 45% si va normal.
 
-- [ ] **Step 1: Escribir las pruebas que fallan**
+- [x] **Step 1: Escribir las pruebas que fallan**
 
 Agregar a `e2e/ganado.spec.ts`:
 
@@ -1239,12 +1239,12 @@ test('sin peso de venta configurado no se inventa el chip de listos', async ({ p
 })
 ```
 
-- [ ] **Step 2: Correr las pruebas y verlas fallar**
+- [x] **Step 2: Correr las pruebas y verlas fallar**
 
 Run: `npx playwright test e2e/ganado.spec.ts -g "chip|filtro|Tabla|chapeta|tarja"`
 Expected: FAIL — no existen ni los chips ni las tarjas.
 
-- [ ] **Step 3: Escribir los filtros**
+- [x] **Step 3: Escribir los filtros**
 
 `src/app/FiltrosGanado.tsx`:
 
@@ -1384,7 +1384,7 @@ export function FiltrosGanado({
 }
 ```
 
-- [ ] **Step 4: Escribir la rejilla y la tabla**
+- [x] **Step 4: Escribir la rejilla y la tabla**
 
 `src/app/RejillaGanado.tsx`:
 
@@ -1483,18 +1483,18 @@ export function RejillaGanado({ filas, vista }: { filas: FilaGanado[]; vista: 'r
 }
 ```
 
-- [ ] **Step 5: Armar el filtrado en la pantalla**
+- [x] **Step 5: Armar el filtrado en la pantalla**
 
 En `src/app/page.tsx`, después de calcular `delLote`: aplicar `?q=` (chapeta que contenga el texto), `?filtro=` (chip), `?orden=`, construir los chips con sus cuentas, y renderizar `<FiltrosGanado>` y `<RejillaGanado>` bajo un `<h2 className="rotulo">El ganado</h2>`. El chip «Listos» solo se agrega si `leerParametro('peso_venta', hoy)` devuelve un valor; el chip «Ya salieron» cuenta los animales del lote con estado distinto de `activo`.
 
 El orden por defecto es «peor primero»: el dueño abre la pantalla para ver a quién hay que mirarle algo, no para ver al campeón.
 
-- [ ] **Step 6: Correr las pruebas y verlas pasar**
+- [x] **Step 6: Correr las pruebas y verlas pasar**
 
 Run: `npx playwright test e2e/ganado.spec.ts && npx tsc --noEmit && npm run test`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/app/FiltrosGanado.tsx src/app/RejillaGanado.tsx src/app/page.tsx e2e/ganado.spec.ts
