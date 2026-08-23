@@ -1,29 +1,68 @@
 @import 'tailwindcss';
 
+/* Sistema visual v3 -- verde monte sobre crema.
+   Solo dos cosas llevan color: lo que va mal (barro) y lo que va bien
+   (monte). Todo lo demás es tinta sobre crema.
+
+   El par viejo (#1B5E3F verde contra #A63D40 rojo) daba ΔE 1,7 con
+   daltonismo protán: indistinguible para ~8% de los hombres. Este par da
+   ΔE 17,0. No reintroducir los colores viejos. */
 @theme {
-  --color-pasto: #1b5e3f;
-  --color-pasto-medio: #2e8b57;
+  --color-crema: #f7f4ec;
+  --color-crema-2: #efeae0;
+  --color-crema-3: #e6e0d4;
+  --color-monte: #0f4430;
+  --color-monte-2: #2e6b4c;
   --color-pasto-claro: #a8d5ba;
   --color-tierra: #8b5e3c;
-  --color-crema: #f7f4ec;
-  --color-carbon: #23201b;
-  --color-ambar: #d98324;
-  --color-rojo-tierra: #a63d40;
+  --color-barro: #c25a2e;
+  --color-carbon: #1f1c17;
+  --color-carbon-2: #5c554a;
+  --color-carbon-3: #8b8378;
+  --color-borde: rgba(31, 28, 23, 0.14);
+  --color-borde-2: rgba(31, 28, 23, 0.28);
+
+  /* Alias de transición. Las siete pantallas viejas todavía usan estos
+     nombres y se borran en la Tarea 11 del plan; hasta entonces apuntan al
+     color nuevo que les corresponde para que nada quede a medio pintar.
+     No usarlos en código nuevo. */
+  --color-pasto: #0f4430;
+  --color-pasto-medio: #2e6b4c;
+  --color-ambar: #c25a2e;
+  --color-rojo-tierra: #c25a2e;
 }
 
 @theme {
-  --font-serif: var(--font-titulos), Georgia, serif;
-  --font-sans: var(--font-interfaz), system-ui, sans-serif;
+  --font-sans: var(--fuente-interfaz), system-ui, sans-serif;
+  --font-estrecha: var(--fuente-estrecha), system-ui, sans-serif;
+  /* La plataforma ya no usa serif. El alias queda para que las pantallas
+     viejas no se rompan antes de que la Tarea 11 las borre. */
+  --font-serif: var(--fuente-interfaz), system-ui, sans-serif;
 }
 
 body {
   background-color: var(--color-crema);
   color: var(--color-carbon);
   font-family: var(--font-sans);
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Obligatorio: sin cifras tabulares una tabla de 56 animales es ilegible. */
 .cifra {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum';
+}
+
+/* Rótulo pequeño en versalitas. Se repite en la cinta de cifras, en los
+   encabezados de sección y en las etiquetas de los campos: es más corto como
+   clase que como seis utilidades repetidas en veinte lugares. */
+.rotulo {
+  font-family: var(--font-estrecha);
+  font-weight: 600;
+  font-size: 10.5px;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-carbon-3);
 }
