@@ -2554,7 +2554,7 @@ git commit -m "diseño: la Finca reúne los potreros, los criterios y la copia d
 - Modify: `src/app/error.tsx`, `src/app/entrar/page.tsx`, `src/ui/Cifra.tsx`, `src/ui/Semaforo.tsx`
 - Test: `e2e/recorrido.spec.ts`
 
-- [ ] **Step 1: Escribir la prueba del recorrido completo, que falla**
+- [x] **Step 1: Escribir la prueba del recorrido completo, que falla**
 
 Crear `e2e/recorrido.spec.ts` — es la prueba que demuestra que no se perdió ninguna función:
 
@@ -2610,12 +2610,12 @@ test('el respaldo a Excel sigue trayendo las ocho hojas después del rediseño',
 })
 ```
 
-- [ ] **Step 2: Correr la prueba y verla fallar**
+- [x] **Step 2: Correr la prueba y verla fallar**
 
 Run: `npx playwright test e2e/recorrido.spec.ts`
 Expected: FAIL — `/como-vamos` todavía renderiza la pantalla vieja en vez de redirigir.
 
-- [ ] **Step 3: Borrar las pantallas viejas y dejar las redirecciones**
+- [x] **Step 3: Borrar las pantallas viejas y dejar las redirecciones**
 
 ```bash
 git rm -r src/app/como-vamos src/app/digitar src/app/salidas src/app/novedades src/app/lotes src/app/potreros src/app/configuracion
@@ -2636,7 +2636,7 @@ export default function Digitar() {
 
 Los otros seis, iguales, con su destino de la tabla del Paso 1.
 
-- [ ] **Step 4: Barrer los últimos restos del sistema viejo**
+- [x] **Step 4: Barrer los últimos restos del sistema viejo**
 
 Borrar de `src/app/globals.css` el bloque de «Alias de transición» (`--color-pasto`, `--color-pasto-medio`, `--color-ambar`, `--color-rojo-tierra`) y el alias `--font-serif`.
 
@@ -2646,7 +2646,7 @@ El build va a señalar cada clase que todavía apunta a un token borrado. Arregl
 
 `Semaforo.tsx` merece una mirada aparte: hoy pinta cinco clasificaciones con cinco colores. El sistema v3 solo tiene dos colores de estado. Reducirlo a barro (bajo y crítico), monte (excelente) y tinta (bueno, normal, sin dato) —**la clasificación completa se sigue diciendo con palabras**, que es lo que un daltónico lee de todos modos.
 
-- [ ] **Step 5: Verificar que no quedó nada del sistema viejo**
+- [x] **Step 5: Verificar que no quedó nada del sistema viejo**
 
 ```bash
 grep -rn "pasto-medio\|rojo-tierra\|text-ambar\|bg-ambar\|font-serif" src/ && echo "QUEDAN RESTOS" || echo "limpio"
@@ -2655,32 +2655,32 @@ grep -rn "'/digitar'\|'/salidas'\|'/novedades'\|'/lotes'\|'/potreros'\|'/configu
 
 El primero tiene que decir «limpio». El segundo no debe traer ninguna línea: si trae, es un `revalidatePath` o un `<Link>` apuntando a una ruta que ya no existe.
 
-- [ ] **Step 6: Verificar función por función contra la tabla**
+- [x] **Step 6: Verificar función por función contra la tabla**
 
 Recorrer a mano y marcar. Es el chequeo que la promesa «ninguna función se pierde» exige:
 
-- [ ] Ver la ganancia diaria de cada animal y del lote → Ganado
-- [ ] Cambiar el periodo contra el que se mide (30/60/90/acumulado) → filtro «Desde»
-- [ ] Ver kg ganados, días en finca y ganancia acumulada → vista «Tabla»
-- [ ] Ver los animales que ya salieron → chip «Ya salieron»
-- [ ] Ver la frescura de los datos («pesaste hace N días») → bajada del titular
-- [ ] Ver los eventos sanitarios vencidos → avisos del titular
-- [ ] Ver qué están recibiendo ahora → avisos del titular
-- [ ] Digitar una tanda de pesos con revisión previa → Anotar · Pesos
-- [ ] Anular una tanda de pesos → Anotar · Pesos
-- [ ] Registrar venta, muerte o robo con peso de salida → Anotar · Venta o muerte
-- [ ] Anotar un hecho puntual y un suministro vigente → Anotar · Novedad
-- [ ] Cerrar un suministro y anular una novedad → Anotar · Novedad
-- [ ] Mover un lote de potrero con aviso de capacidad → Anotar · Mover lote
-- [ ] Abrir un lote y dar de alta animales con planilla → Anotar · Entrada de ganado
-- [ ] Anotar una vacuna, desparasitación, vitamina o tratamiento → Anotar · Sanidad **(nuevo)**
-- [ ] Ver y crear potreros → Finca
-- [ ] Cambiar un criterio y ver su historial → Finca
-- [ ] Bajar el respaldo completo a Excel → Finca
-- [ ] Ver la ficha de un animal con su curva y su historia → `/animales/[id]`
-- [ ] Entrar y salir de la plataforma → `/entrar`
+- [x] Ver la ganancia diaria de cada animal y del lote → Ganado
+- [x] Cambiar el periodo contra el que se mide (30/60/90/acumulado) → filtro «Desde»
+- [x] Ver kg ganados, días en finca y ganancia acumulada → vista «Tabla»
+- [x] Ver los animales que ya salieron → chip «Ya salieron»
+- [x] Ver la frescura de los datos («pesaste hace N días») → bajada del titular
+- [x] Ver los eventos sanitarios vencidos → avisos del titular
+- [x] Ver qué están recibiendo ahora → avisos del titular
+- [x] Digitar una tanda de pesos con revisión previa → Anotar · Pesos
+- [x] Anular una tanda de pesos → Anotar · Pesos
+- [x] Registrar venta, muerte o robo con peso de salida → Anotar · Venta o muerte
+- [x] Anotar un hecho puntual y un suministro vigente → Anotar · Novedad
+- [x] Cerrar un suministro y anular una novedad → Anotar · Novedad
+- [x] Mover un lote de potrero con aviso de capacidad → Anotar · Mover lote
+- [x] Abrir un lote y dar de alta animales con planilla → Anotar · Entrada de ganado
+- [x] Anotar una vacuna, desparasitación, vitamina o tratamiento → Anotar · Sanidad **(nuevo)**
+- [x] Ver y crear potreros → Finca
+- [x] Cambiar un criterio y ver su historial → Finca
+- [x] Bajar el respaldo completo a Excel → Finca
+- [x] Ver la ficha de un animal con su curva y su historia → `/animales/[id]`
+- [x] Entrar y salir de la plataforma → `/entrar`
 
-- [ ] **Step 7: La suite entera, en frío**
+- [x] **Step 7: La suite entera, en frío**
 
 ```bash
 npx tsc --noEmit
@@ -2691,7 +2691,7 @@ npx next build
 
 Los cuatro tienen que pasar. `npm run test` en frío ordena los archivos por tamaño y saca a la luz cualquier hueco de limpieza entre suites —correrlo así es parte de la verificación, no un detalle.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add -A
