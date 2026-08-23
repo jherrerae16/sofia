@@ -23,28 +23,36 @@ export const metadata: Metadata = {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Quién está adentro y en qué finca. Ninguno de los dos se inventa: si
-  // todavía no hay finca creada o nadie ha entrado, ese pedazo no se escribe
-  // en vez de mostrar un nombre en blanco o un separador suelto.
-  const sesion = await auth()
-  const finca = await obtenerFinca()
+  // La cabecera es de adentro. Sin sesión no se pinta: ofrecer Ganado, Anotar
+  // y Finca a quien no ha entrado es ofrecer puertas cerradas, y el nombre de
+  // la finca es un dato que no tiene por qué leer cualquiera que abra la
+  // dirección.
+  //
+  // `auth()` puede fallar sin que nadie haya hecho nada mal -- una cookie
+  // firmada con otro AUTH_SECRET, por ejemplo, al cambiar de entorno --, y eso
+  // no puede tumbar la aplicación entera desde el layout raíz: se trata igual
+  // que no haber entrado.
+  const sesion = await auth().catch(() => null)
+  const finca = sesion ? await obtenerFinca() : null
   const quien = [finca?.nombre, sesion?.user?.name].filter(Boolean).join(' · ')
 
   return (
     <html lang="es-CO" className={`${interfaz.variable} ${estrecha.variable}`}>
       <body>
-        <div className="mx-auto max-w-[1120px] px-7">
-          <header className="flex items-center justify-between border-b border-borde py-[22px]">
-            <Link
-              href="/"
-              className="text-[18px] font-extrabold tracking-[0.2em] text-monte no-underline"
-            >
-              SOFÍA
-            </Link>
-            <Navegacion />
-            <div className="text-[12.5px] text-carbon-3">{quien}</div>
-          </header>
-        </div>
+        {sesion && (
+          <div className="mx-auto max-w-[1120px] px-7">
+            <header className="flex items-center justify-between border-b border-borde py-[22px]">
+              <Link
+                href="/"
+                className="text-[18px] font-extrabold tracking-[0.2em] text-monte no-underline"
+              >
+                SOFÍA
+              </Link>
+              <Navegacion />
+              <div className="text-[12.5px] text-carbon-3">{quien}</div>
+            </header>
+          </div>
+        )}
         {children}
       </body>
     </html>

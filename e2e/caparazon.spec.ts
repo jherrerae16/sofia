@@ -1,34 +1,49 @@
 import { expect, test } from '@playwright/test'
 import { entrar } from './sesion'
 
-test.beforeEach(async ({ page }) => {
-  await entrar(page)
+test.describe('sin haber entrado', () => {
+  test('la pantalla de entrar no ofrece destinos ni dice de qué finca es', async ({ page }) => {
+    await page.goto('/entrar')
+
+    // Ofrecer Ganado, Anotar y Finca a quien no ha entrado es ofrecer puertas
+    // cerradas. Y el nombre de la finca es un dato de adentro: no tiene por
+    // qué leerlo cualquiera que abra la dirección.
+    await expect(page.locator('header')).toHaveCount(0)
+    await expect(page.getByText('Santa Verónica', { exact: false })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible()
+  })
 })
 
-test('el encabezado ofrece exactamente tres destinos', async ({ page }) => {
-  await page.goto('/')
-  await expect(page.locator('header nav a')).toHaveText(['Ganado', 'Anotar', 'Finca'])
-})
+test.describe('con la sesión abierta', () => {
+  test.beforeEach(async ({ page }) => {
+    await entrar(page)
+  })
 
-test('el destino en el que estás queda marcado, y solo ese', async ({ page }) => {
-  await page.goto('/anotar/pesos')
-  await expect(page.locator('header nav a[aria-current="page"]')).toHaveText(['Anotar'])
-})
+  test('el encabezado ofrece exactamente tres destinos', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.locator('header nav a')).toHaveText(['Ganado', 'Anotar', 'Finca'])
+  })
 
-test('estando en Ganado no se marca ningún otro destino', async ({ page }) => {
-  await page.goto('/')
-  await expect(page.locator('header nav a[aria-current="page"]')).toHaveText(['Ganado'])
-})
+  test('el destino en el que estás queda marcado, y solo ese', async ({ page }) => {
+    await page.goto('/anotar/pesos')
+    await expect(page.locator('header nav a[aria-current="page"]')).toHaveText(['Anotar'])
+  })
 
-test('/anotar cae en el modo Pesos', async ({ page }) => {
-  await page.goto('/anotar')
-  await expect(page).toHaveURL(/\/anotar\/pesos$/)
-})
+  test('estando en Ganado no se marca ningún otro destino', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.locator('header nav a[aria-current="page"]')).toHaveText(['Ganado'])
+  })
 
-test('el nombre completo aparece una sola vez, y solo al pie de Ganado', async ({ page }) => {
-  await page.goto('/')
-  await expect(page.getByText('SOFÍA — por Sofanor Echeverría.')).toHaveCount(1)
+  test('/anotar cae en el modo Pesos', async ({ page }) => {
+    await page.goto('/anotar')
+    await expect(page).toHaveURL(/\/anotar\/pesos$/)
+  })
 
-  await page.goto('/finca')
-  await expect(page.getByText('SOFÍA — por Sofanor Echeverría.')).toHaveCount(0)
+  test('el nombre completo aparece una sola vez, y solo al pie de Ganado', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.getByText('SOFÍA — por Sofanor Echeverría.')).toHaveCount(1)
+
+    await page.goto('/finca')
+    await expect(page.getByText('SOFÍA — por Sofanor Echeverría.')).toHaveCount(0)
+  })
 })

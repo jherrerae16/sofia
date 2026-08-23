@@ -14,7 +14,11 @@ export default function Entrar() {
     <main className="flex min-h-screen items-center justify-center bg-crema p-6">
       <form action={entrar} className="w-full max-w-sm space-y-4">
         <h1 className="text-[28px] font-extrabold tracking-[0.2em] text-monte">SOFÍA</h1>
-        <p className="text-sm text-carbon-2">Finca Santa Verónica</p>
+        {/* El nombre de la finca no se escribe aquí: estaba a mano en el
+            código (contra la regla de que nada se hardcodea) y además es un
+            dato de adentro, que no tiene por qué leer cualquiera que abra la
+            dirección. */}
+        <p className="text-[14px] text-carbon-2">Entra para seguir el ganado.</p>
         <input
           name="correo"
           type="email"
