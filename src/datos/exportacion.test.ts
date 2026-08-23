@@ -182,6 +182,87 @@ describe('datosExportacionCompleta', () => {
     expect(anulada.lote).toBe('Ceba 01')
   })
 
+  // La chapeta solo es única entre los animales ACTIVOS (índice único
+  // parcial, ver la migración 20260822225112_chapeta_unica_por_activo): con
+  // dos ciclos de ceba al año, una chapeta reutilizada pertenece a dos
+  // animales distintos. La columna `lote` de un evento es la del EVENTO (va
+  // vacía cuando el evento se aplicó a un animal puntual), no la del
+  // animal -- así que sin una columna aparte con el lote del animal, un
+  // veterinario que lea el respaldo no puede saber a cuál de los dos
+  // animales con "Chapeta 101" se le aplicó cada evento.
+  it('trae, para cada evento de un animal puntual, el lote del ANIMAL además del lote del evento -- para distinguir chapetas reutilizadas entre ciclos', async () => {
+    await crearAnimales({
+      loteId,
+      chapetas: ['101'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-01-05',
+      edadEntradaMeses: null,
+      pesos: { '101': 200 },
+    })
+    const animalCicloUno = await prisma.animal.findFirstOrThrow({ where: { chapeta: '101' } })
+    await registrarEvento({
+      tipo: 'vitamina',
+      fecha: '2026-01-10',
+      producto: 'Complejo B',
+      dosis: '10ml',
+      responsable: 'Vet. Gómez',
+      proximaFecha: null,
+      notas: null,
+      animalId: animalCicloUno.id,
+      loteId: null,
+      registradoPorId: 'u1',
+    })
+    // La chapeta 101 sale de la finca -- queda libre para el próximo ciclo.
+    await registrarSalida(
+      { animalIds: [animalCicloUno.id], estado: 'vendido', fechaSalida: '2026-06-01', motivoSalida: null, pesosSalida: {} },
+      '2026-06-01',
+    )
+
+    const loteDosId = await crearLote({ nombre: 'Ceba 02', tipo: 'ceba', fechaApertura: '2026-07-01' })
+    await crearAnimales({
+      loteId: loteDosId,
+      chapetas: ['101'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-07-05',
+      edadEntradaMeses: null,
+      pesos: { '101': 190 },
+    })
+    const animalCicloDos = await prisma.animal.findFirstOrThrow({ where: { chapeta: '101', loteId: loteDosId } })
+    await registrarEvento({
+      tipo: 'desparasitacion',
+      fecha: '2026-07-10',
+      producto: 'Ivermectina',
+      dosis: '5ml',
+      responsable: 'Vet. Gómez',
+      proximaFecha: null,
+      notas: null,
+      animalId: animalCicloDos.id,
+      loteId: null,
+      registradoPorId: 'u1',
+    })
+
+    const datos = await datosExportacionCompleta()
+    const eventosChapeta101 = datos.eventos.filter((e) => e.chapeta === '101')
+    expect(eventosChapeta101).toHaveLength(2)
+
+    const vitamina = eventosChapeta101.find((e) => e.tipo === 'Vitamina')!
+    expect(vitamina.loteAnimal).toBe('Ceba 01')
+    expect(vitamina.lote).toBeNull() // lote DEL EVENTO: vacío porque este evento se aplicó al animal, no al lote
+
+    const desparasitacion = eventosChapeta101.find((e) => e.tipo === 'Desparasitación')!
+    expect(desparasitacion.loteAnimal).toBe('Ceba 02')
+    expect(desparasitacion.lote).toBeNull()
+
+    // Sin la columna aparte, las dos filas serían indistinguibles.
+    expect(vitamina.loteAnimal).not.toBe(desparasitacion.loteAnimal)
+  })
+
   it('trae los eventos sanitarios con la chapeta y el lote resueltos', async () => {
     await crearAnimales({
       loteId,

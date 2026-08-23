@@ -92,6 +92,15 @@ export type FilaEventoExport = {
   proximaFecha: FechaISO | null
   notas: string | null
   chapeta: string | null
+  /**
+   * El lote del ANIMAL al que se aplicó el evento, distinto de `lote` (el
+   * lote DEL EVENTO, que solo se llena cuando el evento se registró para un
+   * lote entero). Existe porque la chapeta solo es única entre los animales
+   * activos: dos ciclos de ceba al año pueden tener, cada uno, un animal con
+   * la misma chapeta, y sin este campo dos filas con "Chapeta 101" son
+   * indistinguibles.
+   */
+  loteAnimal: string | null
   lote: string | null
   registradoPor: string | null
 }
@@ -182,7 +191,10 @@ export async function datosExportacionCompleta(): Promise<DatosExportacion> {
       orderBy: [{ fecha: 'asc' }, { creadoEn: 'asc' }],
     }),
     prisma.eventoSanitario.findMany({
-      include: { animal: { select: { chapeta: true } }, lote: { select: { nombre: true } } },
+      include: {
+        animal: { select: { chapeta: true, lote: { select: { nombre: true } } } },
+        lote: { select: { nombre: true } },
+      },
       orderBy: { fecha: 'asc' },
     }),
     prisma.parametro.findMany({ orderBy: [{ clave: 'asc' }, { vigenteDesde: 'asc' }, { creadoEn: 'asc' }] }),
@@ -272,6 +284,7 @@ export async function datosExportacionCompleta(): Promise<DatosExportacion> {
       proximaFecha: evento.proximaFecha ? aFechaISO(evento.proximaFecha) : null,
       notas: evento.notas,
       chapeta: evento.animal?.chapeta ?? null,
+      loteAnimal: evento.animal?.lote.nombre ?? null,
       lote: evento.lote?.nombre ?? null,
       registradoPor: nombreUsuario(evento.registradoPorId),
     })),

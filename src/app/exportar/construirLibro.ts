@@ -126,7 +126,8 @@ const COLUMNAS_EVENTOS: Column<FilaEventoExport>[] = [
   { ...columnaAncha('Próxima fecha', 16), cell: (f) => celdaFecha(f.proximaFecha) },
   { ...columnaAncha('Notas', 28), cell: (f) => celdaTexto(f.notas) },
   { ...columnaAncha('Chapeta', 12), cell: (f) => celdaTexto(f.chapeta) },
-  { ...columnaAncha('Lote'), cell: (f) => celdaTexto(f.lote) },
+  { ...columnaAncha('Lote del animal', 18), cell: (f) => celdaTexto(f.loteAnimal) },
+  { ...columnaAncha('Lote del evento', 18), cell: (f) => celdaTexto(f.lote) },
   { ...columnaAncha('Registrado por', 18), cell: (f) => celdaTexto(f.registradoPor) },
 ]
 
