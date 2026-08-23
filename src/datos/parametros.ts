@@ -147,6 +147,16 @@ function esClaveUmbral(clave: string): clave is ClaveUmbral {
   return (CLAVES_UMBRAL as readonly string[]).includes(clave)
 }
 
+/**
+ * Las hectáreas útiles de la finca, movidas aquí desde el campo suelto que
+ * tenía `Finca` -- sin esta clave, no llevaban vigencia ni autor, y
+ * corregirlas reescribía en el sitio la carga animal de ciclos ya cerrados.
+ * Como parámetro más, se comparten `configurarParametro`, `estadoParametro`
+ * y el resto de la maquinaria con los otros seis; lo único propio es que no
+ * participa del orden entre umbrales, y que tiene que ser mayor que cero.
+ */
+export const CLAVE_HECTAREAS_UTILES = 'hectareas_utiles'
+
 async function valoresUmbralEfectivos(
   en: FechaISO,
   cambios: Partial<Record<ClaveUmbral, number>>,
@@ -210,6 +220,9 @@ export async function validarCambioParametro(
   const numero = Number(valorTexto)
   if (!Number.isFinite(numero)) {
     throw new Error(`El valor "${valorTexto}" no es un número.`)
+  }
+  if (clave === CLAVE_HECTAREAS_UTILES && numero <= 0) {
+    throw new Error(`Las hectáreas útiles deben ser mayor que cero (se recibió "${valorTexto}").`)
   }
   if (esClaveUmbral(clave)) {
     await validarOrdenUmbrales(vigenteDesde, { [clave]: numero } as Partial<Record<ClaveUmbral, number>>)

@@ -122,15 +122,28 @@ test('un valor no numérico se rechaza sin guardar nada', async ({ page }) => {
   await expect(tarjeta.getByText('Sin configurar todavía.')).toBeVisible()
 })
 
-test('las hectáreas útiles de la finca se pueden actualizar, con coma decimal', async ({ page }) => {
+test('las hectáreas útiles de la finca se pueden actualizar, con coma decimal, y quedan con vigencia e histórico', async ({
+  page,
+}) => {
   await iniciarSesion(page)
   await page.goto('/configuracion')
 
-  await expect(page.getByText('Valor actual:')).toContainText('35,0 ha')
+  // Sembrada por e2e/preparar.ts con vigencia del año 2000: tiene que
+  // aparecer como el resto de los parámetros, con formato colombiano.
+  const tarjeta = page.locator('[data-parametro="hectareas_utiles"]')
+  await expect(tarjeta.getByTestId('valor-vigente')).toContainText('35,0 ha')
 
-  await page.locator('input[name="hectareasUtiles"]').fill('40,5')
-  await page.getByRole('button', { name: 'Guardar' }).last().click()
+  await tarjeta.locator('input[name="valor"]').fill('40,5')
+  await tarjeta.locator('input[name="vigenteDesde"]').fill(HOY)
+  await tarjeta.getByRole('button', { name: 'Guardar' }).click()
 
-  await expect(page.getByText('Guardado.').last()).toBeVisible()
-  await expect(page.getByText('Valor actual:')).toContainText('40,5 ha')
+  await expect(tarjeta.getByText('Guardado.')).toBeVisible()
+  await expect(tarjeta.getByTestId('valor-vigente')).toContainText(HOY)
+  await expect(tarjeta.getByTestId('valor-vigente')).toContainText('40,5 ha')
+
+  // Igual que los otros seis parámetros: el valor anterior no desaparece,
+  // queda en el histórico -- es justo lo que Finca.hectareasUtiles no podía
+  // ofrecer antes de este cambio.
+  await tarjeta.getByText(/Ver histórico/).click()
+  await expect(tarjeta.getByRole('row', { name: '2000-01-01' })).toContainText('35,0 ha')
 })

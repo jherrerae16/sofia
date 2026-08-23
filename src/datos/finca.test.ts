@@ -1,45 +1,23 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { actualizarHectareasUtiles, obtenerFinca } from './finca'
+import { obtenerFinca } from './finca'
 import { prisma } from './cliente'
 
 beforeEach(async () => {
   await prisma.finca.deleteMany()
 })
 
+// Las hectáreas útiles se probaban aquí antes de moverse a `Parametro` (ver
+// `src/datos/parametros.test.ts`, describe 'configurarParametro — hectáreas
+// útiles'): `Finca` ya no las guarda, así que lo único que queda por probar
+// de este archivo es la lectura del nombre.
 describe('obtenerFinca', () => {
-  it('devuelve la finca con sus hectáreas útiles como número', async () => {
-    await prisma.finca.create({ data: { nombre: 'Santa Verónica', hectareasUtiles: 35 } })
+  it('devuelve la finca', async () => {
+    await prisma.finca.create({ data: { nombre: 'Santa Verónica' } })
     const finca = await obtenerFinca()
-    expect(finca).toEqual({ nombre: 'Santa Verónica', hectareasUtiles: 35 })
+    expect(finca).toEqual({ nombre: 'Santa Verónica' })
   })
 
   it('devuelve null cuando todavía no hay ninguna finca creada', async () => {
     expect(await obtenerFinca()).toBeNull()
-  })
-})
-
-describe('actualizarHectareasUtiles', () => {
-  beforeEach(async () => {
-    await prisma.finca.create({ data: { nombre: 'Santa Verónica', hectareasUtiles: 35 } })
-  })
-
-  it('sobrescribe el valor -- no hay vigencia ni histórico para este campo', async () => {
-    await actualizarHectareasUtiles('40')
-    expect(await obtenerFinca()).toEqual({ nombre: 'Santa Verónica', hectareasUtiles: 40 })
-  })
-
-  it('rechaza un texto no numérico antes de guardarlo', async () => {
-    await expect(actualizarHectareasUtiles('muchas')).rejects.toThrow(/número/)
-    expect((await obtenerFinca())?.hectareasUtiles).toBe(35)
-  })
-
-  it('rechaza cero y negativos', async () => {
-    await expect(actualizarHectareasUtiles('0')).rejects.toThrow(/mayor que cero/)
-    await expect(actualizarHectareasUtiles('-5')).rejects.toThrow(/mayor que cero/)
-  })
-
-  it('avisa con claridad si todavía no hay ninguna finca configurada', async () => {
-    await prisma.finca.deleteMany()
-    await expect(actualizarHectareasUtiles('40')).rejects.toThrow(/finca/i)
   })
 })

@@ -1,14 +1,12 @@
 import { hoyBogota } from '@/calc/fechas'
-import { obtenerFinca } from '@/datos/finca'
 import { estadoParametro, type EstadoParametro } from '@/datos/parametros'
-import { formatearHectareas } from '@/ui/formato'
 import {
   DEFINICION_GDP_OBJETIVO,
+  DEFINICION_HECTAREAS,
   DEFINICION_PESO_OBJETIVO,
   DEFINICIONES_UMBRAL,
   type DefinicionParametro,
 } from './definiciones'
-import { FormularioHectareas } from './FormularioHectareas'
 import { FormularioParametro } from './FormularioParametro'
 
 // El valor vigente de cada parámetro depende de la fecha de hoy y de lo que
@@ -19,11 +17,11 @@ export const dynamic = 'force-dynamic'
 
 export default async function Configuracion() {
   const hoy = hoyBogota()
-  const [umbrales, gdpObjetivo, pesoObjetivo, finca] = await Promise.all([
+  const [umbrales, gdpObjetivo, pesoObjetivo, hectareas] = await Promise.all([
     Promise.all(DEFINICIONES_UMBRAL.map((definicion) => estadoParametro(definicion.clave, hoy))),
     estadoParametro(DEFINICION_GDP_OBJETIVO.clave, hoy),
     estadoParametro(DEFINICION_PESO_OBJETIVO.clave, hoy),
-    obtenerFinca(),
+    estadoParametro(DEFINICION_HECTAREAS.clave, hoy),
   ])
 
   return (
@@ -59,27 +57,7 @@ export default async function Configuracion() {
       </section>
 
       <section className="rounded-lg border border-tierra/20 bg-white p-4">
-        <h2 className="mb-1 font-serif text-xl text-pasto">Hectáreas útiles de la finca</h2>
-        <p className="mb-3 max-w-2xl text-sm text-carbon/70">
-          Las hectáreas realmente aprovechables para el ganado, descontando lo improductivo. De aquí sale cuántos
-          kilos y cuántas cabezas caben por hectárea -- la carga animal de la finca.
-        </p>
-        {finca === null ? (
-          <p className="text-rojo-tierra">
-            Todavía no hay ninguna finca configurada en la base de datos. Contacta a soporte antes de continuar.
-          </p>
-        ) : (
-          <>
-            <p className="text-sm text-carbon/70">
-              Valor actual:{' '}
-              <span className="cifra font-medium">{formatearHectareas(finca.hectareasUtiles)} ha</span>
-            </p>
-            <p className="mt-1 text-xs text-carbon/50">
-              A diferencia de los parámetros de arriba, este valor no lleva histórico: cambiarlo lo sobrescribe.
-            </p>
-            <FormularioHectareas hectareasUtiles={finca.hectareasUtiles} />
-          </>
-        )}
+        <TarjetaParametro definicion={DEFINICION_HECTAREAS} estado={hectareas} hoy={hoy} />
       </section>
     </main>
   )

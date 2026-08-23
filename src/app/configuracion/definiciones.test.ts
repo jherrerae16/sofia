@@ -11,9 +11,9 @@ describe('definiciones de parámetros', () => {
     expect(DEFINICIONES_UMBRAL.map((d) => d.clave)).toEqual(CLAVES_UMBRAL)
   })
 
-  it('DEFINICIONES_PARAMETRO cubre los seis parámetros configurables, sin repetir ninguna clave', () => {
+  it('DEFINICIONES_PARAMETRO cubre los siete parámetros configurables, sin repetir ninguna clave', () => {
     const claves = DEFINICIONES_PARAMETRO.map((d) => d.clave)
-    expect(claves).toEqual([...CLAVES_UMBRAL, 'gdp_objetivo', 'peso_objetivo_venta_kg'])
+    expect(claves).toEqual([...CLAVES_UMBRAL, 'gdp_objetivo', 'peso_objetivo_venta_kg', 'hectareas_utiles'])
     expect(new Set(claves).size).toBe(claves.length)
   })
 

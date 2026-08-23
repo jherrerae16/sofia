@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { prisma } from './cliente'
 import { aFechaDb } from './conversion'
 import {
+  CLAVE_HECTAREAS_UTILES,
   configurarParametro,
   dejaSinVigenteHoy,
   estadoParametro,
@@ -211,6 +212,42 @@ describe('configurarParametro — valida el orden de los umbrales', () => {
     // seguirá en 900 (nadie programó un cambio para entonces), así que debe
     // rechazarse aunque hoy la comparación no aplique todavía.
     await expect(configurarParametro('umbral_bueno', '950', '2027-01-01', 'u1')).rejects.toThrow(/mayor/)
+  })
+})
+
+describe('configurarParametro — hectáreas útiles', () => {
+  // A diferencia de los umbrales, esta clave no participa de ningún orden
+  // entre parámetros: lo único propio que valida es que el número sea mayor
+  // que cero, igual que exigía `actualizarHectareasUtiles` antes de que este
+  // valor viviera en `Finca`.
+  it('rechaza cero', async () => {
+    await expect(configurarParametro(CLAVE_HECTAREAS_UTILES, '0', '2026-09-01', 'u1')).rejects.toThrow(
+      /mayor que cero/,
+    )
+  })
+
+  it('rechaza negativos', async () => {
+    await expect(configurarParametro(CLAVE_HECTAREAS_UTILES, '-5', '2026-09-01', 'u1')).rejects.toThrow(
+      /mayor que cero/,
+    )
+  })
+
+  it('acepta un número positivo y lo guarda como parámetro, con vigencia e histórico', async () => {
+    await configurarParametro(CLAVE_HECTAREAS_UTILES, '40', '2026-09-01', 'u1')
+    expect(await leerParametro(CLAVE_HECTAREAS_UTILES, '2026-09-01')).toBe('40')
+
+    const historial = await historialParametro(CLAVE_HECTAREAS_UTILES)
+    expect(historial).toEqual([{ valor: '40', vigenteDesde: '2026-09-01' }])
+  })
+
+  it('un cambio de hoy en adelante no reescribe lo que ya regía en fechas anteriores', async () => {
+    // Es exactamente el defecto que este parámetro corrige: corregir las
+    // hectáreas hoy no puede alterar la carga animal de un ciclo ya cerrado.
+    await guardarParametro(CLAVE_HECTAREAS_UTILES, '35', '2000-01-01', 'u1')
+    await configurarParametro(CLAVE_HECTAREAS_UTILES, '40', '2026-09-01', 'u1')
+
+    expect(await leerParametro(CLAVE_HECTAREAS_UTILES, '2026-01-01')).toBe('35')
+    expect(await leerParametro(CLAVE_HECTAREAS_UTILES, '2026-09-01')).toBe('40')
   })
 })
 

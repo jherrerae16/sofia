@@ -1,4 +1,4 @@
-import { formatearGdp, formatearKg } from '@/ui/formato'
+import { formatearGdp, formatearHectareas, formatearKg } from '@/ui/formato'
 
 export type DefinicionParametro = {
   clave: string
@@ -65,8 +65,24 @@ export const DEFINICION_PESO_OBJETIVO: DefinicionParametro = {
   formatear: formatearKg,
 }
 
+/**
+ * A diferencia de los seis parámetros de arriba, esta clave no gobierna
+ * ningún cálculo todavía -- se movió aquí (desde un campo suelto en `Finca`)
+ * precisamente para que, cuando la carga animal empiece a consumirla, ya
+ * tenga vigencia e histórico desde el primer día.
+ */
+export const DEFINICION_HECTAREAS: DefinicionParametro = {
+  clave: 'hectareas_utiles',
+  titulo: 'Hectáreas útiles de la finca',
+  explicacion:
+    'Las hectáreas realmente aprovechables para el ganado, descontando lo improductivo. De aquí sale cuántos kilos y cuántas cabezas caben por hectárea -- la carga animal de la finca.',
+  unidad: 'ha',
+  formatear: formatearHectareas,
+}
+
 export const DEFINICIONES_PARAMETRO: DefinicionParametro[] = [
   ...DEFINICIONES_UMBRAL,
   DEFINICION_GDP_OBJETIVO,
   DEFINICION_PESO_OBJETIVO,
+  DEFINICION_HECTAREAS,
 ]

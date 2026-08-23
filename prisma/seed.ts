@@ -16,11 +16,12 @@ const PARAMETROS: Record<string, string> = {
   umbral_bajo: '400',
   gdp_objetivo: '750',
   peso_objetivo_venta_kg: '320',
+  hectareas_utiles: '35',
 }
 
 async function main() {
   await prisma.finca.create({
-    data: { nombre: 'Santa Verónica', hectareasUtiles: 35 },
+    data: { nombre: 'Santa Verónica' },
   })
 
   for (const [clave, valor] of Object.entries(PARAMETROS)) {

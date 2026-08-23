@@ -3,7 +3,6 @@
 import { revalidatePath } from 'next/cache'
 import { usuarioActual } from '@/auth'
 import { hoyBogota } from '@/calc/fechas'
-import { actualizarHectareasUtiles } from '@/datos/finca'
 import { configurarParametro, revisarCambioParametro } from '@/datos/parametros'
 
 /**
@@ -73,24 +72,4 @@ export async function guardarParametroAccion(
   revalidatePath('/')
   revalidatePath('/como-vamos')
   return { valorEnviado: null, vigenteDesdeEnviada: null, aviso: null, guardado: true, error: null }
-}
-
-export type EstadoHectareas = {
-  valorEnviado: string | null
-  guardado: boolean
-  error: string | null
-}
-
-export async function actualizarHectareasAccion(
-  _estado: EstadoHectareas,
-  datos: FormData,
-): Promise<EstadoHectareas> {
-  const valorTexto = String(datos.get('hectareasUtiles')).trim().replace(',', '.')
-  try {
-    await actualizarHectareasUtiles(valorTexto)
-  } catch (error) {
-    return { valorEnviado: valorTexto, guardado: false, error: (error as Error).message }
-  }
-  revalidatePath('/configuracion')
-  return { valorEnviado: null, guardado: true, error: null }
 }

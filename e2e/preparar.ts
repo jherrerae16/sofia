@@ -116,7 +116,14 @@ async function main() {
     // cuál es "el" valor vigente hoy o cuántas filas trae el histórico.
     await prisma.parametro.deleteMany()
     await prisma.finca.deleteMany()
-    await prisma.finca.create({ data: { nombre: 'Santa Verónica', hectareasUtiles: 35 } })
+    await prisma.finca.create({ data: { nombre: 'Santa Verónica' } })
+    // Las hectáreas útiles viven en Parametro, no en Finca (ver
+    // src/datos/parametros.ts): se siembran con una vigencia ya pasada, igual
+    // que en prisma/seed.ts, para que "Configuración" muestre un valor vigente
+    // desde la primera corrida sin que ninguna prueba tenga que configurarlo.
+    await prisma.parametro.create({
+      data: { clave: 'hectareas_utiles', valor: '35', vigenteDesde: new Date('2000-01-01T00:00:00.000Z') },
+    })
 
     await prisma.usuario.create({
       data: {

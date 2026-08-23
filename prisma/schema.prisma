@@ -52,10 +52,16 @@ model Parametro {
   @@index([clave, vigenteDesde])
 }
 
+/// La finca es única. `hectareasUtiles` vivió aquí como campo suelto hasta
+/// que se detectó que, al no llevar vigencia, corregirlo (por ejemplo tras
+/// desmontar un potrero) recalculaba hacia atrás toda la carga animal ya
+/// cerrada -- exactamente lo que los seis parámetros de `Parametro` existen
+/// para evitar. Ahora vive ahí, bajo la clave 'hectareas_utiles': ver
+/// prisma/migrations/20260822230000_hectareas_utiles_a_parametro/migration.sql
+/// para la migración que preserva el valor que ya tenía la finca real.
 model Finca {
-  id             String @id @default(cuid())
-  nombre         String
-  hectareasUtiles Decimal @db.Decimal(6, 2)
+  id     String @id @default(cuid())
+  nombre String
 }
 
 model Potrero {
