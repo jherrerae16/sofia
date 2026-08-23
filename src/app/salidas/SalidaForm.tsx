@@ -10,6 +10,7 @@ const INICIAL: EstadoRegistroSalida = {
   cantidad: 0,
   datosEnviados: null,
   error: null,
+  advertencias: null,
 }
 
 // Solo los tres motivos de salida, tomados del mapa central: 'activo' no es
@@ -218,6 +219,47 @@ export function SalidaForm({
             El peso de venta es el último peso real del animal; no incluye comprador ni precio --
             eso se registra aparte.
           </p>
+
+          {estado.advertencias && estado.advertencias.length > 0 && (
+            <div className="space-y-2 rounded border border-ambar/40 bg-ambar/10 p-3 text-sm">
+              <p className="font-medium text-ambar">
+                Revisa estos pesos de venta antes de seguir -- ninguno se guardó todavía:
+              </p>
+              <ul className="list-disc space-y-1 pl-5 text-carbon/80">
+                {estado.advertencias.map((advertencia) => (
+                  <li key={advertencia.chapeta}>
+                    Chapeta <span className="cifra font-medium">{advertencia.chapeta}</span>:{' '}
+                    {advertencia.mensaje}
+                  </li>
+                ))}
+              </ul>
+              <label className="flex items-center gap-2 text-carbon">
+                {/* A propósito SIN `required` ni `defaultChecked`: esta
+                    casilla solo existe en el DOM mientras `estado.advertencias`
+                    -- la respuesta del envío ANTERIOR -- siga vigente en
+                    pantalla. Si fuera `required`, corregir el peso sospechoso
+                    en la tabla y reenviar SIN marcarla quedaría bloqueado por
+                    la validación nativa del navegador contra esta misma
+                    casilla, todavía sin marcar, del envío anterior -- la
+                    petición ni siquiera llegaría al servidor a reevaluar el
+                    valor ya corregido. Y si arrastrara `defaultChecked` desde
+                    `datosEnviados`, quedaría premarcada por una confirmación
+                    que fue sobre una cifra distinta a la que ahora se está
+                    reenviando -- eso entrena a marcar sin leer. La
+                    obligatoriedad real la impone `registrarSalida`
+                    (`PesoSalidaSospechosoError`): si el peso sigue siendo el
+                    mismo y esta casilla sigue sin marcar, el servidor vuelve
+                    a frenar la salida con la misma advertencia. */}
+                <input
+                  type="checkbox"
+                  name="confirmarPesosSospechosos"
+                  onChange={marcarEditado}
+                  className="h-4 w-4"
+                />
+                Confirmo que el peso está bien, aunque sea inusual.
+              </label>
+            </div>
+          )}
 
           {estado.error && <p className="text-rojo-tierra">{estado.error}</p>}
 

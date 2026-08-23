@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { validarMedicion } from './validacion'
+import { validarMedicion, validarPesoEntrada } from './validacion'
 
 const entrada = { fecha: '2026-09-01', pesoKg: 150 }
 // Posterior a todas las fechas de pesaje usadas en este archivo, para que el
@@ -61,6 +61,72 @@ describe('validarMedicion', () => {
     )
     expect(veredicto.nivel).toBe('rechazo')
     expect(veredicto.mensaje).toContain('mismo día')
+  })
+
+  it('en contexto "salida", no rechaza un peso el mismo día de un pesaje real -- es otro hecho, no un segundo pesaje digitado', () => {
+    // Mismo caso que "rechaza un segundo pesaje el mismo día" de arriba,
+    // pero visto desde una venta: el peso de venta del día de la feria no
+    // es un reintento de digitación, es un hecho distinto que ocurre el
+    // mismo día del pesaje de la mañana. La regla de "mismo día" solo tiene
+    // sentido en la pantalla de digitar, donde evita duplicar una fila.
+    const veredicto = validarMedicion(
+      entrada,
+      { fecha: '2026-10-01', pesoKg: 174 },
+      { fecha: '2026-10-01', pesoKg: 176 },
+      HOY,
+      'normal',
+      'salida',
+    )
+    expect(veredicto.nivel).toBe('ok')
+  })
+
+  it('en contexto "salida", sin transcurrir un día no hay ganancia diaria que evaluar, pero sigue rechazando lo demás (peso no positivo)', () => {
+    // El contexto "salida" apaga SOLO la regla de "mismo día" -- las demás
+    // (peso no numérico, no positivo, fecha antes del ingreso, fecha
+    // futura) siguen intactas.
+    const veredicto = validarMedicion(
+      entrada,
+      { fecha: '2026-10-01', pesoKg: 174 },
+      { fecha: '2026-10-01', pesoKg: 0 },
+      HOY,
+      'normal',
+      'salida',
+    )
+    expect(veredicto.nivel).toBe('rechazo')
+    expect(veredicto.mensaje).toContain('mayor que cero')
+  })
+
+  it('en contexto "salida", el mismo día de un pesaje real, advierte una subida de dedazo -- el hueco de la feria (defecto 1 de esta revisión)', () => {
+    // El caso exacto que reprodujo el revisor: pesaje de hoy (320 kg), venta
+    // hoy (2200 kg). `gdpEntre` da null porque no hay días transcurridos, así
+    // que la guardia de "ganancia imposible" (que compara g/día) no evalúa
+    // nada -- y la de pérdida solo mira hacia abajo. Sin una guardia nueva
+    // para este hueco, el veredicto sale 'ok' y el dedazo pasa en silencio.
+    const veredicto = validarMedicion(
+      entrada,
+      { fecha: '2026-10-01', pesoKg: 320 },
+      { fecha: '2026-10-01', pesoKg: 2200 },
+      HOY,
+      'normal',
+      'salida',
+    )
+    expect(veredicto.nivel).toBe('advertencia')
+  })
+
+  it('en contexto "salida", una ganancia imposible frente al pesaje anterior sigue advirtiendo', () => {
+    // El dedazo clásico (2200 en vez de 220) tiene que seguir advirtiendo en
+    // una venta con un pesaje anterior de otro día -- el contexto "salida"
+    // no apaga la guardia de ganancia imposible, solo la de "mismo día".
+    const veredicto = validarMedicion(
+      entrada,
+      { fecha: '2026-10-01', pesoKg: 174 },
+      { fecha: '2026-10-05', pesoKg: 2200 },
+      HOY,
+      'normal',
+      'salida',
+    )
+    expect(veredicto.nivel).toBe('advertencia')
+    expect(veredicto.mensaje).toContain('Ganancia de')
   })
 
   it('advierte cuando la ganancia diaria supera los dos mil gramos', () => {
@@ -126,5 +192,50 @@ describe('validarMedicion', () => {
     expect(veredicto.nivel).toBe('rechazo')
     expect(veredicto.mensaje).toContain('posterior a hoy')
     expect(veredicto.gdp).toBeNull()
+  })
+})
+
+describe('validarPesoEntrada', () => {
+  // Defecto 2 del seguimiento del plan 1c: `crearAnimales` solo comprobaba
+  // que el peso de entrada fuera finito y mayor que cero -- un novillo dado
+  // de alta con 2200 kg entraba en silencio. No hay una medición anterior
+  // contra la cual comparar (es el primer dato del animal), así que la
+  // guardia es un rango absoluto, no una ganancia entre dos pesajes.
+
+  it('acepta un peso de entrada típico de ceba', () => {
+    const veredicto = validarPesoEntrada(220)
+    expect(veredicto.nivel).toBe('ok')
+  })
+
+  it('rechaza un peso que no es un número', () => {
+    const veredicto = validarPesoEntrada(Number('22o'))
+    expect(veredicto.nivel).toBe('rechazo')
+    expect(veredicto.mensaje).toContain('no es un número')
+  })
+
+  it('rechaza un peso que no es positivo', () => {
+    const veredicto = validarPesoEntrada(0)
+    expect(veredicto.nivel).toBe('rechazo')
+    expect(veredicto.mensaje).toContain('mayor que cero')
+  })
+
+  it('rechaza un peso de entrada imposible para un bovino -- el dedazo de 2200 kg en vez de 220', () => {
+    const veredicto = validarPesoEntrada(2200)
+    expect(veredicto.nivel).toBe('rechazo')
+  })
+
+  it('rechaza un peso de entrada imposiblemente bajo', () => {
+    const veredicto = validarPesoEntrada(5)
+    expect(veredicto.nivel).toBe('rechazo')
+  })
+
+  it('advierte -- sin rechazar -- un peso de entrada inusualmente bajo pero no imposible', () => {
+    const veredicto = validarPesoEntrada(90)
+    expect(veredicto.nivel).toBe('advertencia')
+  })
+
+  it('advierte -- sin rechazar -- un peso de entrada inusualmente alto pero no imposible', () => {
+    const veredicto = validarPesoEntrada(700)
+    expect(veredicto.nivel).toBe('advertencia')
   })
 })

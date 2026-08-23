@@ -16,6 +16,7 @@ const ENLACES = [
   { href: '/como-vamos', texto: 'Cómo vamos' },
   { href: '/digitar', texto: 'Digitar' },
   { href: '/salidas', texto: 'Salidas' },
+  { href: '/novedades', texto: 'Novedades' },
   { href: '/lotes', texto: 'Lotes' },
   { href: '/potreros', texto: 'Potreros' },
   { href: '/configuracion', texto: 'Configuración' },

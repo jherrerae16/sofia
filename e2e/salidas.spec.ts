@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { hoyBogota, sumarDias } from '../src/calc/fechas'
-import { aFechaDb } from '../src/datos/conversion'
+import { aFechaDb, aKg } from '../src/datos/conversion'
 import { prisma } from '../src/datos/cliente'
 
 // Mismo motivo que en digitar.spec.ts y mover-lote.spec.ts: fechas relativas
@@ -98,4 +98,204 @@ test('una fecha de salida anterior a la entrada se rechaza sin perder la selecci
   await page.fill('input[name="fechaSalida"]', HOY)
   await page.getByRole('button', { name: 'Registrar salida' }).click()
   await expect(page.getByText('Se registró la salida de 1 animal.')).toBeVisible()
+})
+
+// Defecto 1 del seguimiento del plan 1c: el día de la feria se pesa el lote
+// en la mañana y se vende en la tarde, mismo día. `validarMedicion` rechazaba
+// eso con "Ya hay un pesaje de este animal el mismo día" -- correcto para un
+// reenvío accidental en Digitar, equivocado para un peso de venta, que es
+// otro hecho, no un segundo pesaje. Esta prueba pasa por la interfaz real
+// (no solo `registrarSalida`) para demostrar que el ganadero ya no se topa
+// con esa pantalla sin salida limpia.
+test('un animal pesado hoy se puede vender hoy mismo, sin que el pesaje de la mañana lo bloquee', async ({
+  page,
+}) => {
+  const lote = await sembrarLotePropio('Salidas — pesaje y venta el mismo día', ['811'])
+  const [animal] = await prisma.animal.findMany({ where: { loteId: lote.id } })
+  await prisma.pesaje.create({
+    data: {
+      fecha: aFechaDb(HOY),
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      registradoPorId: 'siembra',
+      mediciones: { create: [{ animalId: animal.id, pesoKg: 220 }] },
+    },
+  })
+
+  await iniciarSesion(page)
+  await page.goto(`/salidas?lote=${lote.id}`)
+
+  await page.locator('input[name^="sel_"]').check()
+  await page.selectOption('select[name="estado"]', 'vendido')
+  await page.fill('input[name="fechaSalida"]', HOY)
+  await page.locator('input[name^="peso_"]').fill('220')
+
+  await page.getByRole('button', { name: 'Registrar salida' }).click()
+
+  await expect(page.getByText('Se registró la salida de 1 animal.')).toBeVisible()
+  const guardado = await prisma.animal.findUniqueOrThrow({ where: { id: animal.id } })
+  expect(guardado.estado).toBe('vendido')
+})
+
+// Hallazgo 2.1 del seguimiento: un peso de venta que implica una ganancia
+// diaria inverosímil (el dedazo clásico -- 2200 en vez de 220) no puede
+// quedar aceptado en silencio. Esta prueba es la que de verdad demuestra que
+// la advertencia se ve en pantalla y frena el guardado hasta que alguien la
+// confirma -- una prueba unitaria contra `registrarSalida` no alcanza a
+// mostrar que la interfaz la expone.
+test('un peso de venta con ganancia inverosímil se frena con una advertencia hasta confirmarla', async ({
+  page,
+}) => {
+  const lote = await sembrarLotePropio('Salidas — peso sospechoso', ['931'])
+
+  await iniciarSesion(page)
+  await page.goto(`/salidas?lote=${lote.id}`)
+
+  await page.locator('input[name^="sel_"]').check()
+  await page.selectOption('select[name="estado"]', 'vendido')
+  await page.fill('input[name="fechaSalida"]', HOY)
+  // El animal entró con 150 kg hace 30 días: 2200 kg (el mismo dedazo del
+  // hallazgo, un dígito de más sobre 220) es una ganancia imposible de creer.
+  await page.locator('input[name^="peso_"]').fill('2200')
+
+  await page.getByRole('button', { name: 'Registrar salida' }).click()
+
+  await expect(page.getByText(/Revisa estos pesos de venta/)).toBeVisible()
+  await expect(page.getByText(/Ganancia de/)).toBeVisible()
+
+  // Nada se guardó todavía: el animal sigue activo.
+  const animales = await prisma.animal.findMany({ where: { loteId: lote.id } })
+  expect(animales[0].estado).toBe('activo')
+
+  // El peso digitado y la selección siguen ahí -- no hay que volver a
+  // escribir nada, solo confirmar.
+  await expect(page.locator('input[name^="peso_"]')).toHaveValue('2200')
+  await expect(page.locator('input[name^="sel_"]')).toBeChecked()
+
+  await page.getByRole('checkbox', { name: /Confirmo que el peso está bien/ }).check()
+  await page.getByRole('button', { name: 'Registrar salida' }).click()
+
+  await expect(page.getByText('Se registró la salida de 1 animal.')).toBeVisible()
+  const guardado = await prisma.animal.findUniqueOrThrow({ where: { id: animales[0].id } })
+  expect(guardado.estado).toBe('vendido')
+})
+
+// Defecto 2 del seguimiento de esta revisión (2026-08-22): el mismo defecto
+// de la casilla `required` que ya se reprodujo y corrigió en
+// `AltaAnimalesForm` (e2e/lotes.spec.ts, "corregir el peso que disparó la
+// advertencia..."), pero en `SalidaForm`. Con `required` en la casilla de
+// confirmación, corregir el peso sospechoso en la tabla y reenviar SIN
+// marcarla queda bloqueado por la validación nativa del navegador contra esa
+// misma casilla, todavía sin marcar, del envío anterior -- la petición ni
+// siquiera llega al servidor a reevaluar el peso ya corregido, y el animal
+// sigue activo.
+test('corregir el peso de venta que disparó la advertencia hace que ya no se exija confirmarla', async ({
+  page,
+}) => {
+  const lote = await sembrarLotePropio('Salidas — peso de venta corregido', ['961'])
+  const [animal] = await prisma.animal.findMany({ where: { loteId: lote.id } })
+  await prisma.pesaje.create({
+    data: {
+      fecha: aFechaDb(sumarDias(HOY, -10)),
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      registradoPorId: 'siembra',
+      mediciones: { create: [{ animalId: animal.id, pesoKg: 300 }] },
+    },
+  })
+
+  await iniciarSesion(page)
+  await page.goto(`/salidas?lote=${lote.id}`)
+
+  await page.locator('input[name^="sel_"]').check()
+  await page.selectOption('select[name="estado"]', 'vendido')
+  await page.fill('input[name="fechaSalida"]', HOY)
+  await page.locator('input[name^="peso_"]').fill('2200')
+
+  await page.getByRole('button', { name: 'Registrar salida' }).click()
+  await expect(page.getByText(/Revisa estos pesos de venta/)).toBeVisible()
+
+  // Corrige el peso inusual -- 320, no 2200 -- sin marcar ninguna casilla.
+  // La advertencia era sobre un dato que ya no existe: no debe seguir
+  // exigiendo que se confirme, y la petición debe llegar hasta el servidor.
+  await page.locator('input[name^="peso_"]').fill('320')
+  await page.getByRole('button', { name: 'Registrar salida' }).click()
+
+  await expect(page.getByText('Se registró la salida de 1 animal.')).toBeVisible()
+  const guardado = await prisma.animal.findUniqueOrThrow({ where: { id: animal.id } })
+  expect(guardado.estado).toBe('vendido')
+  expect(aKg(guardado.pesoSalidaKg!)).toBe(320)
+})
+
+// Defecto 1 del seguimiento de esta revisión (2026-08-22): el arreglo de
+// arriba ("un animal pesado hoy se puede vender hoy mismo") apagó la regla
+// de "mismo día" para el peso de venta, pero de paso destapó un hueco --
+// justo ese mismo día -- porque `gdpEntre` da null sin días transcurridos y
+// la guardia de "ganancia imposible" no tenía nada que evaluar. El revisor
+// reprodujo el caso exacto: pesaje de hoy con 320 kg, venta hoy con 2200 kg
+// -- sin advertencia en pantalla, y en la base quedaba `estado=vendido`,
+// `pesoSalidaKg=2200`. Esta prueba pasa por la interfaz real para demostrar
+// que ahora sí aparece la advertencia y nada se guarda hasta confirmarla.
+test('un dedazo de venta el mismo día de un pesaje real se advierte -- el hueco de la feria', async ({
+  page,
+}) => {
+  const lote = await sembrarLotePropio('Salidas — dedazo el mismo día del pesaje', ['951'])
+  const [animal] = await prisma.animal.findMany({ where: { loteId: lote.id } })
+  await prisma.pesaje.create({
+    data: {
+      fecha: aFechaDb(HOY),
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      registradoPorId: 'siembra',
+      mediciones: { create: [{ animalId: animal.id, pesoKg: 320 }] },
+    },
+  })
+
+  await iniciarSesion(page)
+  await page.goto(`/salidas?lote=${lote.id}`)
+
+  await page.locator('input[name^="sel_"]').check()
+  await page.selectOption('select[name="estado"]', 'vendido')
+  await page.fill('input[name="fechaSalida"]', HOY)
+  await page.locator('input[name^="peso_"]').fill('2200')
+
+  await page.getByRole('button', { name: 'Registrar salida' }).click()
+
+  await expect(page.getByText(/Revisa estos pesos de venta/)).toBeVisible()
+
+  // Nada se guardó todavía: el animal sigue activo.
+  const guardadoAntes = await prisma.animal.findUniqueOrThrow({ where: { id: animal.id } })
+  expect(guardadoAntes.estado).toBe('activo')
+  expect(guardadoAntes.pesoSalidaKg).toBeNull()
+})
+
+// Hallazgo 2.4: lo que sale de la finca quedaba invisible -- ni la pantalla
+// de Salidas ni la ficha del animal mostraban nada distinto de un animal
+// activo. Esta prueba registra una muerte con su motivo y comprueba que
+// ambas pantallas lo muestran.
+test('un animal muerto se ve distinto de uno activo, en Salidas y en su propia ficha', async ({
+  page,
+}) => {
+  const lote = await sembrarLotePropio('Salidas — visibilidad de la muerte', ['941'])
+  const [animal] = await prisma.animal.findMany({ where: { loteId: lote.id } })
+
+  await iniciarSesion(page)
+  await page.goto(`/salidas?lote=${lote.id}`)
+
+  await page.locator('input[name^="sel_"]').check()
+  await page.selectOption('select[name="estado"]', 'muerto')
+  await page.fill('input[name="fechaSalida"]', HOY)
+  await page.fill('input[name="motivoSalida"]', 'Neumonía, no respondió al tratamiento')
+  await page.getByRole('button', { name: 'Registrar salida' }).click()
+  await expect(page.getByText('Se registró la salida de 1 animal.')).toBeVisible()
+
+  // La pantalla de Salidas ahora muestra qué salió de este lote y por qué.
+  await expect(page.getByRole('heading', { name: 'Qué salió de este lote' })).toBeVisible()
+  await expect(page.getByText('941')).toBeVisible()
+  await expect(page.getByText('Neumonía, no respondió al tratamiento')).toBeVisible()
+
+  // Y la ficha del propio animal ya no se ve idéntica a la de uno activo.
+  await page.goto(`/animales/${animal.id}`)
+  await expect(page.getByText('Muerto', { exact: false })).toBeVisible()
+  await expect(page.getByText('Neumonía, no respondió al tratamiento')).toBeVisible()
 })

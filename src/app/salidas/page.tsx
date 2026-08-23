@@ -4,6 +4,7 @@ import { listarAnimalesDeLote } from '@/datos/animales'
 import { listarLotes } from '@/datos/lotes'
 import { ultimoPesoPorAnimal } from '@/datos/pesajes'
 import { SalidaForm } from './SalidaForm'
+import { SalidasRecientes } from './SalidasRecientes'
 
 // Igual que en "Digitar": la lista de lotes y sus animales activos cambia con
 // cada salida registrada, así que sin esto Next la prerenderiza en el build y
@@ -53,6 +54,8 @@ export default async function Salidas({
       </nav>
 
       <SalidaForm loteId={loteId} animales={activos} hoy={hoyBogota()} />
+
+      <SalidasRecientes animales={animales} />
     </main>
   )
 }

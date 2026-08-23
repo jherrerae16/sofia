@@ -2,7 +2,13 @@
 
 import { revalidatePath } from 'next/cache'
 import type { TipoLote } from '@prisma/client'
-import { ChapetaDuplicadaError, crearAnimales, type ConflictoChapeta } from '@/datos/animales'
+import {
+  ChapetaDuplicadaError,
+  crearAnimales,
+  PesoEntradaSospechosoError,
+  type AdvertenciaPesoEntrada,
+  type ConflictoChapeta,
+} from '@/datos/animales'
 import { crearLote } from '@/datos/lotes'
 
 export async function crearLoteAccion(datos: FormData) {
@@ -37,6 +43,14 @@ export type EstadoAlta = {
   datosEnviados: DatosAltaEnviados | null
   conflictos: ConflictoChapeta[]
   error: string | null
+  /**
+   * Uno o más pesos de entrada de la tanda quedan fuera del rango típico de
+   * un novillo de ceba -- ver `PesoEntradaSospechosoError` en
+   * `src/datos/animales.ts`. No es un `error`: nada se rechazó de plano, se
+   * frenó a la espera de que el dueño confirme que el peso está bien tal
+   * como se digitó.
+   */
+  advertencias: AdvertenciaPesoEntrada[] | null
 }
 
 /**
@@ -64,6 +78,14 @@ export async function crearAnimalesAccion(_estado: EstadoAlta, datos: FormData):
 
   const chapetas: string[] = []
   const pesos: Record<string, number> = {}
+  // El único campo de este formulario que no viene de un `<input>` normal:
+  // es una casilla que solo se muestra (y solo importa) después de una
+  // advertencia de peso de entrada -- ver el comentario grande en
+  // `AltaAnimalesForm.tsx`. A propósito no se guarda en `datosEnviados`
+  // para repoblarla marcada de por sí en el siguiente envío: cada tanda
+  // exige su propia confirmación explícita, para no entrenar al dueño a
+  // marcarla sin leer.
+  const confirmarPesosSospechosos = datos.get('confirmarPesosSospechosos') === 'on'
 
   try {
     for (const linea of lineas) {
@@ -90,15 +112,37 @@ export async function crearAnimalesAccion(_estado: EstadoAlta, datos: FormData):
       fechaEntrada: datosEnviados.fechaEntrada,
       edadEntradaMeses: datosEnviados.edadEntradaMeses ? Number(datosEnviados.edadEntradaMeses) : null,
       pesos,
+      confirmarPesosSospechosos,
     })
 
     revalidatePath('/lotes')
     revalidatePath('/como-vamos')
-    return { creados, datosEnviados: null, conflictos: [], error: null }
+    return { creados, datosEnviados: null, conflictos: [], error: null, advertencias: null }
   } catch (error) {
     if (error instanceof ChapetaDuplicadaError) {
-      return { creados: null, datosEnviados, conflictos: error.conflictos, error: error.message }
+      return {
+        creados: null,
+        datosEnviados,
+        conflictos: error.conflictos,
+        error: error.message,
+        advertencias: null,
+      }
     }
-    return { creados: null, datosEnviados, conflictos: [], error: (error as Error).message }
+    if (error instanceof PesoEntradaSospechosoError) {
+      return {
+        creados: null,
+        datosEnviados,
+        conflictos: [],
+        error: null,
+        advertencias: error.advertencias,
+      }
+    }
+    return {
+      creados: null,
+      datosEnviados,
+      conflictos: [],
+      error: (error as Error).message,
+      advertencias: null,
+    }
   }
 }

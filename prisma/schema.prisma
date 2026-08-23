@@ -32,6 +32,15 @@ enum TipoEventoSanitario {
   tratamiento
 }
 
+enum TipoNovedad {
+  /// Pasó un día y ya -- "se arregló el bebedero", "se compró un bulto de
+  /// sal". `fechaFin` no aplica.
+  hecho
+  /// Un régimen que dura -- "sal a voluntad desde el 5 de agosto" para un
+  /// lote. `fecha` es su inicio; `fechaFin` nulo significa vigente.
+  suministro
+}
+
 model Usuario {
   id       String @id @default(cuid())
   nombre   String
@@ -78,6 +87,7 @@ model Potrero {
   lotes       Lote[]
   movimientosDesde Movimiento[] @relation("origen")
   movimientosHasta Movimiento[] @relation("destino")
+  novedades   Novedad[]
 }
 
 model Lote {
@@ -93,6 +103,7 @@ model Lote {
   animales    Animal[]
   movimientos Movimiento[]
   eventos     EventoSanitario[]
+  novedades   Novedad[]
 }
 
 model Animal {
@@ -194,4 +205,42 @@ model EventoSanitario {
   creadoEn      DateTime @default(now())
 
   @@index([proximaFecha])
+}
+
+/// El registro operativo de la finca (plan 1C): lo que pasa en el campo, sin
+/// contabilidad -- eso es del plan 2, que además va a leer de aquí para
+/// armar los gastos. Cubre las dos formas que el dueño eligió anotar, con el
+/// mínimo detalle posible en cada una:
+///
+/// - `hecho`: pasó un día y ya ("se arregló el bebedero del Jobo"). `fecha`
+///   es cuándo pasó; `fechaFin` no aplica. Puede referirse a un lote, a un
+///   potrero, a ambos o a ninguno.
+/// - `suministro`: un régimen que dura ("sal a voluntad desde el 5 de
+///   agosto"). `fecha` es su inicio; `fechaFin` nulo significa que sigue
+///   vigente -- es la respuesta a "¿qué está recibiendo este lote ahora
+///   mismo?". Siempre apunta a un lote (no a un potrero: el suministro es
+///   del ganado, no del potrero).
+///
+/// Nada se borra: se anula con motivo, igual que un Pesaje (`anuladoEn`,
+/// `motivoAnulacion`, `anuladoPorId`). Cerrar un suministro (poner
+/// `fechaFin`) es un evento normal de su ciclo de vida, no una anulación --
+/// las dos cosas son independientes.
+model Novedad {
+  id              String      @id @default(cuid())
+  tipo            TipoNovedad
+  descripcion     String
+  fecha           DateTime    @db.Date
+  fechaFin        DateTime?   @db.Date
+  loteId          String?
+  lote            Lote?       @relation(fields: [loteId], references: [id])
+  potreroId       String?
+  potrero         Potrero?    @relation(fields: [potreroId], references: [id])
+  registradoPorId String
+  creadoEn        DateTime    @default(now())
+  anuladoEn       DateTime?
+  motivoAnulacion String?
+  anuladoPorId    String?
+
+  @@index([fecha])
+  @@index([loteId, tipo, fechaFin])
 }

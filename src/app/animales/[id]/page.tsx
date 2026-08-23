@@ -1,3 +1,4 @@
+import type { EstadoAnimal } from '@prisma/client'
 import { hoyBogota } from '@/calc/fechas'
 import { gdpAcumulada } from '@/calc/gdp'
 import { prisma } from '@/datos/cliente'
@@ -15,6 +16,16 @@ import { formatearGdp, formatearKg, SIN_DATO } from '@/ui/formato'
 // nuevo (que hoy no revalida esta ficha) al menos no quede además congelado
 // por el prerenderizado del build encima de eso.
 export const dynamic = 'force-dynamic'
+
+// Hallazgo 2.4: la ficha no mostraba `estado`, `fechaSalida`, `motivoSalida`
+// ni `pesoSalidaKg` -- un animal muerto de neumonía se veía idéntico a uno
+// activo en su propia ficha, y el motivo (obligatorio al escribirlo) no se
+// leía en ninguna parte.
+const ETIQUETA_ESTADO: Record<Exclude<EstadoAnimal, 'activo'>, string> = {
+  vendido: 'Vendido',
+  muerto: 'Muerto',
+  robado: 'Robado',
+}
 
 export default async function FichaAnimal({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -39,6 +50,32 @@ export default async function FichaAnimal({ params }: { params: Promise<{ id: st
         <span className="cifra">{formatearKg(entrada.pesoKg)}</span>
         {animal.proveedor ? ` · ${animal.proveedor}` : ''}
       </p>
+
+      {animal.estado !== 'activo' && (
+        <div
+          className={`mb-6 rounded-lg border p-4 text-sm ${
+            animal.estado === 'vendido'
+              ? 'border-tierra/30 bg-crema text-carbon'
+              : 'border-rojo-tierra/40 bg-rojo-tierra/10 text-carbon'
+          }`}
+        >
+          <p className="font-medium uppercase tracking-wide">
+            {ETIQUETA_ESTADO[animal.estado]}
+            {animal.fechaSalida && (
+              <>
+                {' '}
+                el <span className="cifra">{aFechaISO(animal.fechaSalida)}</span>
+              </>
+            )}
+          </p>
+          {animal.pesoSalidaKg && (
+            <p className="mt-1">
+              Peso de salida: <span className="cifra font-medium">{formatearKg(aKg(animal.pesoSalidaKg))}</span>
+            </p>
+          )}
+          {animal.motivoSalida && <p className="mt-1">Motivo: {animal.motivoSalida}</p>}
+        </div>
+      )}
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <Cifra etiqueta="Peso actual" valor={formatearKg(ultimo?.pesoKg ?? null)} comparacion={ultimo ? `medido el ${ultimo.fecha}` : undefined} />
