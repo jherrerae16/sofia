@@ -10,6 +10,9 @@ export type PotreroVista = {
   nombre: string
   hectareas: number
   capacidadKg: number
+  /** Qué pasto tiene y si tiene agua: lo primero que se mira antes de mandarle un lote. */
+  tipoPasto: string | null
+  tieneAgua: boolean
   lotesOcupantes: string[]
   diasOcupacion: number | null
   diasDescanso: number | null
@@ -66,6 +69,8 @@ export async function listarPotreros(hoy: FechaISO): Promise<PotreroVista[]> {
       nombre: potrero.nombre,
       hectareas: aNumero(potrero.hectareas),
       capacidadKg: potrero.capacidadKg,
+      tipoPasto: potrero.tipoPasto,
+      tieneAgua: potrero.tieneAgua,
       lotesOcupantes: ocupantes.map((lote) => lote.nombre),
       diasOcupacion: entradaMasAntigua ? diasOcupacion(entradaMasAntigua, hoy) : null,
       diasDescanso:

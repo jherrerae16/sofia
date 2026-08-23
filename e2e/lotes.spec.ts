@@ -38,7 +38,7 @@ test('una chapeta ya activa en otro lote se rechaza sin perder la planilla, y se
   })
 
   await iniciarSesion(page)
-  await page.goto('/lotes')
+  await page.goto('/anotar/entrada')
 
   await page.selectOption('select[name="loteId"]', loteDestino.id)
   await page.fill('input[name="fechaEntrada"]', HOY)
@@ -86,7 +86,7 @@ test('un peso de entrada inusual se frena con una advertencia hasta confirmarla,
   })
 
   await iniciarSesion(page)
-  await page.goto('/lotes')
+  await page.goto('/anotar/entrada')
 
   await page.selectOption('select[name="loteId"]', loteDestino.id)
   await page.fill('input[name="fechaEntrada"]', HOY)
@@ -121,7 +121,7 @@ test('corregir el peso que disparó la advertencia hace que ya no se exija confi
   })
 
   await iniciarSesion(page)
-  await page.goto('/lotes')
+  await page.goto('/anotar/entrada')
 
   await page.selectOption('select[name="loteId"]', loteDestino.id)
   await page.fill('input[name="fechaEntrada"]', HOY)

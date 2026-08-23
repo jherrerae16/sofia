@@ -47,7 +47,7 @@ test('vender el lote completo con "seleccionar todos" saca a todos los animales'
   const lote = await sembrarLotePropio('Salidas — venta completa', ['901', '902', '903'])
 
   await iniciarSesion(page)
-  await page.goto(`/salidas?lote=${lote.id}`)
+  await page.goto(`/anotar/salida?lote=${lote.id}`)
 
   await page.getByRole('checkbox', { name: 'Seleccionar todos' }).check()
   await page.selectOption('select[name="estado"]', 'vendido')
@@ -75,7 +75,7 @@ test('una fecha de salida anterior a la entrada se rechaza sin perder la selecci
   const lote = await sembrarLotePropio('Salidas — fecha inválida', ['911', '912'])
 
   await iniciarSesion(page)
-  await page.goto(`/salidas?lote=${lote.id}`)
+  await page.goto(`/anotar/salida?lote=${lote.id}`)
 
   const casillas = page.locator('input[name^="sel_"]')
   await casillas.nth(0).check()
@@ -123,7 +123,7 @@ test('un animal pesado hoy se puede vender hoy mismo, sin que el pesaje de la ma
   })
 
   await iniciarSesion(page)
-  await page.goto(`/salidas?lote=${lote.id}`)
+  await page.goto(`/anotar/salida?lote=${lote.id}`)
 
   await page.locator('input[name^="sel_"]').check()
   await page.selectOption('select[name="estado"]', 'vendido')
@@ -149,7 +149,7 @@ test('un peso de venta con ganancia inverosímil se frena con una advertencia ha
   const lote = await sembrarLotePropio('Salidas — peso sospechoso', ['931'])
 
   await iniciarSesion(page)
-  await page.goto(`/salidas?lote=${lote.id}`)
+  await page.goto(`/anotar/salida?lote=${lote.id}`)
 
   await page.locator('input[name^="sel_"]').check()
   await page.selectOption('select[name="estado"]', 'vendido')
@@ -205,7 +205,7 @@ test('corregir el peso de venta que disparó la advertencia hace que ya no se ex
   })
 
   await iniciarSesion(page)
-  await page.goto(`/salidas?lote=${lote.id}`)
+  await page.goto(`/anotar/salida?lote=${lote.id}`)
 
   await page.locator('input[name^="sel_"]').check()
   await page.selectOption('select[name="estado"]', 'vendido')
@@ -252,7 +252,7 @@ test('un dedazo de venta el mismo día de un pesaje real se advierte -- el hueco
   })
 
   await iniciarSesion(page)
-  await page.goto(`/salidas?lote=${lote.id}`)
+  await page.goto(`/anotar/salida?lote=${lote.id}`)
 
   await page.locator('input[name^="sel_"]').check()
   await page.selectOption('select[name="estado"]', 'vendido')
@@ -280,7 +280,7 @@ test('un animal muerto se ve distinto de uno activo, en Salidas y en su propia f
   const [animal] = await prisma.animal.findMany({ where: { loteId: lote.id } })
 
   await iniciarSesion(page)
-  await page.goto(`/salidas?lote=${lote.id}`)
+  await page.goto(`/anotar/salida?lote=${lote.id}`)
 
   await page.locator('input[name^="sel_"]').check()
   await page.selectOption('select[name="estado"]', 'muerto')

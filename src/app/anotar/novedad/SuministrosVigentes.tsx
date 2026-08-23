@@ -13,7 +13,7 @@ const INICIAL: EstadoCierre = { cerrado: false, error: null }
  */
 export function SuministrosVigentes({ suministros, hoy }: { suministros: NovedadVista[]; hoy: string }) {
   if (suministros.length === 0) {
-    return <p className="text-sm text-carbon/60">Este lote no tiene ningún suministro vigente.</p>
+    return <p className="text-sm text-carbon-3">Este lote no tiene ningún suministro vigente.</p>
   }
 
   return (
@@ -34,7 +34,7 @@ function FilaSuministro({ suministro, hoy }: { suministro: NovedadVista; hoy: st
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           {suministro.descripcion}{' '}
-          <span className="text-carbon/60">
+          <span className="text-carbon-3">
             — desde <span className="cifra">{suministro.fecha}</span>
           </span>
         </div>
@@ -42,7 +42,7 @@ function FilaSuministro({ suministro, hoy }: { suministro: NovedadVista; hoy: st
           <button
             type="button"
             onClick={() => setAbierto(true)}
-            className="rounded border border-tierra/30 px-3 py-1 text-xs text-carbon/70"
+            className="rounded border border-borde px-3 py-1 text-xs text-carbon-2"
           >
             Cerrar
           </button>
@@ -52,10 +52,10 @@ function FilaSuministro({ suministro, hoy }: { suministro: NovedadVista; hoy: st
       {abierto && (
         <form
           action={cerrar}
-          className="mt-3 space-y-2 rounded border border-tierra/20 bg-crema p-3 text-sm"
+          className="mt-3 space-y-2 rounded border border-borde bg-crema p-3 text-sm"
         >
           <input type="hidden" name="id" value={suministro.id} />
-          <p className="text-carbon/70">
+          <p className="text-carbon-2">
             Se deja de dar. No se borra el suministro: queda con esta fecha de fin, visible en la
             historia de abajo.
           </p>
@@ -67,21 +67,21 @@ function FilaSuministro({ suministro, hoy }: { suministro: NovedadVista; hoy: st
               defaultValue={hoy}
               max={hoy}
               required
-              className="ml-2 rounded border border-tierra/30 p-2"
+              className="ml-2 rounded border border-borde p-2"
             />
           </label>
-          {estado.error && <p className="text-rojo-tierra">{estado.error}</p>}
+          {estado.error && <p className="text-barro">{estado.error}</p>}
           <div className="flex gap-2">
             <button
               disabled={cerrando}
-              className="rounded bg-pasto px-4 py-2 text-white disabled:opacity-50"
+              className="rounded bg-monte px-4 py-2 text-crema disabled:opacity-50"
             >
               {cerrando ? 'Cerrando…' : 'Confirmar cierre'}
             </button>
             <button
               type="button"
               onClick={() => setAbierto(false)}
-              className="rounded px-4 py-2 text-carbon/70"
+              className="rounded px-4 py-2 text-carbon-2"
             >
               Cancelar
             </button>

@@ -19,9 +19,9 @@ export function PesajesRecientes({ pesajes }: { pesajes: ResumenPesaje[] }) {
   if (pesajes.length === 0) return null
 
   return (
-    <section className="mt-8 rounded-lg border border-tierra/20 bg-white p-4">
+    <section className="mt-8 rounded-lg border border-borde bg-white p-4">
       <h2 className="mb-1 rotulo">Pesajes recientes de este lote</h2>
-      <p className="mb-3 text-sm text-carbon/70">
+      <p className="mb-3 text-sm text-carbon-2">
         Si una sesión quedó mal digitada, anúlala aquí. Anular no borra nada: las mediciones
         quedan guardadas, pero dejan de contar en el historial, el último peso y todo lo que se
         calcula a partir de ellos.
@@ -70,7 +70,7 @@ function FilaPesaje({ pesaje }: { pesaje: ResumenPesaje }) {
       </div>
 
       {pesaje.anuladoEn && pesaje.motivoAnulacion && (
-        <p className="mt-1 text-xs text-carbon/60">Motivo: {pesaje.motivoAnulacion}</p>
+        <p className="mt-1 text-xs text-carbon-3">Motivo: {pesaje.motivoAnulacion}</p>
       )}
 
       {!pesaje.anuladoEn && abierto && (
@@ -79,7 +79,7 @@ function FilaPesaje({ pesaje }: { pesaje: ResumenPesaje }) {
           className="mt-3 space-y-2 rounded border border-barro/30 bg-barro/5 p-3"
         >
           <input type="hidden" name="pesajeId" value={pesaje.id} />
-          <p className="text-carbon/70">
+          <p className="text-carbon-2">
             Esto <strong>no borra</strong> las mediciones de esta sesión: se conservan en la
             base, pero desde ahora quedan fuera del historial de cada animal, del último peso
             registrado y de todos los cálculos de la finca.
@@ -91,7 +91,7 @@ function FilaPesaje({ pesaje }: { pesaje: ResumenPesaje }) {
               required
               rows={2}
               placeholder="Por ejemplo: se digitó 174 en vez de 147, dedazo detectado tarde."
-              className="mt-1 w-full rounded border border-tierra/30 p-2"
+              className="mt-1 w-full rounded border border-borde p-2"
             />
           </label>
           {estado.error && <p className="text-barro">{estado.error}</p>}
@@ -105,7 +105,7 @@ function FilaPesaje({ pesaje }: { pesaje: ResumenPesaje }) {
             <button
               type="button"
               onClick={() => setAbierto(false)}
-              className="rounded px-4 py-2 text-carbon/70"
+              className="rounded px-4 py-2 text-carbon-2"
             >
               Cancelar
             </button>

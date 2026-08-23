@@ -25,7 +25,7 @@ test('anota un hecho puntual y aparece en la historia de la finca', async ({ pag
   })
 
   await iniciarSesion(page)
-  await page.goto(`/novedades?lote=${lote.id}`)
+  await page.goto(`/anotar/novedad?lote=${lote.id}`)
 
   // "Hecho puntual" es la opción por omisión: no hace falta tocar los radios.
   await page.fill('input[name="fecha"]', HOY)
@@ -52,7 +52,7 @@ test('un suministro queda vigente hasta que se cierra, y la historia muestra el 
   })
 
   await iniciarSesion(page)
-  await page.goto(`/novedades?lote=${lote.id}`)
+  await page.goto(`/anotar/novedad?lote=${lote.id}`)
 
   await page.getByLabel('Suministro en curso').check()
   const fechaInicio = sumarDias(HOY, -10)
@@ -97,7 +97,7 @@ test('anular una novedad no la borra: sigue en la historia con su motivo', async
   })
 
   await iniciarSesion(page)
-  await page.goto(`/novedades?lote=${lote.id}`)
+  await page.goto(`/anotar/novedad?lote=${lote.id}`)
 
   await page.getByRole('button', { name: 'Anular' }).click()
   await page.fill('textarea[name="motivo"]', 'Chapeta anotada en el lote equivocado')

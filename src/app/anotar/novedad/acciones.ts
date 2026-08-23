@@ -68,7 +68,8 @@ export async function registrarNovedadAccion(
     return { registrada: false, datosEnviados, error: (error as Error).message }
   }
 
-  revalidatePath('/novedades')
+  revalidatePath('/anotar/novedad')
+  revalidatePath('/')
   return { registrada: true, datosEnviados: null, error: null }
 }
 
@@ -84,7 +85,8 @@ export async function cerrarSuministroAccion(
   } catch (error) {
     return { cerrado: false, error: (error as Error).message }
   }
-  revalidatePath('/novedades')
+  revalidatePath('/anotar/novedad')
+  revalidatePath('/')
   return { cerrado: true, error: null }
 }
 
@@ -101,6 +103,7 @@ export async function anularNovedadAccion(
   } catch (error) {
     return { anulada: false, error: (error as Error).message }
   }
-  revalidatePath('/novedades')
+  revalidatePath('/anotar/novedad')
+  revalidatePath('/')
   return { anulada: true, error: null }
 }

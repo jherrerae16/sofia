@@ -9,8 +9,8 @@ const ETIQUETA_ESTADO: Record<string, string> = {
 
 const COLOR_ESTADO: Record<string, string> = {
   vendido: 'text-carbon',
-  muerto: 'text-rojo-tierra',
-  robado: 'text-rojo-tierra',
+  muerto: 'text-barro',
+  robado: 'text-barro',
 }
 
 /**
@@ -29,8 +29,8 @@ export function SalidasRecientes({ animales }: { animales: AnimalVista[] }) {
   if (salidos.length === 0) return null
 
   return (
-    <section className="mt-8 rounded-lg border border-tierra/20 bg-white p-4">
-      <h2 className="mb-3 font-serif text-xl text-pasto">Qué salió de este lote</h2>
+    <section className="mt-8 rounded-lg border border-borde bg-white p-4">
+      <h2 className="mb-3 rotulo">Qué salió de este lote</h2>
       <ul className="divide-y divide-tierra/10 text-sm">
         {salidos.map((animal) => (
           <li key={animal.id} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-2">
@@ -53,7 +53,7 @@ export function SalidasRecientes({ animales }: { animales: AnimalVista[] }) {
                 </>
               )}
             </span>
-            {animal.motivoSalida && <span className="text-carbon/60">{animal.motivoSalida}</span>}
+            {animal.motivoSalida && <span className="text-carbon-3">{animal.motivoSalida}</span>}
           </li>
         ))}
       </ul>

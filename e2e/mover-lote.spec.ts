@@ -42,7 +42,7 @@ test('mover un lote confirma lo revisado, y cambiar el destino después de revis
   const fechaMovimiento = sumarDias(HOY, -2)
 
   await iniciarSesion(page)
-  await page.goto('/potreros')
+  await page.goto('/anotar/mover')
 
   await page.selectOption('select[name="loteId"]', loteB.id)
   await page.selectOption('select[name="potreroDestinoId"]', potreroB.id)

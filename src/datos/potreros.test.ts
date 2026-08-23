@@ -198,3 +198,23 @@ describe('crearPotrero', () => {
     expect(vista.nombre).toBe('El Alto')
   })
 })
+
+describe('la ficha de cada potrero', () => {
+  it('trae el tipo de pasto y si tiene agua', async () => {
+    await crearPotrero({
+      nombre: 'El Mango',
+      hectareas: 9.5,
+      capacidadKg: 8000,
+      tipoPasto: 'angleton',
+      tieneAgua: false,
+    })
+
+    const potrero = (await listarPotreros('2026-10-01')).find((p) => p.nombre === 'El Mango')!
+
+    // La pantalla de la Finca los muestra en el renglón de abajo de cada
+    // tarjeta: sin agua es lo primero que el dueño mira antes de mandar un
+    // lote a un potrero.
+    expect(potrero.tipoPasto).toBe('angleton')
+    expect(potrero.tieneAgua).toBe(false)
+  })
+})

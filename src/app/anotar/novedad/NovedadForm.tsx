@@ -61,7 +61,7 @@ export function NovedadForm({
 
   return (
     <div className="space-y-3">
-      {estado.registrada && !tocado && <p className="text-pasto">Se anotó la novedad.</p>}
+      {estado.registrada && !tocado && <p className="text-monte">Se anotó la novedad.</p>}
 
       <form action={enviar} className="space-y-3">
         <div className="flex flex-wrap items-center gap-4 text-sm">
@@ -106,7 +106,7 @@ export function NovedadForm({
               max={hoy}
               required
               onChange={marcarEditado}
-              className="ml-2 rounded border border-tierra/30 p-2"
+              className="ml-2 rounded border border-borde p-2"
             />
           </label>
           <label className="text-sm">
@@ -117,7 +117,7 @@ export function NovedadForm({
               required={tipo === 'suministro'}
               defaultValue={datosEnviados?.loteId ?? loteInicial ?? ''}
               onChange={marcarEditado}
-              className="ml-2 rounded border border-tierra/30 p-2"
+              className="ml-2 rounded border border-borde p-2"
             >
               <option value="">— sin lote —</option>
               {lotes.map((lote) => (
@@ -135,7 +135,7 @@ export function NovedadForm({
                 name="potreroId"
                 defaultValue={datosEnviados?.potreroId ?? ''}
                 onChange={marcarEditado}
-                className="ml-2 rounded border border-tierra/30 p-2"
+                className="ml-2 rounded border border-borde p-2"
               >
                 <option value="">— sin potrero —</option>
                 {potreros.map((potrero) => (
@@ -161,15 +161,15 @@ export function NovedadForm({
                 : 'Por ejemplo: se arregló el bebedero del Jobo'
             }
             onChange={marcarEditado}
-            className="mt-1 w-full rounded border border-tierra/30 p-2"
+            className="mt-1 w-full rounded border border-borde p-2"
           />
         </label>
 
-        {estado.error && <p className="text-rojo-tierra">{estado.error}</p>}
+        {estado.error && <p className="text-barro">{estado.error}</p>}
 
         <button
           disabled={enviando}
-          className="rounded bg-pasto px-6 py-3 font-medium text-white disabled:opacity-50"
+          className="rounded bg-monte px-6 py-3 font-medium text-crema disabled:opacity-50"
         >
           Anotar
         </button>

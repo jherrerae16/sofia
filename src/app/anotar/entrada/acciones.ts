@@ -17,7 +17,8 @@ export async function crearLoteAccion(datos: FormData) {
     tipo: String(datos.get('tipo')) as TipoLote,
     fechaApertura: String(datos.get('fechaApertura')),
   })
-  revalidatePath('/lotes')
+  revalidatePath('/anotar/entrada')
+  revalidatePath('/')
 }
 
 /**
@@ -115,9 +116,9 @@ export async function crearAnimalesAccion(_estado: EstadoAlta, datos: FormData):
       confirmarPesosSospechosos,
     })
 
-    revalidatePath('/lotes')
-    revalidatePath('/como-vamos')
-    return { creados, datosEnviados: null, conflictos: [], error: null, advertencias: null }
+    revalidatePath('/anotar/entrada')
+    revalidatePath('/')
+      return { creados, datosEnviados: null, conflictos: [], error: null, advertencias: null }
   } catch (error) {
     if (error instanceof ChapetaDuplicadaError) {
       return {

@@ -169,7 +169,7 @@ function Formulario({
             max={hoy}
             required
             onChange={marcarEditado}
-            className="ml-2 rounded border border-tierra/30 p-2"
+            className="ml-2 rounded border border-borde p-2"
           />
         </label>
         <label className="text-sm">
@@ -179,7 +179,7 @@ function Formulario({
             name="metodo"
             defaultValue={revisados?.metodo ?? 'cinta'}
             onChange={marcarEditado}
-            className="ml-2 rounded border border-tierra/30 p-2"
+            className="ml-2 rounded border border-borde p-2"
           >
             {/* Las opciones salen del mapa central de etiquetas (`ETIQUETA_METODO_PESAJE`),
                 no de una lista escrita a mano aquí: si el esquema agrega un cuarto método,
@@ -202,13 +202,13 @@ function Formulario({
             defaultValue={revisados?.responsable ?? 'Joseph'}
             required
             onChange={marcarEditado}
-            className="ml-2 rounded border border-tierra/30 p-2"
+            className="ml-2 rounded border border-borde p-2"
           />
         </label>
       </div>
 
       <table className="w-full text-sm">
-        <thead className="border-b border-tierra/30 text-left text-xs uppercase text-carbon/60">
+        <thead className="border-b border-borde text-left text-xs uppercase text-carbon-3">
           <tr>
             <th className="p-2">Chapeta</th>
             <th className="p-2">Peso (kg)</th>
@@ -219,7 +219,7 @@ function Formulario({
           {animales.map((animal) => {
             const revisionFila = porAnimal.get(animal.id)
             return (
-              <tr key={animal.id} className="border-b border-tierra/10">
+              <tr key={animal.id} className="border-b border-borde">
                 <td className="p-2 font-medium">{animal.chapeta}</td>
                 <td className="p-2">
                   <input
@@ -229,7 +229,7 @@ function Formulario({
                     autoComplete="off"
                     defaultValue={pesosPorAnimal.get(animal.id) ?? ''}
                     onChange={marcarEditado}
-                    className="cifra w-24 rounded border border-tierra/30 p-2 text-right"
+                    className="cifra w-24 rounded border border-borde p-2 text-right"
                   />
                 </td>
                 <td className={`cifra p-2 ${revisionFila ? COLOR_NIVEL[revisionFila.nivel] : ''}`}>
@@ -248,7 +248,7 @@ function Formulario({
           name="notas"
           defaultValue={revisados?.notas ?? ''}
           onChange={marcarEditado}
-          className="ml-2 w-96 rounded border border-tierra/30 p-2"
+          className="ml-2 w-96 rounded border border-borde p-2"
         />
       </label>
 

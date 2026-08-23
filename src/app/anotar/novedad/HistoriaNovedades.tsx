@@ -14,7 +14,7 @@ const INICIAL: EstadoAnulacionNovedad = { anulada: false, error: null }
  */
 export function HistoriaNovedades({ novedades }: { novedades: NovedadVista[] }) {
   if (novedades.length === 0) {
-    return <p className="text-sm text-carbon/60">Todavía no hay ninguna novedad registrada.</p>
+    return <p className="text-sm text-carbon-3">Todavía no hay ninguna novedad registrada.</p>
   }
 
   return (
@@ -38,7 +38,7 @@ function FilaNovedad({ novedad }: { novedad: NovedadVista }) {
         <div>
           <span className="cifra font-medium">{novedad.fecha}</span>
           {novedad.tipo === 'suministro' && (
-            <span className="ml-2 text-xs uppercase tracking-wide text-pasto">
+            <span className="ml-2 text-xs uppercase tracking-wide text-monte">
               {novedad.fechaFin ? (
                 <>
                   hasta <span className="cifra">{novedad.fechaFin}</span>
@@ -50,7 +50,7 @@ function FilaNovedad({ novedad }: { novedad: NovedadVista }) {
           )}
           {' — '}
           {novedad.descripcion}
-          {referencia && <span className="text-carbon/60"> ({referencia})</span>}
+          {referencia && <span className="text-carbon-3"> ({referencia})</span>}
         </div>
 
         {novedad.anuladoEn ? (
@@ -62,7 +62,7 @@ function FilaNovedad({ novedad }: { novedad: NovedadVista }) {
             <button
               type="button"
               onClick={() => setAbierto(true)}
-              className="shrink-0 rounded border border-rojo-tierra px-3 py-1 text-xs text-rojo-tierra"
+              className="shrink-0 rounded border border-barro px-3 py-1 text-xs text-barro"
             >
               Anular
             </button>
@@ -71,13 +71,13 @@ function FilaNovedad({ novedad }: { novedad: NovedadVista }) {
       </div>
 
       {novedad.anuladoEn && novedad.motivoAnulacion && (
-        <p className="mt-1 text-xs text-carbon/60">Motivo: {novedad.motivoAnulacion}</p>
+        <p className="mt-1 text-xs text-carbon-3">Motivo: {novedad.motivoAnulacion}</p>
       )}
 
       {!novedad.anuladoEn && abierto && (
         <form
           action={anular}
-          className="mt-3 space-y-2 rounded border border-rojo-tierra/30 bg-rojo-tierra/5 p-3 text-sm"
+          className="mt-3 space-y-2 rounded border border-barro/30 bg-barro/5 p-3 text-sm"
         >
           <input type="hidden" name="id" value={novedad.id} />
           <label className="block">
@@ -87,21 +87,21 @@ function FilaNovedad({ novedad }: { novedad: NovedadVista }) {
               required
               rows={2}
               placeholder="Por ejemplo: se digitó en el lote equivocado."
-              className="mt-1 w-full rounded border border-tierra/30 p-2"
+              className="mt-1 w-full rounded border border-borde p-2"
             />
           </label>
-          {estado.error && <p className="text-rojo-tierra">{estado.error}</p>}
+          {estado.error && <p className="text-barro">{estado.error}</p>}
           <div className="flex gap-2">
             <button
               disabled={anulando}
-              className="rounded bg-rojo-tierra px-4 py-2 text-white disabled:opacity-50"
+              className="rounded bg-barro px-4 py-2 text-crema disabled:opacity-50"
             >
               {anulando ? 'Anulando…' : 'Confirmar anulación'}
             </button>
             <button
               type="button"
               onClick={() => setAbierto(false)}
-              className="rounded px-4 py-2 text-carbon/70"
+              className="rounded px-4 py-2 text-carbon-2"
             >
               Cancelar
             </button>

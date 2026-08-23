@@ -68,17 +68,7 @@ export async function moverLoteAccion(
   } catch (error) {
     return { aviso: null, datosRevisados: null, movido: false, error: (error as Error).message }
   }
-  revalidatePath('/potreros')
+  revalidatePath('/anotar/mover')
+  revalidatePath('/')
   return { aviso: null, datosRevisados: null, movido: true, error: null }
-}
-
-export async function crearPotreroAccion(datos: FormData) {
-  await crearPotrero({
-    nombre: String(datos.get('nombre')),
-    hectareas: Number(String(datos.get('hectareas')).replace(',', '.')),
-    capacidadKg: Number(datos.get('capacidadKg')),
-    tipoPasto: (String(datos.get('tipoPasto')) || null) as string | null,
-    tieneAgua: datos.get('tieneAgua') === 'on',
-  })
-  revalidatePath('/potreros')
 }

@@ -7,9 +7,9 @@ import { moverLoteAccion, revisarMovimientoAccion, type EstadoMovimiento } from 
 const INICIAL: EstadoMovimiento = { aviso: null, datosRevisados: null, movido: false, error: null }
 
 const COLOR_ESTADO: Record<EstadoCapacidad, string> = {
-  holgado: 'text-pasto',
-  ajustado: 'text-ambar',
-  sobrecargado: 'text-rojo-tierra font-semibold',
+  holgado: 'text-monte',
+  ajustado: 'text-barro',
+  sobrecargado: 'text-barro font-semibold',
 }
 
 type Opcion = { id: string; nombre: string }
@@ -38,7 +38,7 @@ export function MoverLoteForm({
 
   if (lotes.length === 0 || potreros.length === 0) {
     return (
-      <p className="text-sm text-carbon/70">
+      <p className="text-sm text-carbon-2">
         {potreros.length === 0
           ? 'Todavía no hay potreros dados de alta. Crea uno arriba antes de mover un lote.'
           : 'Todavía no hay lotes abiertos. Abre uno en la pantalla de lotes antes de mover un lote.'}
@@ -48,7 +48,7 @@ export function MoverLoteForm({
 
   return (
     <div className="space-y-3">
-      {avisoMovido && <p className="text-sm text-pasto">Movimiento registrado.</p>}
+      {avisoMovido && <p className="text-sm text-monte">Movimiento registrado.</p>}
       <Formulario
         key={version}
         lotes={lotes}
@@ -137,7 +137,7 @@ function Formulario({
           required
           defaultValue={revisados?.loteId}
           onChange={marcarEditado}
-          className="ml-2 rounded border border-tierra/30 p-2"
+          className="ml-2 rounded border border-borde p-2"
         >
           {lotes.map((lote) => (
             <option key={lote.id} value={lote.id}>
@@ -154,7 +154,7 @@ function Formulario({
           required
           defaultValue={revisados?.potreroDestinoId}
           onChange={marcarEditado}
-          className="ml-2 rounded border border-tierra/30 p-2"
+          className="ml-2 rounded border border-borde p-2"
         >
           {potreros.map((potrero) => (
             <option key={potrero.id} value={potrero.id}>
@@ -172,7 +172,7 @@ function Formulario({
           defaultValue={revisados?.fecha ?? hoy}
           required
           onChange={marcarEditado}
-          className="ml-2 rounded border border-tierra/30 p-2"
+          className="ml-2 rounded border border-borde p-2"
         />
       </label>
 
@@ -180,15 +180,15 @@ function Formulario({
         <p className={`w-full text-sm ${COLOR_ESTADO[aviso.estadoResultante]}`}>{aviso.mensaje}</p>
       )}
       {estadoRevision.error && (
-        <p className="w-full text-sm text-rojo-tierra">{estadoRevision.error}</p>
+        <p className="w-full text-sm text-barro">{estadoRevision.error}</p>
       )}
       {estadoMovimiento.error && (
-        <p className="w-full text-sm text-rojo-tierra">{estadoMovimiento.error}</p>
+        <p className="w-full text-sm text-barro">{estadoMovimiento.error}</p>
       )}
 
       <button
         disabled={revisando || moviendo}
-        className="rounded bg-pasto px-4 py-2 text-white disabled:opacity-50"
+        className="rounded bg-monte px-4 py-2 text-crema disabled:opacity-50"
       >
         {yaRevisado ? 'Mover lote' : 'Revisar movimiento'}
       </button>

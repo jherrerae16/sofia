@@ -99,7 +99,7 @@ export function SalidaForm({
   return (
     <div className="space-y-4">
       {estado.registrado && !tocado && (
-        <p className="text-pasto">
+        <p className="text-monte">
           {estado.cantidad === 1
             ? 'Se registró la salida de 1 animal.'
             : `Se registró la salida de ${estado.cantidad} animales.`}
@@ -107,7 +107,7 @@ export function SalidaForm({
       )}
 
       {!loteId || animales.length === 0 ? (
-        <p className="text-sm text-carbon/70">
+        <p className="text-sm text-carbon-2">
           No hay animales activos en este lote para registrar una salida.
         </p>
       ) : (
@@ -123,7 +123,7 @@ export function SalidaForm({
                   setEstadoElegido(e.target.value as EstadoSalida)
                   marcarEditado()
                 }}
-                className="ml-2 rounded border border-tierra/30 p-2"
+                className="ml-2 rounded border border-borde p-2"
               >
                 {(Object.entries(ETIQUETA_ESTADO) as [EstadoSalida, string][]).map(
                   ([valor, texto]) => (
@@ -144,7 +144,7 @@ export function SalidaForm({
                 max={hoy}
                 required
                 onChange={marcarEditado}
-                className="ml-2 rounded border border-tierra/30 p-2"
+                className="ml-2 rounded border border-borde p-2"
               />
             </label>
             <label className="grow text-sm">
@@ -160,13 +160,13 @@ export function SalidaForm({
                     : 'Feria, comprador, lo que sea útil recordar'
                 }
                 onChange={marcarEditado}
-                className="ml-2 w-full min-w-64 rounded border border-tierra/30 p-2"
+                className="ml-2 w-full min-w-64 rounded border border-borde p-2"
               />
             </label>
           </div>
 
           <table className="w-full text-sm">
-            <thead className="border-b border-tierra/30 text-left text-xs uppercase text-carbon/60">
+            <thead className="border-b border-borde text-left text-xs uppercase text-carbon-3">
               <tr>
                 <th className="p-2">
                   <input
@@ -183,7 +183,7 @@ export function SalidaForm({
             </thead>
             <tbody>
               {animales.map((animal) => (
-                <tr key={animal.id} className="border-b border-tierra/10">
+                <tr key={animal.id} className="border-b border-borde">
                   <td className="p-2">
                     <input
                       key={poblarKey}
@@ -195,7 +195,7 @@ export function SalidaForm({
                     />
                   </td>
                   <td className="p-2 font-medium">{animal.chapeta}</td>
-                  <td className="cifra p-2 text-carbon/60">
+                  <td className="cifra p-2 text-carbon-3">
                     {animal.pesoUltimoKg === null ? '—' : animal.pesoUltimoKg}
                   </td>
                   <td className="p-2">
@@ -207,7 +207,7 @@ export function SalidaForm({
                       placeholder="opcional"
                       defaultValue={pesosTexto[animal.id] ?? animal.pesoUltimoKg ?? ''}
                       onChange={marcarEditado}
-                      className="cifra w-24 rounded border border-tierra/30 p-2 text-right"
+                      className="cifra w-24 rounded border border-borde p-2 text-right"
                     />
                   </td>
                 </tr>
@@ -215,14 +215,14 @@ export function SalidaForm({
             </tbody>
           </table>
 
-          <p className="text-xs text-carbon/60">
+          <p className="text-xs text-carbon-3">
             El peso de venta es el último peso real del animal; no incluye comprador ni precio --
             eso se registra aparte.
           </p>
 
           {estado.advertencias && estado.advertencias.length > 0 && (
-            <div className="space-y-2 rounded border border-ambar/40 bg-ambar/10 p-3 text-sm">
-              <p className="font-medium text-ambar">
+            <div className="space-y-2 rounded border border-barro/40 bg-barro/10 p-3 text-sm">
+              <p className="font-medium text-barro">
                 Revisa estos pesos de venta antes de seguir -- ninguno se guardó todavía:
               </p>
               <ul className="list-disc space-y-1 pl-5 text-carbon/80">
@@ -261,11 +261,11 @@ export function SalidaForm({
             </div>
           )}
 
-          {estado.error && <p className="text-rojo-tierra">{estado.error}</p>}
+          {estado.error && <p className="text-barro">{estado.error}</p>}
 
           <button
             disabled={enviando}
-            className="rounded bg-pasto px-6 py-3 font-medium text-white disabled:opacity-50"
+            className="rounded bg-monte px-6 py-3 font-medium text-crema disabled:opacity-50"
           >
             Registrar salida
           </button>

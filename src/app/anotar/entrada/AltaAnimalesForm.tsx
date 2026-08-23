@@ -35,7 +35,7 @@ export function AltaAnimalesForm({ lotes, hoy }: { lotes: Opcion[]; hoy: string 
   return (
     <form action={enviar} className="space-y-3">
       {estado.creados !== null && (
-        <p className="text-pasto">
+        <p className="text-monte">
           {estado.creados === 1
             ? 'Se dio de alta 1 animal.'
             : `Se dieron de alta ${estado.creados} animales.`}
@@ -49,7 +49,7 @@ export function AltaAnimalesForm({ lotes, hoy }: { lotes: Opcion[]; hoy: string 
             name="loteId"
             required
             defaultValue={datosEnviados?.loteId}
-            className="ml-2 rounded border border-tierra/30 p-2"
+            className="ml-2 rounded border border-borde p-2"
           >
             {lotes.map((lote) => (
               <option key={lote.id} value={lote.id}>
@@ -64,7 +64,7 @@ export function AltaAnimalesForm({ lotes, hoy }: { lotes: Opcion[]; hoy: string 
             key={poblarKey}
             name="sexo"
             defaultValue={datosEnviados?.sexo || 'macho'}
-            className="ml-2 rounded border border-tierra/30 p-2"
+            className="ml-2 rounded border border-borde p-2"
           >
             <option value="macho">Macho</option>
             <option value="hembra">Hembra</option>
@@ -76,7 +76,7 @@ export function AltaAnimalesForm({ lotes, hoy }: { lotes: Opcion[]; hoy: string 
             key={poblarKey}
             name="raza"
             defaultValue={datosEnviados?.raza ?? ''}
-            className="ml-2 w-32 rounded border border-tierra/30 p-2"
+            className="ml-2 w-32 rounded border border-borde p-2"
           />
         </label>
         <label className="text-sm">
@@ -85,7 +85,7 @@ export function AltaAnimalesForm({ lotes, hoy }: { lotes: Opcion[]; hoy: string 
             key={poblarKey}
             name="cruce"
             defaultValue={datosEnviados?.cruce ?? ''}
-            className="ml-2 w-32 rounded border border-tierra/30 p-2"
+            className="ml-2 w-32 rounded border border-borde p-2"
           />
         </label>
         <label className="text-sm">
@@ -94,7 +94,7 @@ export function AltaAnimalesForm({ lotes, hoy }: { lotes: Opcion[]; hoy: string 
             key={poblarKey}
             name="proveedor"
             defaultValue={datosEnviados?.proveedor ?? ''}
-            className="ml-2 w-40 rounded border border-tierra/30 p-2"
+            className="ml-2 w-40 rounded border border-borde p-2"
           />
         </label>
         <label className="text-sm">
@@ -104,7 +104,7 @@ export function AltaAnimalesForm({ lotes, hoy }: { lotes: Opcion[]; hoy: string 
             name="edadEntradaMeses"
             type="number"
             defaultValue={datosEnviados?.edadEntradaMeses ?? ''}
-            className="cifra ml-2 w-20 rounded border border-tierra/30 p-2"
+            className="cifra ml-2 w-20 rounded border border-borde p-2"
           />
         </label>
         <label className="text-sm">
@@ -115,7 +115,7 @@ export function AltaAnimalesForm({ lotes, hoy }: { lotes: Opcion[]; hoy: string 
             type="date"
             defaultValue={datosEnviados?.fechaEntrada ?? hoy}
             required
-            className="ml-2 rounded border border-tierra/30 p-2"
+            className="ml-2 rounded border border-borde p-2"
           />
         </label>
       </div>
@@ -126,12 +126,12 @@ export function AltaAnimalesForm({ lotes, hoy }: { lotes: Opcion[]; hoy: string 
         rows={10}
         defaultValue={datosEnviados?.planilla ?? ''}
         placeholder={'001 150\n002 158,5\n003 147'}
-        className="cifra w-full rounded border border-tierra/30 p-3 font-mono"
+        className="cifra w-full rounded border border-borde p-3 font-mono"
       />
 
       {estado.conflictos.length > 0 && (
-        <div className="rounded border border-rojo-tierra/40 bg-rojo-tierra/5 p-3 text-sm">
-          <p className="mb-2 font-medium text-rojo-tierra">
+        <div className="rounded border border-barro/40 bg-barro/5 p-3 text-sm">
+          <p className="mb-2 font-medium text-barro">
             {estado.conflictos.length === 1
               ? 'Esta chapeta ya está activa en otro animal:'
               : `Estas ${estado.conflictos.length} chapetas ya están activas en otros animales:`}
@@ -151,7 +151,7 @@ export function AltaAnimalesForm({ lotes, hoy }: { lotes: Opcion[]; hoy: string 
               </li>
             ))}
           </ul>
-          <p className="mt-2 text-carbon/70">
+          <p className="mt-2 text-carbon-2">
             No se dio de alta ningún animal. Corrige solo esas líneas en la planilla (o registra
             primero la salida del animal si ya no debería estar activo) y vuelve a intentarlo.
           </p>
@@ -169,8 +169,8 @@ export function AltaAnimalesForm({ lotes, hoy }: { lotes: Opcion[]; hoy: string 
           corregir el peso que la disparó -- sin tocar la casilla -- hace que
           esa advertencia ya no aparezca en el siguiente envío. */}
       {estado.advertencias && estado.advertencias.length > 0 && (
-        <div className="space-y-2 rounded border border-ambar/40 bg-ambar/10 p-3 text-sm">
-          <p className="font-medium text-ambar">
+        <div className="space-y-2 rounded border border-barro/40 bg-barro/10 p-3 text-sm">
+          <p className="font-medium text-barro">
             Revisa estos pesos de entrada antes de seguir -- ningún animal se dio de alta todavía:
           </p>
           <ul className="list-disc space-y-1 pl-5 text-carbon/80">
@@ -201,12 +201,12 @@ export function AltaAnimalesForm({ lotes, hoy }: { lotes: Opcion[]; hoy: string 
       )}
 
       {estado.error && estado.conflictos.length === 0 && (
-        <p className="text-rojo-tierra">{estado.error}</p>
+        <p className="text-barro">{estado.error}</p>
       )}
 
       <button
         disabled={enviando}
-        className="rounded bg-pasto px-6 py-3 font-medium text-white disabled:opacity-50"
+        className="rounded bg-monte px-6 py-3 font-medium text-crema disabled:opacity-50"
       >
         Dar de alta el lote
       </button>

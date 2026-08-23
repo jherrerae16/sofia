@@ -113,13 +113,12 @@ export async function registrarSalidaAccion(
     )
     // Una salida cambia todo lo que cuenta animales activos: el lote de
     // origen, la digitación de pesajes (ya no debe listar al que salió), la
-    // portada y "cómo vamos" (peso vivo, promedios, animales vivos), y el
-    // potrero donde pastaba (carga).
-    revalidatePath('/salidas')
-    revalidatePath('/lotes')
+    // portada (peso vivo, promedios, animales vivos) y el potrero donde
+    // pastaba (carga).
+    revalidatePath('/anotar/salida')
+    revalidatePath('/anotar/entrada')
     revalidatePath('/anotar/pesos')
-    revalidatePath('/como-vamos')
-    revalidatePath('/potreros')
+    revalidatePath('/anotar/mover')
     revalidatePath('/')
     return { registrado: true, cantidad, datosEnviados: null, error: null, advertencias: null }
   } catch (error) {
