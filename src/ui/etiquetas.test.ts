@@ -1,10 +1,11 @@
-import { EstadoAnimal, MetodoPesaje, TipoEventoSanitario, TipoLote } from '@prisma/client'
+import { EstadoAnimal, MetodoPesaje, TipoEventoSanitario, TipoLote, TipoNovedad } from '@prisma/client'
 import { describe, expect, it } from 'vitest'
 import {
   ETIQUETA_ESTADO_ANIMAL,
   ETIQUETA_METODO_PESAJE,
   ETIQUETA_TIPO_EVENTO,
   ETIQUETA_TIPO_LOTE,
+  ETIQUETA_TIPO_NOVEDAD,
 } from './etiquetas'
 
 // Cada mapa tiene que cubrir exactamente los valores que Prisma genera para
@@ -25,6 +26,10 @@ describe('etiquetas de enums', () => {
 
   it('ETIQUETA_TIPO_EVENTO cubre los cuatro tipos de TipoEventoSanitario', () => {
     expect(Object.keys(ETIQUETA_TIPO_EVENTO).sort()).toEqual(Object.values(TipoEventoSanitario).sort())
+  })
+
+  it('ETIQUETA_TIPO_NOVEDAD cubre los dos tipos de TipoNovedad', () => {
+    expect(Object.keys(ETIQUETA_TIPO_NOVEDAD).sort()).toEqual(Object.values(TipoNovedad).sort())
   })
 
   it('ninguna etiqueta es el valor crudo sin traducir', () => {

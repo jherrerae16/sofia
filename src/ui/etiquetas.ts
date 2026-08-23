@@ -1,4 +1,4 @@
-import type { EstadoAnimal, MetodoPesaje, TipoEventoSanitario, TipoLote } from '@prisma/client'
+import type { EstadoAnimal, MetodoPesaje, TipoEventoSanitario, TipoLote, TipoNovedad } from '@prisma/client'
 
 /**
  * Un solo lugar para traducir cada valor de enum de la base a lo que lee el
@@ -35,4 +35,9 @@ export const ETIQUETA_TIPO_EVENTO: Record<TipoEventoSanitario, string> = {
   desparasitacion: 'Desparasitación',
   vitamina: 'Vitamina',
   tratamiento: 'Tratamiento',
+}
+
+export const ETIQUETA_TIPO_NOVEDAD: Record<TipoNovedad, string> = {
+  hecho: 'Hecho puntual',
+  suministro: 'Suministro en curso',
 }
