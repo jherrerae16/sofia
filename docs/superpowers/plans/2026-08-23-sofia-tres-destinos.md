@@ -94,7 +94,7 @@ Las rutas viejas no se dejan colgando: cada una queda como una redirección perm
 - Produces: `Boton({ href, children, fantasma }: { href?: string; children: React.ReactNode; fantasma?: boolean })` — si trae `href` renderiza un `<Link>`, si no, un `<button>`.
 - Produces: los tokens CSS `--color-crema`, `--color-crema-2`, `--color-crema-3`, `--color-monte`, `--color-monte-2`, `--color-tierra`, `--color-barro`, `--color-carbon`, `--color-carbon-2`, `--color-carbon-3`, `--color-borde`, `--color-borde-2`, usables como `bg-monte`, `text-carbon-3`, `border-borde`.
 
-- [ ] **Step 1: Escribir la prueba de navegador que falla**
+- [x] **Step 1: Escribir la prueba de navegador que falla**
 
 Crear `e2e/caparazon.spec.ts`:
 
@@ -128,12 +128,12 @@ test('el nombre completo aparece una sola vez, al pie de Ganado', async ({ page 
 
 Revisar antes `e2e/preparar.ts`: si no exporta un ayudante `entrar(page)` que haga el login, extraerlo de la prueba que ya lo hace (`e2e/digitar.spec.ts` lo tiene inline) y exportarlo desde `preparar.ts`. Todas las pruebas nuevas de este plan lo usan.
 
-- [ ] **Step 2: Correr la prueba y verla fallar**
+- [x] **Step 2: Correr la prueba y verla fallar**
 
 Run: `npx playwright test e2e/caparazon.spec.ts`
 Expected: FAIL — el encabezado todavía trae ocho enlaces («Hoy», «Cómo vamos», …), y `/anotar/pesos` y `/finca` devuelven 404.
 
-- [ ] **Step 3: Reescribir los tokens del sistema visual**
+- [x] **Step 3: Reescribir los tokens del sistema visual**
 
 `src/app/globals.css`:
 
@@ -204,7 +204,7 @@ body {
 }
 ```
 
-- [ ] **Step 4: Reescribir el caparazón**
+- [x] **Step 4: Reescribir el caparazón**
 
 `src/app/layout.tsx`:
 
@@ -336,7 +336,7 @@ export function Boton({ children, href, fantasma, type = 'button', disabled }: P
 }
 ```
 
-- [ ] **Step 5: Poner en pie las tres rutas, vacías por ahora**
+- [x] **Step 5: Poner en pie las tres rutas, vacías por ahora**
 
 Estas tres son andamios: las Tareas 3, 6 y 10 las llenan. Sin ellas la prueba del Paso 1 no puede pasar porque `/anotar/pesos` y `/finca` devuelven 404.
 
@@ -391,7 +391,7 @@ export default function Finca() {
 }
 ```
 
-- [ ] **Step 6: Correr las pruebas y verlas pasar**
+- [x] **Step 6: Correr las pruebas y verlas pasar**
 
 Run: `npx playwright test e2e/caparazon.spec.ts`
 Expected: PASS, las tres.
@@ -399,7 +399,7 @@ Expected: PASS, las tres.
 Run: `npx tsc --noEmit && npm run test`
 Expected: sin errores de tipos, 291 pruebas verdes. Las siete pantallas viejas siguen funcionando por los alias de color del Paso 3, aunque ya no estén en el encabezado — se llega a ellas por URL directa hasta la Tarea 11.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/app/globals.css src/app/layout.tsx src/app/page.tsx src/app/anotar src/app/finca src/ui e2e/caparazon.spec.ts e2e/preparar.ts
