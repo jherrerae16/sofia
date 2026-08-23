@@ -710,7 +710,7 @@ export function separarUnidad(formateado: string): { valor: string; unidad?: str
 
 Ninguna de esas frases puede quedar a medias cuando falta el dato. Si no hay gdp objetivo configurado, la frase del objetivo no se escribe —no se escribe «el objetivo son —»—. Si nunca han pesado, la frase del pesaje dice «Todavía no has pesado a este lote».
 
-- [ ] **Step 1: Escribir las pruebas que fallan**
+- [x] **Step 1: Escribir las pruebas que fallan**
 
 Crear `e2e/ganado.spec.ts`:
 
@@ -758,12 +758,12 @@ test('sin gdp objetivo configurado no se escribe la frase del objetivo a medias'
 
 `sembrarLoteConPesajes()` es un ayudante nuevo en `e2e/preparar.ts`: crea la finca, un potrero, el lote «Ceba 01» con 14 animales, dos tandas de pesaje, los parámetros de umbral y gdp objetivo, y un evento sanitario ya vencido. Escribirlo reutilizando las funciones de `src/datos/` (no SQL crudo), siguiendo el patrón que ya usa `e2e/preparar.ts` para las demás pruebas.
 
-- [ ] **Step 2: Correr las pruebas y verlas fallar**
+- [x] **Step 2: Correr las pruebas y verlas fallar**
 
 Run: `npx playwright test e2e/ganado.spec.ts`
 Expected: FAIL — la página solo dice «El ganado»; no hay `h1` con el lote, ni `data-testid="cinta"`, ni avisos.
 
-- [ ] **Step 3: Escribir los dos componentes compartidos**
+- [x] **Step 3: Escribir los dos componentes compartidos**
 
 `src/ui/Titular.tsx`:
 
@@ -828,7 +828,7 @@ export function Cinta({ celdas }: { celdas: Celda[] }) {
 }
 ```
 
-- [ ] **Step 4: Escribir la mitad de arriba de Ganado**
+- [x] **Step 4: Escribir la mitad de arriba de Ganado**
 
 `src/app/page.tsx` — la pantalla lee todo del servidor y arma las tres frases. El lote que se mira sale de `?lote=`; sin ese parámetro, el primer lote de ceba abierto.
 
@@ -976,12 +976,12 @@ export default async function Ganado({
 
 Los nombres exactos de los campos de `PotreroVista`, `Frescura`, `NovedadVista` y `ResumenPromedio` hay que leerlos en sus módulos (`src/datos/potreros.ts:8`, `src/datos/frescura.ts:9`, `src/datos/novedades.ts:28`, `src/calc/lote.ts:1`) y ajustar el código de arriba a lo que de verdad exponen. Este bloque muestra la forma de la pantalla, no adivina la de esos tipos.
 
-- [ ] **Step 5: Correr las pruebas y verlas pasar**
+- [x] **Step 5: Correr las pruebas y verlas pasar**
 
 Run: `npx playwright test e2e/ganado.spec.ts && npx tsc --noEmit`
 Expected: PASS las cuatro, sin errores de tipos.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/app/page.tsx src/ui/Titular.tsx src/ui/Cinta.tsx e2e/ganado.spec.ts e2e/preparar.ts
