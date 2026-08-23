@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { hoyBogota, sumarDias } from '../src/calc/fechas'
-import { aFechaDb } from '../src/datos/conversion'
+import { aFechaDb, aKg } from '../src/datos/conversion'
 import { prisma } from '../src/datos/cliente'
 
 // Mismo motivo que en digitar.spec.ts y mover-lote.spec.ts: fechas relativas
@@ -178,6 +178,53 @@ test('un peso de venta con ganancia inverosímil se frena con una advertencia ha
   await expect(page.getByText('Se registró la salida de 1 animal.')).toBeVisible()
   const guardado = await prisma.animal.findUniqueOrThrow({ where: { id: animales[0].id } })
   expect(guardado.estado).toBe('vendido')
+})
+
+// Defecto 2 del seguimiento de esta revisión (2026-08-22): el mismo defecto
+// de la casilla `required` que ya se reprodujo y corrigió en
+// `AltaAnimalesForm` (e2e/lotes.spec.ts, "corregir el peso que disparó la
+// advertencia..."), pero en `SalidaForm`. Con `required` en la casilla de
+// confirmación, corregir el peso sospechoso en la tabla y reenviar SIN
+// marcarla queda bloqueado por la validación nativa del navegador contra esa
+// misma casilla, todavía sin marcar, del envío anterior -- la petición ni
+// siquiera llega al servidor a reevaluar el peso ya corregido, y el animal
+// sigue activo.
+test('corregir el peso de venta que disparó la advertencia hace que ya no se exija confirmarla', async ({
+  page,
+}) => {
+  const lote = await sembrarLotePropio('Salidas — peso de venta corregido', ['961'])
+  const [animal] = await prisma.animal.findMany({ where: { loteId: lote.id } })
+  await prisma.pesaje.create({
+    data: {
+      fecha: aFechaDb(sumarDias(HOY, -10)),
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      registradoPorId: 'siembra',
+      mediciones: { create: [{ animalId: animal.id, pesoKg: 300 }] },
+    },
+  })
+
+  await iniciarSesion(page)
+  await page.goto(`/salidas?lote=${lote.id}`)
+
+  await page.locator('input[name^="sel_"]').check()
+  await page.selectOption('select[name="estado"]', 'vendido')
+  await page.fill('input[name="fechaSalida"]', HOY)
+  await page.locator('input[name^="peso_"]').fill('2200')
+
+  await page.getByRole('button', { name: 'Registrar salida' }).click()
+  await expect(page.getByText(/Revisa estos pesos de venta/)).toBeVisible()
+
+  // Corrige el peso inusual -- 320, no 2200 -- sin marcar ninguna casilla.
+  // La advertencia era sobre un dato que ya no existe: no debe seguir
+  // exigiendo que se confirme, y la petición debe llegar hasta el servidor.
+  await page.locator('input[name^="peso_"]').fill('320')
+  await page.getByRole('button', { name: 'Registrar salida' }).click()
+
+  await expect(page.getByText('Se registró la salida de 1 animal.')).toBeVisible()
+  const guardado = await prisma.animal.findUniqueOrThrow({ where: { id: animal.id } })
+  expect(guardado.estado).toBe('vendido')
+  expect(aKg(guardado.pesoSalidaKg!)).toBe(320)
 })
 
 // Defecto 1 del seguimiento de esta revisión (2026-08-22): el arreglo de

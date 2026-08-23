@@ -231,12 +231,25 @@ export function SalidaForm({
                 ))}
               </ul>
               <label className="flex items-center gap-2 text-carbon">
+                {/* A propósito SIN `required` ni `defaultChecked`: esta
+                    casilla solo existe en el DOM mientras `estado.advertencias`
+                    -- la respuesta del envío ANTERIOR -- siga vigente en
+                    pantalla. Si fuera `required`, corregir el peso sospechoso
+                    en la tabla y reenviar SIN marcarla quedaría bloqueado por
+                    la validación nativa del navegador contra esta misma
+                    casilla, todavía sin marcar, del envío anterior -- la
+                    petición ni siquiera llegaría al servidor a reevaluar el
+                    valor ya corregido. Y si arrastrara `defaultChecked` desde
+                    `datosEnviados`, quedaría premarcada por una confirmación
+                    que fue sobre una cifra distinta a la que ahora se está
+                    reenviando -- eso entrena a marcar sin leer. La
+                    obligatoriedad real la impone `registrarSalida`
+                    (`PesoSalidaSospechosoError`): si el peso sigue siendo el
+                    mismo y esta casilla sigue sin marcar, el servidor vuelve
+                    a frenar la salida con la misma advertencia. */}
                 <input
-                  key={poblarKey}
                   type="checkbox"
                   name="confirmarPesosSospechosos"
-                  required
-                  defaultChecked={datosEnviados?.confirmarPesosSospechosos ?? false}
                   onChange={marcarEditado}
                   className="h-4 w-4"
                 />
