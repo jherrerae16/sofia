@@ -97,6 +97,18 @@ async function main() {
     // `deleteMany()` no borra nada en la práctica -- pero está aquí desde
     // ya, no el día que la primera prueba lo necesite.
     await prisma.eventoSanitario.deleteMany()
+    // `Novedad.loteId` y `Novedad.potreroId` son opcionales, así que borrar
+    // un lote o un potrero de una corrida anterior no viola ninguna clave
+    // foránea -- Prisma los pone en `null` (mismo caso que
+    // `EventoSanitario` arriba). Pero a diferencia de ese caso, esto sí
+    // mordió en la práctica: `e2e/exportar.spec.ts` siembra una novedad con
+    // una descripción fija y la busca después por esa descripción. Sin este
+    // `deleteMany()`, la novedad huérfana de una corrida anterior (con
+    // `loteId` ya en `null`) sobrevive para siempre en la base y empata en
+    // fecha con la novedad fresca de la corrida siguiente -- `.find()` en la
+    // prueba puede terminar quedándose con la vieja, sin lote, en vez de la
+    // recién sembrada.
+    await prisma.novedad.deleteMany()
     await prisma.movimiento.deleteMany()
     await prisma.medicion.deleteMany()
     await prisma.pesaje.deleteMany()
