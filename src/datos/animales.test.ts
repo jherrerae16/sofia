@@ -3,6 +3,7 @@ import {
   ChapetaDuplicadaError,
   crearAnimales,
   listarAnimalesDeLote,
+  PesoEntradaSospechosoError,
   PesoSalidaSospechosoError,
   registrarSalida,
   type EstadoSalida,
@@ -222,6 +223,81 @@ describe('crearAnimales', () => {
     ).rejects.toThrow('002')
 
     expect(await listarAnimalesDeLote(loteId)).toHaveLength(0)
+  })
+
+  it('rechaza un peso de entrada imposible para un bovino -- el dedazo de 2200 kg en vez de 220 (defecto 2)', async () => {
+    // `crearAnimales` solo comprobaba que el peso fuera finito y mayor que
+    // cero: un novillo dado de alta con 2200 kg entraba en silencio, y el
+    // peso de entrada es la base de todos los kilos producidos del ciclo.
+    await expect(
+      crearAnimales({
+        loteId,
+        chapetas: ['001', '002'],
+        sexo: 'macho',
+        raza: null,
+        cruce: null,
+        proveedor: null,
+        fechaEntrada: '2026-09-01',
+        edadEntradaMeses: null,
+        pesos: { '001': 150, '002': 2200 },
+      }),
+    ).rejects.toThrow('002')
+
+    expect(await listarAnimalesDeLote(loteId)).toHaveLength(0)
+  })
+
+  it('advierte -- sin rechazar de plano -- un peso de entrada inusual, y frena la tanda entera hasta que se confirme', async () => {
+    // Doctrina de siempre: "rechaza lo imposible, advierte lo improbable".
+    // Un novillo de entrada gordo existe de verdad -- no se puede bloquear
+    // sin más -- pero tampoco puede colar en silencio.
+    let error: unknown
+    try {
+      await crearAnimales({
+        loteId,
+        chapetas: ['001', '002'],
+        sexo: 'macho',
+        raza: null,
+        cruce: null,
+        proveedor: null,
+        fechaEntrada: '2026-09-01',
+        edadEntradaMeses: null,
+        pesos: { '001': 150, '002': 700 },
+      })
+    } catch (e) {
+      error = e
+    }
+
+    expect(error).toBeInstanceOf(PesoEntradaSospechosoError)
+    const advertencias = (error as PesoEntradaSospechosoError).advertencias
+    expect(advertencias).toHaveLength(1)
+    expect(advertencias[0].chapeta).toBe('002')
+
+    // Nada se creó: la advertencia frena la escritura hasta que alguien la
+    // confirme, no deja pasar unos animales y otros no.
+    expect(await listarAnimalesDeLote(loteId)).toHaveLength(0)
+  })
+
+  it('crea la tanda completa con una sola confirmación, aunque varias líneas traigan un peso inusual', async () => {
+    // Hasta 56 líneas por planilla: una confirmación por animal sería
+    // tedioso y entrenaría al dueño a marcar sin leer. Una sola casilla
+    // para toda la tanda dejar pasar TODAS las advertencias de esa tanda a
+    // la vez.
+    const creados = await crearAnimales({
+      loteId,
+      chapetas: ['001', '002', '003'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: null,
+      pesos: { '001': 150, '002': 700, '003': 90 },
+      confirmarPesosSospechosos: true,
+    })
+
+    expect(creados).toBe(3)
+    const animales = await listarAnimalesDeLote(loteId)
+    expect(animales.map((a) => a.pesoEntradaKg).sort((a, b) => a - b)).toEqual([90, 150, 700])
   })
 
   it('no crea ningún animal si uno falla', async () => {

@@ -114,6 +114,66 @@ export function validarMedicion(
   return { nivel: 'ok', mensaje: '', gdp }
 }
 
+// Rango creíble para el peso de ENTRADA de un novillo de ceba en Colombia.
+// Aquí no hay una medición anterior contra la cual comparar -- es el primer
+// dato del animal -- así que la guardia no puede ser una ganancia entre dos
+// pesajes (como arriba): tiene que ser un rango absoluto sobre el peso
+// mismo, con la misma doctrina de siempre: rechaza lo imposible, advierte lo
+// improbable.
+//
+// Los límites de "imposible" están puestos bien holgados a propósito, muy
+// por fuera de cualquier compra real de Santa Verónica, para no bloquear un
+// caso legítimo que el sistema todavía no conoce:
+// - por debajo de 40 kg: ni un ternero recién nacido pesa tan poco --
+//   un animal que ya se está chapeteando y dando de alta en un lote de ceba
+//   fue destetado, no es un recién nacido.
+// - por encima de 1000 kg: supera al toro adulto más pesado que existe en
+//   pie (los récords mundiales de peso vivo bovino rondan 1400 kg, pero son
+//   toros de exhibición, no un novillo de entrada a ceba). 2200 kg -- el
+//   dedazo típico sobre 220 -- cae claramente aquí.
+const PESO_ENTRADA_MIN_IMPOSIBLE = 40
+const PESO_ENTRADA_MAX_IMPOSIBLE = 1000
+
+// Fuera de este rango más angosto es infrecuente para un novillo de entrada
+// -- en Colombia, la ceba suele recibir animales de levante entre unos 130 y
+// 550 kg -- pero no imposible: un ternero destetado liviano o un novillo ya
+// crecido comprado para ceba corta existen de verdad. Advierte, no rechaza.
+const PESO_ENTRADA_MIN_IMPROBABLE = 130
+const PESO_ENTRADA_MAX_IMPROBABLE = 550
+
+/**
+ * Evalúa el peso de ENTRADA de un animal -- el primer dato de su ficha, del
+ * que se derivan todos los kilos producidos del ciclo. Si entra inflado, la
+ * producción entera, y el costo por kilo, salen mal sin que nada avise.
+ *
+ * A diferencia de `validarMedicion`, no recibe un pesaje anterior: no lo
+ * hay. Comparte la misma doctrina (rechaza lo imposible, advierte lo
+ * improbable) contra un rango absoluto en vez de una ganancia diaria.
+ */
+export function validarPesoEntrada(pesoKg: number): Veredicto {
+  if (!Number.isFinite(pesoKg)) {
+    return { nivel: 'rechazo', mensaje: 'El peso de entrada no es un número.', gdp: null }
+  }
+  if (pesoKg <= 0) {
+    return { nivel: 'rechazo', mensaje: 'El peso de entrada debe ser mayor que cero.', gdp: null }
+  }
+  if (pesoKg < PESO_ENTRADA_MIN_IMPOSIBLE || pesoKg > PESO_ENTRADA_MAX_IMPOSIBLE) {
+    return {
+      nivel: 'rechazo',
+      mensaje: `El peso de entrada (${formato.format(pesoKg)} kg) no es creíble para un bovino. Revisa que esté bien digitado.`,
+      gdp: null,
+    }
+  }
+  if (pesoKg < PESO_ENTRADA_MIN_IMPROBABLE || pesoKg > PESO_ENTRADA_MAX_IMPROBABLE) {
+    return {
+      nivel: 'advertencia',
+      mensaje: `Peso de entrada inusual: ${formato.format(pesoKg)} kg. Revisa que esté bien digitado.`,
+      gdp: null,
+    }
+  }
+  return { nivel: 'ok', mensaje: '', gdp: null }
+}
+
 const RANGO_NIVEL: Record<Nivel, number> = { ok: 0, advertencia: 1, rechazo: 2 }
 
 /**

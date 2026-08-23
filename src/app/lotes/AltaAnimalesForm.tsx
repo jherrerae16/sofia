@@ -3,7 +3,13 @@
 import { useActionState, useLayoutEffect, useState } from 'react'
 import { crearAnimalesAccion, type EstadoAlta } from './acciones'
 
-const INICIAL: EstadoAlta = { creados: null, datosEnviados: null, conflictos: [], error: null }
+const INICIAL: EstadoAlta = {
+  creados: null,
+  datosEnviados: null,
+  conflictos: [],
+  error: null,
+  advertencias: null,
+}
 
 type Opcion = { id: string; nombre: string }
 
@@ -151,6 +157,49 @@ export function AltaAnimalesForm({ lotes, hoy }: { lotes: Opcion[]; hoy: string 
           </p>
         </div>
       )}
+      {/* Defecto 2 del seguimiento del plan 1c: `crearAnimales` valida cada
+          peso de entrada contra un rango creíble para un novillo de ceba
+          (ver `validarPesoEntrada` en `src/calc/validacion.ts`) y advierte,
+          sin rechazar, lo improbable. Una sola casilla confirma TODA la
+          tanda -- no una por chapeta -- porque la planilla trae hasta 56
+          líneas y pedir una confirmación por animal sería tedioso y
+          entrenaría al dueño a marcar sin leer. La casilla nunca llega
+          marcada de por sí (no se repuebla desde `datosEnviados`, a
+          propósito): cada envío exige su propia confirmación explícita, y
+          corregir el peso que la disparó -- sin tocar la casilla -- hace que
+          esa advertencia ya no aparezca en el siguiente envío. */}
+      {estado.advertencias && estado.advertencias.length > 0 && (
+        <div className="space-y-2 rounded border border-ambar/40 bg-ambar/10 p-3 text-sm">
+          <p className="font-medium text-ambar">
+            Revisa estos pesos de entrada antes de seguir -- ningún animal se dio de alta todavía:
+          </p>
+          <ul className="list-disc space-y-1 pl-5 text-carbon/80">
+            {estado.advertencias.map((advertencia) => (
+              <li key={advertencia.chapeta}>
+                Chapeta <span className="cifra font-medium">{advertencia.chapeta}</span>:{' '}
+                {advertencia.mensaje}
+              </li>
+            ))}
+          </ul>
+          <label className="flex items-center gap-2 text-carbon">
+            {/* A propósito SIN `required`: esta casilla solo existe en el DOM
+                mientras `estado.advertencias` -- la respuesta del envío
+                ANTERIOR -- siga vigente en pantalla, y sigue vigente hasta
+                que vuelva la respuesta del envío que la reemplaza. Si fuera
+                `required`, corregir el peso sospechoso en la planilla y
+                reenviar SIN marcarla quedaría bloqueado por la validación
+                nativa del navegador contra esta casilla todavía sin marcar
+                -- ni siquiera llegaría a pedirle al servidor que reevalúe el
+                valor ya corregido. La obligatoriedad real la impone
+                `crearAnimales` (`PesoEntradaSospechosoError`): si el peso
+                sigue siendo el mismo y esta casilla sigue sin marcar, el
+                servidor vuelve a frenar la tanda con la misma advertencia. */}
+            <input type="checkbox" name="confirmarPesosSospechosos" className="h-4 w-4" />
+            Confirmo que los pesos están bien, aunque alguno sea inusual.
+          </label>
+        </div>
+      )}
+
       {estado.error && estado.conflictos.length === 0 && (
         <p className="text-rojo-tierra">{estado.error}</p>
       )}

@@ -1,7 +1,7 @@
 import { Prisma, type EstadoAnimal } from '@prisma/client'
 import { diasEntre } from '@/calc/fechas'
 import type { FechaISO } from '@/calc/tipos'
-import { validarMedicion } from '@/calc/validacion'
+import { validarMedicion, validarPesoEntrada } from '@/calc/validacion'
 import { prisma } from './cliente'
 import { aFechaDb, aFechaISO, aKg } from './conversion'
 import { historialDeAnimal, ultimoPesoPorAnimal } from './pesajes'
@@ -16,6 +16,20 @@ export type DatosAlta = {
   fechaEntrada: FechaISO
   edadEntradaMeses: number | null
   pesos: Record<string, number>
+  /**
+   * Deja pasar una tanda que trae uno o más pesos de entrada con advertencia
+   * (ver `PesoEntradaSospechosoError` más abajo). Sin esto en `true`, un peso
+   * de entrada inusual frena el alta entera -- no la rechaza sola en
+   * silencio ni tampoco la deja pasar sin que nadie la vea.
+   *
+   * Es una sola casilla para TODA la tanda, no una por chapeta: la planilla
+   * puede traer hasta 56 líneas, y una confirmación por animal sería tedioso
+   * y entrenaría al dueño a marcar sin leer. Reevaluar la tanda completa
+   * también significa que corregir el valor que disparó la advertencia (y
+   * volver a enviar) hace que esa advertencia ya no aparezca -- no queda una
+   * casilla exigida sobre un dato que ya se corrigió.
+   */
+  confirmarPesosSospechosos?: boolean
 }
 
 export type AnimalVista = {
@@ -76,6 +90,33 @@ export class ChapetaDuplicadaError extends Error {
   }
 }
 
+export type AdvertenciaPesoEntrada = { chapeta: string; mensaje: string }
+
+/**
+ * Uno o más pesos de entrada de la tanda quedan fuera del rango típico de un
+ * novillo de ceba en Colombia -- ver `validarPesoEntrada` en
+ * `src/calc/validacion.ts`. No se rechaza de plano: la doctrina es "rechaza
+ * lo imposible, advierte lo improbable", y un novillo de entrada gordo (o
+ * livianito, recién destetado) existe de verdad. Pero tampoco se deja pasar
+ * en silencio: `crearAnimales` lanza esta excepción a menos que quien llama
+ * confirme con `confirmarPesosSospechosos`, para que la interfaz pueda
+ * mostrarle la advertencia al dueño antes de guardar nada.
+ */
+export class PesoEntradaSospechosoError extends Error {
+  advertencias: AdvertenciaPesoEntrada[]
+
+  constructor(advertencias: AdvertenciaPesoEntrada[]) {
+    super(
+      advertencias.length === 1
+        ? `Revisa el peso de entrada de la chapeta ${advertencias[0].chapeta}: ${advertencias[0].mensaje}`
+        : `Revisa el peso de entrada de ${advertencias.length} chapetas: ` +
+            advertencias.map((a) => `${a.chapeta} — ${a.mensaje}`).join(' | '),
+    )
+    this.name = 'PesoEntradaSospechosoError'
+    this.advertencias = advertencias
+  }
+}
+
 /**
  * Da de alta un lote completo en una sola transacción.
  * O entran todos o no entra ninguno: un alta a medias deja el lote descuadrado
@@ -93,22 +134,32 @@ export class ChapetaDuplicadaError extends Error {
  * con `P2002` dentro de la transacción (capturado más abajo).
  */
 export async function crearAnimales(datos: DatosAlta): Promise<number> {
+  // Defecto 2 del seguimiento del plan 1c: antes de esta guardia, aquí solo
+  // se comprobaba que el peso fuera finito y mayor que cero -- un novillo
+  // dado de alta con 2200 kg entraba en silencio. El peso de entrada es la
+  // base de todos los kilos producidos del ciclo: si está inflado, la
+  // producción entera y el costo por kilo salen mal, y nada avisa.
+  //
+  // `validarPesoEntrada` no tiene un pesaje anterior contra el cual comparar
+  // -- es el primer dato del animal -- así que evalúa un rango absoluto, no
+  // una ganancia entre dos mediciones (ver `src/calc/validacion.ts`).
+  const advertenciasPeso: AdvertenciaPesoEntrada[] = []
   for (const chapeta of datos.chapetas) {
     const peso = datos.pesos[chapeta]
     if (peso === undefined) {
       throw new Error(`Falta el peso de entrada de la chapeta ${chapeta}.`)
     }
-    // Un texto no numérico digitado por error (p. ej. "15o" en vez de "150")
-    // llega aquí como NaN, no como `undefined` -- y `NaN <= 0` es `false`,
-    // así que sin este chequeo colaba hasta Prisma con un error genérico que
-    // no le dice al ganadero qué línea de la planilla corregir. Misma
-    // guardia que ya existe en `validarMedicion` para el mismo error.
-    if (!Number.isFinite(peso)) {
-      throw new Error(`El peso de entrada de la chapeta ${chapeta} no es un número.`)
+    const veredicto = validarPesoEntrada(peso)
+    if (veredicto.nivel === 'rechazo') {
+      throw new Error(`El peso de entrada de la chapeta ${chapeta} no es válido: ${veredicto.mensaje}`)
     }
-    if (peso <= 0) {
-      throw new Error(`El peso de entrada de la chapeta ${chapeta} debe ser mayor que cero.`)
+    if (veredicto.nivel === 'advertencia') {
+      advertenciasPeso.push({ chapeta, mensaje: veredicto.mensaje })
     }
+  }
+
+  if (advertenciasPeso.length > 0 && !datos.confirmarPesosSospechosos) {
+    throw new PesoEntradaSospechosoError(advertenciasPeso)
   }
 
   const activasExistentes = await prisma.animal.findMany({

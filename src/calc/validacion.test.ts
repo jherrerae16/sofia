@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { validarMedicion } from './validacion'
+import { validarMedicion, validarPesoEntrada } from './validacion'
 
 const entrada = { fecha: '2026-09-01', pesoKg: 150 }
 // Posterior a todas las fechas de pesaje usadas en este archivo, para que el
@@ -175,5 +175,50 @@ describe('validarMedicion', () => {
     expect(veredicto.nivel).toBe('rechazo')
     expect(veredicto.mensaje).toContain('posterior a hoy')
     expect(veredicto.gdp).toBeNull()
+  })
+})
+
+describe('validarPesoEntrada', () => {
+  // Defecto 2 del seguimiento del plan 1c: `crearAnimales` solo comprobaba
+  // que el peso de entrada fuera finito y mayor que cero -- un novillo dado
+  // de alta con 2200 kg entraba en silencio. No hay una medición anterior
+  // contra la cual comparar (es el primer dato del animal), así que la
+  // guardia es un rango absoluto, no una ganancia entre dos pesajes.
+
+  it('acepta un peso de entrada típico de ceba', () => {
+    const veredicto = validarPesoEntrada(220)
+    expect(veredicto.nivel).toBe('ok')
+  })
+
+  it('rechaza un peso que no es un número', () => {
+    const veredicto = validarPesoEntrada(Number('22o'))
+    expect(veredicto.nivel).toBe('rechazo')
+    expect(veredicto.mensaje).toContain('no es un número')
+  })
+
+  it('rechaza un peso que no es positivo', () => {
+    const veredicto = validarPesoEntrada(0)
+    expect(veredicto.nivel).toBe('rechazo')
+    expect(veredicto.mensaje).toContain('mayor que cero')
+  })
+
+  it('rechaza un peso de entrada imposible para un bovino -- el dedazo de 2200 kg en vez de 220', () => {
+    const veredicto = validarPesoEntrada(2200)
+    expect(veredicto.nivel).toBe('rechazo')
+  })
+
+  it('rechaza un peso de entrada imposiblemente bajo', () => {
+    const veredicto = validarPesoEntrada(5)
+    expect(veredicto.nivel).toBe('rechazo')
+  })
+
+  it('advierte -- sin rechazar -- un peso de entrada inusualmente bajo pero no imposible', () => {
+    const veredicto = validarPesoEntrada(90)
+    expect(veredicto.nivel).toBe('advertencia')
+  })
+
+  it('advierte -- sin rechazar -- un peso de entrada inusualmente alto pero no imposible', () => {
+    const veredicto = validarPesoEntrada(700)
+    expect(veredicto.nivel).toBe('advertencia')
   })
 })

@@ -122,7 +122,12 @@ describe('listarPotreros', () => {
     const potrero = await prisma.potrero.create({
       data: { nombre: 'La Loma', hectareas: 3, capacidadKg: 1000 },
     })
-    const cebaAId = await abrirLoteConPeso('Ceba A', ['a1'], 950)
+    // Dos animales de 475 kg (950 kg en total, 95 % de la capacidad) en vez
+    // de uno solo de 950: un peso de entrada de 950 kg dispara la advertencia
+    // de `crearAnimales` contra el peso de entrada (defecto 2 del
+    // seguimiento) -- 475 kg sigue dentro del rango creíble y deja esta
+    // prueba enfocada en la capacidad del potrero, no en esa guardia.
+    const cebaAId = await abrirLoteConPeso('Ceba A', ['a1', 'a2'], 475)
     await moverLote({ loteId: cebaAId, potreroDestinoId: potrero.id, fecha: '2026-09-01', registradoPorId: 'u1' })
 
     const [vista] = await listarPotreros('2026-09-21')
