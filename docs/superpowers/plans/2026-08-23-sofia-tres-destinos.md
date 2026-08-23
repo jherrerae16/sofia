@@ -1005,7 +1005,7 @@ git commit -m "diseño: la portada de Ganado dice en prosa cómo va el lote"
 
 Ese pie es la razón de ser de la gráfica. Sin él, un promedio calculado sobre 10 de 14 animales se lee como si fueran los 14.
 
-- [ ] **Step 1: Escribir las pruebas que fallan**
+- [x] **Step 1: Escribir las pruebas que fallan**
 
 Agregar a `e2e/ganado.spec.ts`:
 
@@ -1030,12 +1030,12 @@ test('sin gdp objetivo configurado la gráfica se dibuja sin trayectoria, no vac
 })
 ```
 
-- [ ] **Step 2: Correr las pruebas y verlas fallar**
+- [x] **Step 2: Correr las pruebas y verlas fallar**
 
 Run: `npx playwright test e2e/ganado.spec.ts -g "gráfica"`
 Expected: FAIL — no existe ningún `role="img"` en la página.
 
-- [ ] **Step 3: Escribir la gráfica**
+- [x] **Step 3: Escribir la gráfica**
 
 `src/app/GraficaLote.tsx`:
 
@@ -1150,7 +1150,7 @@ export function GraficaLote({ serie }: { serie: SerieLote }) {
 }
 ```
 
-- [ ] **Step 4: Colgar la gráfica de la pantalla**
+- [x] **Step 4: Colgar la gráfica de la pantalla**
 
 En `src/app/page.tsx`, entre la `<Cinta>` y el pie:
 
@@ -1159,12 +1159,12 @@ En `src/app/page.tsx`, entre la `<Cinta>` y el pie:
 <GraficaLote serie={await serieDePesoPromedio(lote.id, hoy)} />
 ```
 
-- [ ] **Step 5: Correr las pruebas y verlas pasar**
+- [x] **Step 5: Correr las pruebas y verlas pasar**
 
 Run: `npx playwright test e2e/ganado.spec.ts && npx tsc --noEmit`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/app/GraficaLote.tsx src/app/page.tsx e2e/ganado.spec.ts
