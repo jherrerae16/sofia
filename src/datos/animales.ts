@@ -283,6 +283,16 @@ export async function registrarSalida(datos: DatosSalida, hoy: FechaISO): Promis
   // de la portada. Antes de esta guardia, aquí solo se comprobaba que el
   // peso fuera finito y mayor que cero: un 2200 en vez de 220 pasaba esa
   // comprobación sin más y quedaba aceptado en silencio.
+  //
+  // Se llama con `contexto: 'salida'` -- no el valor por omisión 'pesaje' --
+  // porque el peso de venta no es un segundo pesaje del animal, es otro
+  // hecho: se pesa el lote en la mañana y se vende en la tarde, mismo día,
+  // y las dos cifras son reales. La regla de "mismo día" de `validarMedicion`
+  // existe para atrapar un reenvío accidental en la pantalla de Digitar, no
+  // para bloquear una venta que ocurre el mismo día de un pesaje real. Sin
+  // este contexto, un pesaje del mismo día dejaba la venta sin ninguna salida
+  // limpia: mentir en la fecha o anular el pesaje, y las dos destruyen un
+  // dato bueno.
   const advertenciasPeso: AdvertenciaPesoSalida[] = []
   for (const [animalId, peso] of Object.entries(datos.pesosSalida)) {
     const animal = porId.get(animalId)
@@ -304,7 +314,14 @@ export async function registrarSalida(datos: DatosSalida, hoy: FechaISO): Promis
     const historial = await historialDeAnimal(animalId)
     const anterior = historial.filter((m) => m.fecha <= datos.fechaSalida).at(-1) ?? null
     const entrada = { fecha: aFechaISO(animal.fechaEntrada), pesoKg: aKg(animal.pesoEntradaKg) }
-    const veredicto = validarMedicion(entrada, anterior, { fecha: datos.fechaSalida, pesoKg: peso }, hoy)
+    const veredicto = validarMedicion(
+      entrada,
+      anterior,
+      { fecha: datos.fechaSalida, pesoKg: peso },
+      hoy,
+      'normal',
+      'salida',
+    )
 
     if (veredicto.nivel === 'rechazo') {
       throw new Error(`El peso de venta de la chapeta ${chapeta} no es válido: ${veredicto.mensaje}`)

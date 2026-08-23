@@ -660,11 +660,51 @@ describe('registrarSalida — vigilancia del peso de venta (hallazgo 2.1)', () =
     ).resolves.toBe(1)
   })
 
-  it('rechaza (sin poder confirmarse) un peso de venta el mismo día de un pesaje ya guardado con otro valor', async () => {
-    // La misma regla de "rechazo" que ya aplica a cualquier pesaje digitado
-    // dos veces el mismo día -- ver `validarMedicion` en
-    // src/calc/validacion.ts. Esto es lo imposible, no lo improbable: no
-    // hay `confirmarPesosSospechosos` que lo deje pasar.
+  it('registra un peso de venta el mismo día de un pesaje real, con el mismo valor -- el caso de la feria (defecto 1)', async () => {
+    // El día de la feria: se pesa el lote en la mañana y se vende en la
+    // tarde, mismo día, con la misma cifra real. `validarMedicion` rechaza
+    // dos pesajes del mismo animal el mismo día -- correcto en la pantalla
+    // de Digitar, donde evita duplicar una fila -- pero un peso de venta no
+    // es un segundo pesaje, es otro hecho. Antes de este arreglo, esto se
+    // rechazaba con "Ya hay un pesaje de este animal el mismo día", sin
+    // casilla de confirmación y sin ninguna salida limpia.
+    const [animal] = await listarAnimalesDeLote(loteId)
+    await guardarPesaje(
+      {
+        fecha: '2026-11-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: animal.id, pesoKg: 220 }],
+      },
+      '2026-11-01',
+    )
+
+    const cuantos = await registrarSalida(
+      {
+        animalIds: [animal.id],
+        estado: 'vendido',
+        fechaSalida: '2026-11-01',
+        motivoSalida: null,
+        pesosSalida: { [animal.id]: 220 },
+      },
+      '2026-11-01',
+    )
+
+    expect(cuantos).toBe(1)
+    const guardado = await prisma.animal.findUniqueOrThrow({ where: { id: animal.id } })
+    expect(guardado.estado).toBe('vendido')
+    expect(aKg(guardado.pesoSalidaKg!)).toBe(220)
+  })
+
+  it('registra un peso de venta el mismo día de un pesaje real aunque el valor sea distinto -- son dos hechos, no dos pesajes del mismo dato', async () => {
+    // Variante del caso anterior con una cifra distinta entre el pesaje de
+    // la mañana y la venta de la tarde: sigue sin ser un "segundo pesaje",
+    // así que sigue sin caer bajo la regla de "mismo día". Las demás
+    // guardias -- ganancia imposible, pérdida excesiva -- se evalúan igual;
+    // acá no se disparan porque no hay un intervalo de días contra el cual
+    // medir una ganancia diaria (gdp queda en null).
     const [animal] = await listarAnimalesDeLote(loteId)
     await guardarPesaje(
       {
@@ -678,19 +718,21 @@ describe('registrarSalida — vigilancia del peso de venta (hallazgo 2.1)', () =
       '2026-11-01',
     )
 
-    await expect(
-      registrarSalida(
-        {
-          animalIds: [animal.id],
-          estado: 'vendido',
-          fechaSalida: '2026-11-01',
-          motivoSalida: null,
-          pesosSalida: { [animal.id]: 300 },
-          confirmarPesosSospechosos: true,
-        },
-        '2026-11-01',
-      ),
-    ).rejects.toThrow(/mismo día/)
+    const cuantos = await registrarSalida(
+      {
+        animalIds: [animal.id],
+        estado: 'vendido',
+        fechaSalida: '2026-11-01',
+        motivoSalida: null,
+        pesosSalida: { [animal.id]: 220 },
+      },
+      '2026-11-01',
+    )
+
+    expect(cuantos).toBe(1)
+    const guardado = await prisma.animal.findUniqueOrThrow({ where: { id: animal.id } })
+    expect(guardado.estado).toBe('vendido')
+    expect(aKg(guardado.pesoSalidaKg!)).toBe(220)
   })
 
   it('traduce a español el desborde de la columna cuando el peso confirmado es absurdamente grande (hallazgo 2.3)', async () => {

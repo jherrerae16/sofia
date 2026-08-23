@@ -100,6 +100,43 @@ test('una fecha de salida anterior a la entrada se rechaza sin perder la selecci
   await expect(page.getByText('Se registró la salida de 1 animal.')).toBeVisible()
 })
 
+// Defecto 1 del seguimiento del plan 1c: el día de la feria se pesa el lote
+// en la mañana y se vende en la tarde, mismo día. `validarMedicion` rechazaba
+// eso con "Ya hay un pesaje de este animal el mismo día" -- correcto para un
+// reenvío accidental en Digitar, equivocado para un peso de venta, que es
+// otro hecho, no un segundo pesaje. Esta prueba pasa por la interfaz real
+// (no solo `registrarSalida`) para demostrar que el ganadero ya no se topa
+// con esa pantalla sin salida limpia.
+test('un animal pesado hoy se puede vender hoy mismo, sin que el pesaje de la mañana lo bloquee', async ({
+  page,
+}) => {
+  const lote = await sembrarLotePropio('Salidas — pesaje y venta el mismo día', ['811'])
+  const [animal] = await prisma.animal.findMany({ where: { loteId: lote.id } })
+  await prisma.pesaje.create({
+    data: {
+      fecha: aFechaDb(HOY),
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      registradoPorId: 'siembra',
+      mediciones: { create: [{ animalId: animal.id, pesoKg: 220 }] },
+    },
+  })
+
+  await iniciarSesion(page)
+  await page.goto(`/salidas?lote=${lote.id}`)
+
+  await page.locator('input[name^="sel_"]').check()
+  await page.selectOption('select[name="estado"]', 'vendido')
+  await page.fill('input[name="fechaSalida"]', HOY)
+  await page.locator('input[name^="peso_"]').fill('220')
+
+  await page.getByRole('button', { name: 'Registrar salida' }).click()
+
+  await expect(page.getByText('Se registró la salida de 1 animal.')).toBeVisible()
+  const guardado = await prisma.animal.findUniqueOrThrow({ where: { id: animal.id } })
+  expect(guardado.estado).toBe('vendido')
+})
+
 // Hallazgo 2.1 del seguimiento: un peso de venta que implica una ganancia
 // diaria inverosímil (el dedazo clásico -- 2200 en vez de 220) no puede
 // quedar aceptado en silencio. Esta prueba es la que de verdad demuestra que

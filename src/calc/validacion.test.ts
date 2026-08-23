@@ -63,6 +63,55 @@ describe('validarMedicion', () => {
     expect(veredicto.mensaje).toContain('mismo día')
   })
 
+  it('en contexto "salida", no rechaza un peso el mismo día de un pesaje real -- es otro hecho, no un segundo pesaje digitado', () => {
+    // Mismo caso que "rechaza un segundo pesaje el mismo día" de arriba,
+    // pero visto desde una venta: el peso de venta del día de la feria no
+    // es un reintento de digitación, es un hecho distinto que ocurre el
+    // mismo día del pesaje de la mañana. La regla de "mismo día" solo tiene
+    // sentido en la pantalla de digitar, donde evita duplicar una fila.
+    const veredicto = validarMedicion(
+      entrada,
+      { fecha: '2026-10-01', pesoKg: 174 },
+      { fecha: '2026-10-01', pesoKg: 176 },
+      HOY,
+      'normal',
+      'salida',
+    )
+    expect(veredicto.nivel).toBe('ok')
+  })
+
+  it('en contexto "salida", sin transcurrir un día no hay ganancia diaria que evaluar, pero sigue rechazando lo demás (peso no positivo)', () => {
+    // El contexto "salida" apaga SOLO la regla de "mismo día" -- las demás
+    // (peso no numérico, no positivo, fecha antes del ingreso, fecha
+    // futura) siguen intactas.
+    const veredicto = validarMedicion(
+      entrada,
+      { fecha: '2026-10-01', pesoKg: 174 },
+      { fecha: '2026-10-01', pesoKg: 0 },
+      HOY,
+      'normal',
+      'salida',
+    )
+    expect(veredicto.nivel).toBe('rechazo')
+    expect(veredicto.mensaje).toContain('mayor que cero')
+  })
+
+  it('en contexto "salida", una ganancia imposible frente al pesaje anterior sigue advirtiendo', () => {
+    // El dedazo clásico (2200 en vez de 220) tiene que seguir advirtiendo en
+    // una venta con un pesaje anterior de otro día -- el contexto "salida"
+    // no apaga la guardia de ganancia imposible, solo la de "mismo día".
+    const veredicto = validarMedicion(
+      entrada,
+      { fecha: '2026-10-01', pesoKg: 174 },
+      { fecha: '2026-10-05', pesoKg: 2200 },
+      HOY,
+      'normal',
+      'salida',
+    )
+    expect(veredicto.nivel).toBe('advertencia')
+    expect(veredicto.mensaje).toContain('Ganancia de')
+  })
+
   it('advierte cuando la ganancia diaria supera los dos mil gramos', () => {
     const veredicto = validarMedicion(
       entrada,
