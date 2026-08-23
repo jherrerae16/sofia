@@ -18,6 +18,7 @@
 - **El nombre completo aparece una sola vez.** «SOFÍA — por Sofanor Echeverría.» va al pie de la pantalla Ganado y de ninguna otra. Los mockups lo repiten en las cinco páginas porque cada archivo es independiente; en la plataforma sería ruido. Va en `src/app/page.tsx`, **no** en `layout.tsx`.
 - **Español colombiano en toda la interfaz.** Ningún valor crudo de enum sale a pantalla: se pasa por `src/ui/etiquetas.ts`.
 - **Números con formato colombiano.** Coma decimal y punto de miles, vía `src/ui/formato.ts`. Toda cifra lleva `font-variant-numeric: tabular-nums` (la clase `.cifra`).
+- **`formatearKg` y `formatearGdp` YA traen la unidad pegada** (`'278,0 kg'`, `'692 g/día'`). No escribir la unidad otra vez al lado, ni pasársela aparte a `<Cinta>`. Cuando la cinta necesita la unidad en chico y aparte —que es como la dibuja el mockup—, usar `separarUnidad` (Tarea 3), no concatenar a mano.
 - **Solo dos cosas llevan color:** lo que va mal (`--color-barro`, `#C25A2E`) y lo que va bien (`--color-monte`, `#0F4430`). Todo lo demás es tinta sobre crema. El par viejo (`#1B5E3F` verde contra `#A63D40` rojo) daba ΔE 1,7 con daltonismo protán —indistinguible para ~8% de los hombres—; el par nuevo da ΔE 17,0. No reintroducir los colores viejos.
 - **Ninguna función se pierde.** Cada cosa que hoy se puede hacer en las nueve pantallas tiene que poder hacerse después. La Tarea 11 lo verifica pantalla por pantalla contra la tabla de equivalencias.
 - **Cobertura:** cada pantalla nueva llega con una prueba de navegador que la recorre. Cada función nueva de `src/datos/` llega con pruebas de Vitest contra `sofia_test`.
@@ -689,7 +690,18 @@ git commit -m "feat: la curva de peso promedio del lote contra su trayectoria ob
 ```typescript
 export type Aviso = { texto: string; enlace?: { href: string; texto: string }; grave?: boolean }
 export type Celda = { rotulo: string; valor: string; unidad?: string }
+
+/**
+ * Parte '3.892,0 kg' en { valor: '3.892,0', unidad: 'kg' }. La cinta del
+ * mockup dibuja la unidad en chico y en gris al lado de la cifra, pero
+ * `formatearKg` y `formatearGdp` la devuelven pegada -- y son la única fuente
+ * del formato colombiano, así que se parte lo que ellas devuelven en vez de
+ * mantener un segundo formateador que se desincronice.
+ */
+export function separarUnidad(formateado: string): { valor: string; unidad?: string }
 ```
+
+`separarUnidad` va en `src/ui/formato.ts` con su prueba en `src/ui/formato.test.ts`: parte por el primer espacio que separa el número de la unidad, y devuelve `{ valor: '—' }` sin unidad cuando recibe `SIN_DATO`.
 
 **Lo que dice el titular.** Es prosa, no tarjetas. Tres frases, todas con datos reales:
 1. «*[Lote]* va en **N g/día**. *M novillos* están quedados.» — el promedio sale de `desempeno(...).resumen`, los quedados son las filas con clasificación `bajo` o `critico`.
@@ -835,7 +847,7 @@ import { pesoVivoPorLote } from '@/datos/pesajes'
 import { listarPotreros } from '@/datos/potreros'
 import { eventosVencidos } from '@/datos/sanidad'
 import { Cinta, type Celda } from '@/ui/Cinta'
-import { formatearGdp, formatearKg } from '@/ui/formato'
+import { formatearGdp, formatearKg, separarUnidad, SIN_DATO } from '@/ui/formato'
 import { Marco } from '@/ui/Marco'
 import { Titular, type Aviso } from '@/ui/Titular'
 
@@ -929,11 +941,11 @@ export default async function Ganado({
 
   const celdas: Celda[] = [
     { rotulo: 'Novillos', valor: String(delLote.length) },
-    { rotulo: 'Peso vivo', valor: formatearKg(pesoVivo), unidad: 'kg' },
-    { rotulo: 'Producido en el ciclo', valor: formatearKg(kgProducidos(paraProduccion)), unidad: 'kg' },
+    { rotulo: 'Peso vivo', ...separarUnidad(formatearKg(pesoVivo)) },
+    { rotulo: 'Producido en el ciclo', ...separarUnidad(formatearKg(kgProducidos(paraProduccion))) },
     {
       rotulo: 'Carga',
-      valor: carga ? formatearKg(carga.kgPorHa) : '—',
+      valor: carga ? formatearKg(carga.kgPorHa).replace(' kg', '') : SIN_DATO,
       unidad: carga ? 'kg/ha' : undefined,
     },
   ]
@@ -1455,7 +1467,7 @@ export function RejillaGanado({ filas, vista }: { filas: FilaGanado[]; vista: 'r
             <div className={`mt-[11px] text-[12.5px] ${fila.sinPesarEnLaUltima ? 'italic text-carbon-3' : 'text-carbon-2'}`}>
               {fila.sinPesarEnLaUltima
                 ? 'no entró en la última tanda'
-                : `${formatearKg(fila.pesoActualKg)} kg${fila.listo ? ' · listo' : ''}`}
+                : `${formatearKg(fila.pesoActualKg)}${fila.listo ? ' · listo' : ''}`}
             </div>
             <span
               aria-hidden
@@ -1957,6 +1969,13 @@ export type CandidatoAplicacion = {
   aplicable: boolean
   razon: string | null
 }
+
+// `src/datos/` no importaba nada de `src/ui/` hasta ahora. La razón viaja
+// escrita en español porque es texto para el dueño, no un código que la
+// pantalla tenga que traducir -- y la única lista de esas palabras vive en
+// `src/ui/etiquetas.ts`. Es un import de datos a etiquetas, no al revés:
+// `etiquetas.ts` no importa nada de `src/datos/`, así que no hay ciclo.
+import { ETIQUETA_ESTADO_ANIMAL } from '@/ui/etiquetas'
 
 /**
  * A quiénes se les puede anotar algo en esa fecha. Los que no, salen igual
