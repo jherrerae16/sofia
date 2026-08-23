@@ -147,3 +147,24 @@ test('las hectáreas útiles de la finca se pueden actualizar, con coma decimal,
   await tarjeta.getByText(/Ver histórico/).click()
   await expect(tarjeta.getByRole('row', { name: '2000-01-01' })).toContainText('35,0 ha')
 })
+
+test('una clave que no está en la lista de parámetros definidos se rechaza, sin escribir nada', async ({ page }) => {
+  await iniciarSesion(page)
+  await page.goto('/configuracion')
+
+  const tarjeta = page.locator('[data-parametro="gdp_objetivo"]')
+  // El campo `clave` viaja en un input oculto -- nada en el HTML impide que
+  // llegue otro valor. `guardarParametroAccion` tiene que rechazarlo contra
+  // la lista de parámetros que la pantalla en verdad define, no escribirlo
+  // a ciegas.
+  await tarjeta.locator('input[name="clave"]').evaluate((input: HTMLInputElement) => {
+    input.value = 'clave_inventada'
+  })
+  await tarjeta.locator('input[name="valor"]').fill('750')
+  await tarjeta.locator('input[name="vigenteDesde"]').fill(HOY)
+  await tarjeta.getByRole('button', { name: 'Guardar' }).click()
+
+  await expect(tarjeta.getByText(/no es un parámetro configurable/)).toBeVisible()
+  const filas = await prisma.parametro.findMany({ where: { clave: 'clave_inventada' } })
+  expect(filas).toHaveLength(0)
+})

@@ -24,3 +24,15 @@ export function formatearPesos(cop: number): string {
 export function formatearHectareas(hectareas: number): string {
   return unDecimal.format(hectareas)
 }
+
+/**
+ * Sube a mayúscula solo la primera letra, sin tocar el resto. Las etiquetas
+ * centrales de `src/ui/etiquetas.ts` van en minúscula (para calzar en una
+ * frase, como "el evento fue una desparasitación"), pero un `<select>` las
+ * necesita con mayúscula inicial -- esta función deriva esa forma sin que
+ * ninguna pantalla tenga que mantener una segunda lista con la misma
+ * información.
+ */
+export function capitalizar(texto: string): string {
+  return texto.charAt(0).toUpperCase() + texto.slice(1)
+}

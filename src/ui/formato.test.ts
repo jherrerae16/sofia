@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatearGdp, formatearHectareas, formatearKg, formatearPesos } from './formato'
+import { capitalizar, formatearGdp, formatearHectareas, formatearKg, formatearPesos } from './formato'
 
 describe('formatearGdp', () => {
   it('muestra gramos por día con separador de miles', () => {
@@ -38,5 +38,19 @@ describe('formatearHectareas', () => {
 
   it('fija un decimal aunque el número sea entero', () => {
     expect(formatearHectareas(8)).toBe('8,0')
+  })
+})
+
+describe('capitalizar', () => {
+  it('sube a mayúscula solo la primera letra', () => {
+    expect(capitalizar('cinta bovinométrica')).toBe('Cinta bovinométrica')
+  })
+
+  it('respeta una tilde en la primera letra', () => {
+    expect(capitalizar('báscula')).toBe('Báscula')
+  })
+
+  it('no toca una cadena vacía', () => {
+    expect(capitalizar('')).toBe('')
   })
 })

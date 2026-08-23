@@ -2,7 +2,8 @@
 
 import { useActionState, useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { guardarAccion, revisarAccion, type EstadoDigitacion } from './acciones'
-import { formatearGdp } from '@/ui/formato'
+import { ETIQUETA_METODO_PESAJE } from '@/ui/etiquetas'
+import { capitalizar, formatearGdp } from '@/ui/formato'
 
 const INICIAL: EstadoDigitacion = { revision: [], datosRevisados: null, guardado: false, error: null }
 
@@ -180,9 +181,17 @@ function Formulario({
             onChange={marcarEditado}
             className="ml-2 rounded border border-tierra/30 p-2"
           >
-            <option value="cinta">Cinta bovinométrica</option>
-            <option value="bascula">Báscula</option>
-            <option value="estimacion">Estimación</option>
+            {/* Las opciones salen del mapa central de etiquetas (`ETIQUETA_METODO_PESAJE`),
+                no de una lista escrita a mano aquí: si el esquema agrega un cuarto método,
+                la prueba de cobertura de `etiquetas.test.ts` lo obliga a aparecer también en
+                ese mapa, y este selector lo hereda solo. Las etiquetas centrales van en
+                minúscula (para calzar en una frase); `capitalizar` sube solo la primera letra
+                para la opción del selector, sin duplicar el texto. */}
+            {Object.entries(ETIQUETA_METODO_PESAJE).map(([valor, etiqueta]) => (
+              <option key={valor} value={valor}>
+                {capitalizar(etiqueta)}
+              </option>
+            ))}
           </select>
         </label>
         <label className="text-sm">

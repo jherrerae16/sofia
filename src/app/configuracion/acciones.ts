@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { usuarioActual } from '@/auth'
 import { hoyBogota } from '@/calc/fechas'
 import { configurarParametro, revisarCambioParametro } from '@/datos/parametros'
+import { DEFINICIONES_PARAMETRO } from './definiciones'
 
 /**
  * Lo que se envió, capturado tal cual llegó -- para poder repoblar el
@@ -41,6 +42,16 @@ export async function guardarParametroAccion(
   const hoy = hoyBogota()
 
   try {
+    // El campo `clave` viaja en un input oculto del formulario -- nada
+    // impide en el HTML que llegue cualquier texto. No es explotable sin
+    // sesión (`usuarioActual()` ya exige estar logueado más abajo), pero
+    // contrastarlo contra la lista de parámetros que la pantalla en verdad
+    // define es gratis, y evita que un futuro descuido en el formulario
+    // termine escribiendo una clave que no aparece en ningún lado.
+    if (!DEFINICIONES_PARAMETRO.some((definicion) => definicion.clave === clave)) {
+      throw new Error(`"${clave}" no es un parámetro configurable.`)
+    }
+
     if (!confirmado) {
       const revision = await revisarCambioParametro(clave, valorTexto, vigenteDesde, hoy)
       if (revision.dejaSinVigenteHoy) {

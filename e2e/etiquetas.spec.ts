@@ -29,6 +29,20 @@ test('la pantalla de lotes muestra el tipo en español, no el valor crudo del en
   await expect(fila.getByRole('cell', { name: 'Leche', exact: true })).toBeVisible()
 })
 
+test('el selector de método de pesaje muestra las tres opciones con mayúscula inicial, derivadas del mapa central', async ({
+  page,
+}) => {
+  await iniciarSesion(page)
+  await page.goto('/digitar')
+
+  const opciones = page.locator('select[name="metodo"] option')
+  // Las tres, ni una de más ni de menos: si el esquema agregara un cuarto
+  // método (`MetodoPesaje`), etiquetas.test.ts obligaría a agregarlo también
+  // a `ETIQUETA_METODO_PESAJE`, y este selector -- que ya no las escribe a
+  // mano -- lo heredaría solo.
+  await expect(opciones).toHaveText(['Cinta bovinométrica', 'Báscula', 'Estimación'])
+})
+
 test('la ficha del animal muestra el tipo de evento sanitario con etiqueta legible, no el valor crudo', async ({
   page,
 }) => {
