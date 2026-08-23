@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es-CO"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOFÍA — Anotar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800&family=Archivo+Narrow:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<style>
+.modos{display:flex;gap:2px;background:var(--crema-2);padding:3px;border-radius:var(--r);margin:40px 0 0;width:fit-content}
+.modos a{color:var(--carbon-3);text-decoration:none;font-size:13.5px;font-weight:600;padding:9px 18px;border-radius:2px}
+.modos a.on{background:var(--monte);color:var(--crema)}
+.cab{display:flex;gap:26px;align-items:flex-end;flex-wrap:wrap;margin:32px 0 8px}
+.campo{display:flex;flex-direction:column;gap:7px}
+.campo k{font:600 10.5px 'Archivo Narrow';letter-spacing:.14em;text-transform:uppercase;color:var(--carbon-3)}
+.campo input,.campo select{background:var(--crema-3);border:1px solid var(--borde);border-radius:var(--r);
+  color:var(--carbon);font:500 14px 'Archivo';padding:10px 12px;outline:none;min-width:170px}
+.campo input:focus{border-color:var(--borde-2)}
+table{width:100%;border-collapse:collapse;margin-top:26px}
+th{font:600 10.5px 'Archivo Narrow';letter-spacing:.14em;text-transform:uppercase;color:var(--carbon-3);
+  text-align:left;padding:0 0 12px;border-bottom:1px solid var(--borde)}
+th.der{text-align:right}
+td{padding:9px 0;border-bottom:1px solid var(--borde);font-variant-numeric:tabular-nums}
+td.chap{font:800 14px 'Archivo';letter-spacing:.07em;color:var(--carbon-3);width:80px}
+td.peso input{width:96px;background:var(--crema-3);border:1px solid var(--borde);border-radius:var(--r);
+  color:var(--carbon);font:600 15px 'Archivo';padding:8px 11px;text-align:right;outline:none;font-variant-numeric:tabular-nums}
+td.peso input:focus{border-color:var(--tierra)}
+td.res{font-size:13.5px;color:var(--carbon-3)}
+td.res b{color:var(--carbon);font-weight:700}
+tr.avisa td.peso input{border-color:var(--barro)}
+tr.avisa td.res{color:var(--barro)}
+tr.vacia td.res{color:var(--carbon-3);font-style:italic}
+.pie-tabla{display:flex;justify-content:space-between;align-items:center;margin-top:26px;flex-wrap:wrap;gap:16px}
+.pie-tabla p{font-size:13.5px;color:var(--carbon-3);max-width:460px}
+.recientes{margin-top:12px}
+.rec{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid var(--borde);font-size:14px}
+.rec span{color:var(--carbon-3);font-size:13px}
+.rec a{color:var(--carbon-3);font-size:13px}
+</style></head><body><div class="marco">
+
+<header>
+  <a class="logo" href="ganado.html">SOFÍA</a>
+  <nav><a href="ganado.html">Ganado</a><a class="on" href="anotar.html">Anotar</a><a href="finca.html">Finca</a></nav>
+  <div class="quien">Santa Verónica · Joseph</div>
+</header>
+
+<div class="titular" style="padding-top:48px">
+  <h1>Pasa la libreta.</h1>
+  <p>Escribe de arriba abajo con la tecla Tab. Deja vacías las chapetas que no se pesaron.</p>
+</div>
+
+<div class="modos">
+  <a class="on" href="#">Pesos</a><a href="#">Venta o muerte</a><a href="#">Novedad</a><a href="#">Mover lote</a><a href="#">Entrada de ganado</a>
+</div>
+
+<div class="cab">
+  <label class="campo"><k>Lote</k><select><option>Ceba 01 · 14 novillos</option><option>Leche · 7 vacas</option></select></label>
+  <label class="campo"><k>Fecha del pesaje</k><input type="date" value="2026-08-22"></label>
+  <label class="campo"><k>Cómo se pesó</k><select><option>Cinta bovinométrica</option><option>Báscula</option></select></label>
+  <label class="campo"><k>Quién pesó</k><input value="Joseph"></label>
+</div>
+
+<table>
+  <thead><tr><th>Chapeta</th><th>Peso en kg</th><th>Con eso quedaría en</th><th class="der">Último peso</th></tr></thead>
+  <tbody>
+    <tr><td class="chap">001</td><td class="peso"><input value="334"></td>
+      <td class="res"><b>612 g/día</b> · normal</td><td class="der res">328,3 kg · 18 ago</td></tr>
+    <tr><td class="chap">002</td><td class="peso"><input value="323"></td>
+      <td class="res"><b>979 g/día</b> · excelente</td><td class="der res">318,4 kg · 18 ago</td></tr>
+    <tr class="avisa"><td class="chap">003</td><td class="peso"><input value="900"></td>
+      <td class="res"><b>146.475 g/día</b> · revisa que el peso esté bien digitado</td><td class="der res">314,1 kg · 18 ago</td></tr>
+    <tr><td class="chap">004</td><td class="peso"><input value="312"></td>
+      <td class="res"><b>854 g/día</b> · bueno</td><td class="der res">307,9 kg · 18 ago</td></tr>
+    <tr class="vacia"><td class="chap">005</td><td class="peso"><input placeholder=""></td>
+      <td class="res">sin pesar</td><td class="der res">307,2 kg · 18 ago</td></tr>
+    <tr><td class="chap">006</td><td class="peso"><input value="295"></td>
+      <td class="res"><b>875 g/día</b> · bueno</td><td class="der res">291,5 kg · 18 ago</td></tr>
+    <tr class="vacia"><td class="chap">011</td><td class="peso"><input placeholder=""></td>
+      <td class="res">sin pesar</td><td class="der res">237,6 kg · 25 jul</td></tr>
+    <tr><td class="chap">014</td><td class="peso"><input value="208"></td>
+      <td class="res"><b>107 g/día</b> · sigue quedado</td><td class="der res">205,0 kg · 25 jul</td></tr>
+  </tbody>
+</table>
+
+<div class="pie-tabla">
+  <p>Seis pesos escritos, dos chapetas en blanco. Una fila necesita que la mires antes de guardar.</p>
+  <div style="display:flex;gap:10px"><a class="btn" href="#">Revisar antes de guardar</a></div>
+</div>
+
+<h2>Tandas recientes de este lote</h2>
+<div class="recientes">
+  <div class="rec"><div>18 de agosto · 10 animales<span> · cinta · Joseph</span></div><a href="#">Anular</a></div>
+  <div class="rec"><div>25 de julio · 14 animales<span> · cinta · Joseph</span></div><a href="#">Anular</a></div>
+  <div class="rec"><div>10 de junio · 14 animales<span> · cinta · Joseph</span></div><a href="#">Anular</a></div>
+</div>
+
+<footer>SOFÍA — por Sofanor Echeverría.</footer>
+</div></body></html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es-CO"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOFÍA — La finca</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800&family=Archivo+Narrow:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<style>
+.potreros{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:14px}
+.pot{border:1px solid var(--borde);border-radius:var(--r);padding:18px;background:var(--crema-2);position:relative;overflow:hidden}
+.pot h3{font:800 17px/1 'Archivo';letter-spacing:.01em}
+.pot .ha{font-size:12.5px;color:var(--carbon-3);margin-top:5px}
+.pot .est{margin-top:16px;font:600 13px 'Archivo'}
+.pot .ocu{margin-top:5px;font-size:13px;color:var(--carbon-3)}
+.pot .med{margin-top:15px;height:4px;background:rgba(239,235,227,.12);border-radius:2px;overflow:hidden}
+.pot .med span{display:block;height:100%;background:var(--carbon-3)}
+.pot.lleno .med span{background:var(--barro)}
+.pot.lleno .est{color:var(--barro)}
+.pot.descansa .est{color:var(--carbon-3)}
+.pot.descansa{background:var(--crema)}
+.params{margin-top:6px}
+.par{display:grid;grid-template-columns:1fr auto auto;gap:20px;grid-auto-flow:column;align-items:center;padding:14px 0;border-bottom:1px solid var(--borde)}
+.par .q{font-size:14.5px}
+.par .q em{font-style:normal;display:block;color:var(--carbon-3);font-size:12.5px;margin-top:3px}
+.par .v{font:800 19px 'Archivo';font-variant-numeric:tabular-nums}
+.par a{color:var(--carbon-3);font-size:13px;text-decoration:none;border-bottom:1px solid var(--borde-2)}
+.salida{margin-top:20px;border:1px solid var(--borde);border-radius:var(--r);padding:22px;background:var(--crema-2);
+  display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.salida p{flex:1;min-width:280px;font-size:14px;color:var(--carbon-3);line-height:1.55}
+.salida b{color:var(--carbon)}
+</style></head><body><div class="marco">
+
+<header>
+  <a class="logo" href="ganado.html">SOFÍA</a>
+  <nav><a href="ganado.html">Ganado</a><a href="anotar.html">Anotar</a><a class="on" href="finca.html">Finca</a></nav>
+  <div class="quien">Santa Verónica · Joseph</div>
+</header>
+
+<div class="titular" style="padding-top:48px">
+  <h1>Santa Verónica · 35 hectáreas útiles</h1>
+  <p>Cuatro potreros. Ceba 01 lleva 25 días en La Loma; El Jobo lleva 71 días descansando.</p>
+</div>
+
+<h2>Los potreros</h2>
+<div class="potreros">
+  <div class="pot">
+    <h3>La Loma</h3><div class="ha">8 ha · colosuana · con agua</div>
+    <div class="est">Ocupado · Ceba 01</div>
+    <div class="ocu">25 días · 3.892 kg encima</div>
+    <div class="med"><span style="width:52%"></span></div>
+  </div>
+  <div class="pot">
+    <h3>Palo de Agua</h3><div class="ha">10 ha · guinea · con agua</div>
+    <div class="est">Ocupado · Leche</div>
+    <div class="ocu">17 días · 3.108 kg encima</div>
+    <div class="med"><span style="width:33%"></span></div>
+  </div>
+  <div class="pot descansa">
+    <h3>El Mango</h3><div class="ha">9,5 ha · angleton · con agua</div>
+    <div class="est">Descansando</div>
+    <div class="ocu">25 días desde que salió el lote</div>
+    <div class="med"><span style="width:0"></span></div>
+  </div>
+  <div class="pot descansa">
+    <h3>El Jobo</h3><div class="ha">7,5 ha · angleton · sin agua</div>
+    <div class="est">Descansando</div>
+    <div class="ocu">71 días desde que salió el lote</div>
+    <div class="med"><span style="width:0"></span></div>
+  </div>
+</div>
+
+<p style="margin-top:14px"><a class="btn fantasma" href="#">Agregar un potrero</a></p>
+
+<h2>Los criterios de la finca</h2>
+<p class="nota" style="margin:-8px 0 16px;font-size:13.5px;color:var(--carbon-3)">Estos números gobiernan lo que ves en las otras pantallas. Cambiarlos no reescribe el pasado: cada valor queda con la fecha desde la que rige.</p>
+<div class="params">
+  <div class="par"><div class="q">Ganancia diaria que buscas<em>La línea punteada de las gráficas y la comparación de «Ganado»</em></div><div class="v">750 <span style="font-size:13px;color:var(--carbon-3)">g/día</span></div><span style="white-space:nowrap"><a href="#">Cambiar</a> <a href="#" style="margin-left:12px;color:var(--carbon-3)">Historial</a></span></div>
+  <div class="par"><div class="q">Peso al que se vende<em>A partir de ahí un novillo aparece como listo</em></div><div class="v">320 <span style="font-size:13px;color:var(--carbon-3)">kg</span></div><span style="white-space:nowrap"><a href="#">Cambiar</a> <a href="#" style="margin-left:12px;color:var(--carbon-3)">Historial</a></span></div>
+  <div class="par"><div class="q">Un novillo va quedado por debajo de<em>Queda marcado en «Ganado»</em></div><div class="v">400 <span style="font-size:13px;color:var(--carbon-3)">g/día</span></div><span style="white-space:nowrap"><a href="#">Cambiar</a> <a href="#" style="margin-left:12px;color:var(--carbon-3)">Historial</a></span></div>
+  <div class="par"><div class="q">Hectáreas útiles<em>De aquí sale la carga animal</em></div><div class="v">35,0 <span style="font-size:13px;color:var(--carbon-3)">ha</span></div><span style="white-space:nowrap"><a href="#">Cambiar</a> <a href="#" style="margin-left:12px;color:var(--carbon-3)">Historial</a></span></div>
+</div>
+
+<h2>Tu copia de todo</h2>
+<div class="salida">
+  <p>Baja la finca entera a un archivo de Excel: los animales, los pesajes, los potreros, los movimientos, la sanidad y las novedades. Incluye lo anulado y lo que ya salió. <b>Es tu salida:</b> con ese archivo puedes dejar SOFÍA cuando quieras y quedarte con tu información.</p>
+  <a class="btn" href="#">Bajar todo a Excel</a>
+</div>
+
+<footer>SOFÍA — por Sofanor Echeverría.</footer>
+</div></body></html>
