@@ -84,18 +84,12 @@ async function main() {
   try {
     // `Movimiento_loteId_fkey` sí es una clave foránea normal (`loteId` no es
     // opcional en `Movimiento`), así que ese `deleteMany()` sí evita una
-    // violación de clave foránea al borrar lotes más abajo. Pero
-    // `animalId` y `loteId` SON opcionales en `EventoSanitario`
-    // (`EventoSanitario_animalId_fkey`, `EventoSanitario_loteId_fkey`): sin
-    // este `deleteMany()`, borrar el animal o el lote de una corrida
-    // anterior no violaría ninguna clave foránea -- Prisma simplemente
-    // pondría esos campos en `null` en el evento sanitario huérfano. La
-    // razón de borrarlo primero es otra: dejar cada corrida con datos
-    // limpios, sin eventos sanitarios sueltos (apuntando a `null`) que se
-    // fueran acumulando de una corrida a la siguiente. Hoy ninguna prueba
-    // de navegador crea todavía un evento sanitario, así que este
-    // `deleteMany()` no borra nada en la práctica -- pero está aquí desde
-    // ya, no el día que la primera prueba lo necesite.
+    // violación de clave foránea al borrar lotes más abajo. `EventoSanitario`
+    // es hoy el mismo caso: desde que la historia sanitaria cuelga del animal
+    // (`animalId` obligatorio), borrar un animal de una corrida anterior sin
+    // haber borrado antes sus eventos viola
+    // `EventoSanitario_animalId_fkey`. Su `loteId` sí sigue siendo opcional,
+    // pero eso ya no cambia nada: basta el animal para exigir este orden.
     await prisma.eventoSanitario.deleteMany()
     // `Novedad.loteId` y `Novedad.potreroId` son opcionales, así que borrar
     // un lote o un potrero de una corrida anterior no viola ninguna clave

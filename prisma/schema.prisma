@@ -197,14 +197,22 @@ model EventoSanitario {
   responsable   String
   proximaFecha  DateTime? @db.Date
   notas         String?
-  animalId      String?
-  animal        Animal?  @relation(fields: [animalId], references: [id])
+  /// Obligatorio: la historia sanitaria le pertenece al animal, no al lote
+  /// donde estaba parado ese día. Una aplicación a todo el lote se guarda
+  /// como una fila por animal (ver `registrarEvento`). Con la fila apuntando
+  /// solo al lote, un animal que entró después heredaba vacunas que nunca le
+  /// pusieron, y al pasarlo a otro lote perdía las que sí.
+  animalId      String
+  animal        Animal   @relation(fields: [animalId], references: [id])
+  /// El lote al que se le aplicó en tanda, si fue en tanda. Es rastro de cómo
+  /// se aplicó -- no es de dónde cuelga el evento.
   loteId        String?
   lote          Lote?    @relation(fields: [loteId], references: [id])
   registradoPorId String
   creadoEn      DateTime @default(now())
 
   @@index([proximaFecha])
+  @@index([animalId, tipo, fecha])
 }
 
 /// El registro operativo de la finca (plan 1C): lo que pasa en el campo, sin

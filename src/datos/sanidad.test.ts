@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { crearAnimales, listarAnimalesDeLote } from './animales'
+import { crearAnimales, listarAnimalesDeLote, registrarSalida } from './animales'
 import { prisma } from './cliente'
 import { limpiarTablasOperativas } from './limpieza-pruebas'
 import { crearLote } from './lotes'
@@ -162,5 +162,228 @@ describe('eventosVencidos', () => {
 
     // eventosVencidos usa `lt` (estrictamente menor): vence mañana, no hoy.
     expect(await eventosVencidos('2026-12-05')).toHaveLength(0)
+  })
+})
+
+describe('una aplicación de lote deja rastro por animal', () => {
+  it('crea una fila por cada animal activo del lote, no una sola fila del lote', async () => {
+    await crearAnimales({
+      loteId,
+      chapetas: ['002', '003'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: null,
+      pesos: { '002': 150, '003': 150 },
+    })
+
+    await registrarEvento({
+      tipo: 'vacuna',
+      fecha: '2026-09-05',
+      producto: 'Aftosa',
+      dosis: null,
+      responsable: 'Joseph',
+      proximaFecha: '2027-03-05',
+      notas: null,
+      animalId: null,
+      loteId,
+      registradoPorId: 'u1',
+    })
+
+    // Tres animales en el lote, tres filas: la historia sanitaria le pertenece
+    // al animal, no al lote donde estaba parado ese día.
+    expect(await prisma.eventoSanitario.count({ where: { loteId } })).toBe(3)
+
+    for (const animal of await listarAnimalesDeLote(loteId)) {
+      const eventos = await eventosDeAnimal(animal.id)
+      expect(eventos).toHaveLength(1)
+      expect(eventos[0].chapeta).toBe(animal.chapeta)
+    }
+  })
+
+  it('un animal que entró después de la aplicación no la hereda', async () => {
+    await registrarEvento({
+      tipo: 'vacuna',
+      fecha: '2026-09-05',
+      producto: 'Aftosa',
+      dosis: null,
+      responsable: 'Joseph',
+      proximaFecha: '2027-03-05',
+      notas: null,
+      animalId: null,
+      loteId,
+      registradoPorId: 'u1',
+    })
+
+    await crearAnimales({
+      loteId,
+      chapetas: ['050'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-10-01',
+      edadEntradaMeses: null,
+      pesos: { '050': 160 },
+    })
+    const recienLlegado = (await listarAnimalesDeLote(loteId)).find((a) => a.chapeta === '050')!
+
+    // Ni estaba en la finca el día de la vacunación. Si su ficha la muestra,
+    // el dueño cree que está vacunado y no lo está.
+    expect(await eventosDeAnimal(recienLlegado.id)).toHaveLength(0)
+  })
+
+  it('la historia sanitaria sigue al animal cuando lo pasan a otro lote', async () => {
+    await registrarEvento({
+      tipo: 'vacuna',
+      fecha: '2026-09-05',
+      producto: 'Aftosa',
+      dosis: null,
+      responsable: 'Joseph',
+      proximaFecha: '2027-03-05',
+      notas: null,
+      animalId: null,
+      loteId,
+      registradoPorId: 'u1',
+    })
+
+    const otroLoteId = await crearLote({
+      nombre: 'Ceba 02',
+      tipo: 'ceba',
+      fechaApertura: '2026-09-01',
+    })
+    await prisma.animal.update({ where: { id: animalId }, data: { loteId: otroLoteId } })
+
+    const eventos = await eventosDeAnimal(animalId)
+    expect(eventos).toHaveLength(1)
+    expect(eventos[0].producto).toBe('Aftosa')
+  })
+})
+
+describe('eventosVencidos solo mira la última aplicación de cada tipo', () => {
+  it('volver a desparasitar apaga la alerta de la desparasitación anterior', async () => {
+    await registrarEvento({
+      tipo: 'desparasitacion',
+      fecha: '2026-05-10',
+      producto: 'Ivermectina',
+      dosis: null,
+      responsable: 'Joseph',
+      proximaFecha: '2026-08-10',
+      notas: null,
+      animalId,
+      loteId: null,
+      registradoPorId: 'u1',
+    })
+    await registrarEvento({
+      tipo: 'desparasitacion',
+      fecha: '2026-08-10',
+      producto: 'Ivermectina',
+      dosis: null,
+      responsable: 'Joseph',
+      proximaFecha: '2026-11-10',
+      notas: null,
+      animalId,
+      loteId: null,
+      registradoPorId: 'u1',
+    })
+
+    // La de mayo ya se atendió el 10 de agosto. Si sigue gritando "vencida",
+    // se van amontonando ciclo tras ciclo hasta que la portada es basura.
+    expect(await eventosVencidos('2026-08-20')).toHaveLength(0)
+  })
+
+  it('la última aplicación sí se avisa cuando se vence, una sola vez', async () => {
+    await registrarEvento({
+      tipo: 'desparasitacion',
+      fecha: '2026-05-10',
+      producto: 'Ivermectina',
+      dosis: null,
+      responsable: 'Joseph',
+      proximaFecha: '2026-08-10',
+      notas: null,
+      animalId,
+      loteId: null,
+      registradoPorId: 'u1',
+    })
+    await registrarEvento({
+      tipo: 'desparasitacion',
+      fecha: '2026-08-10',
+      producto: 'Ivermectina',
+      dosis: null,
+      responsable: 'Joseph',
+      proximaFecha: '2026-11-10',
+      notas: null,
+      animalId,
+      loteId: null,
+      registradoPorId: 'u1',
+    })
+
+    const vencidos = await eventosVencidos('2026-11-11')
+    expect(vencidos).toHaveLength(1)
+    expect(vencidos[0].proximaFecha).toBe('2026-11-10')
+  })
+
+  it('dos tipos distintos vencidos se avisan por separado', async () => {
+    await registrarEvento({
+      tipo: 'desparasitacion',
+      fecha: '2026-05-10',
+      producto: 'Ivermectina',
+      dosis: null,
+      responsable: 'Joseph',
+      proximaFecha: '2026-08-10',
+      notas: null,
+      animalId,
+      loteId: null,
+      registradoPorId: 'u1',
+    })
+    await registrarEvento({
+      tipo: 'vacuna',
+      fecha: '2026-05-10',
+      producto: 'Aftosa',
+      dosis: null,
+      responsable: 'Joseph',
+      proximaFecha: '2026-08-01',
+      notas: null,
+      animalId,
+      loteId: null,
+      registradoPorId: 'u1',
+    })
+
+    // La desparasitación no reemplaza a la vacuna: son calendarios distintos.
+    const vencidos = await eventosVencidos('2026-08-20')
+    expect(vencidos.map((e) => e.tipo).sort()).toEqual(['desparasitacion', 'vacuna'])
+  })
+
+  it('no avisa por un animal que ya salió de la finca', async () => {
+    await registrarEvento({
+      tipo: 'desparasitacion',
+      fecha: '2026-09-05',
+      producto: 'Ivermectina',
+      dosis: null,
+      responsable: 'Joseph',
+      proximaFecha: '2026-11-10',
+      notas: null,
+      animalId,
+      loteId: null,
+      registradoPorId: 'u1',
+    })
+
+    await registrarSalida(
+      {
+        animalIds: [animalId],
+        estado: 'vendido',
+        fechaSalida: '2026-10-01',
+        motivoSalida: null,
+        pesosSalida: {},
+        confirmarPesosSospechosos: true,
+      },
+      '2026-11-20',
+    )
+
+    // Se vendió en octubre: desparasitarlo en noviembre no es tarea de nadie.
+    // Un aviso por un animal que ya no está es ruido que entierra los de verdad.
+    expect(await eventosVencidos('2026-11-20')).toHaveLength(0)
   })
 })

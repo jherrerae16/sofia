@@ -23,7 +23,7 @@ import { prisma } from './cliente'
  *
  * Grafo de llaves foráneas relevante (hijo -> padre):
  *   Medicion -> Pesaje, Animal
- *   EventoSanitario -> Animal, Lote
+ *   EventoSanitario -> Animal (obligatorio), Lote (opcional)
  *   Movimiento -> Lote, Potrero
  *   Novedad -> Lote, Potrero
  *   Animal -> Lote
