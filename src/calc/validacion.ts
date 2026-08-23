@@ -139,9 +139,13 @@ export function validarMedicion(
     const ganancia = (nueva.pesoKg - referencia.pesoKg) / referencia.pesoKg
     if (ganancia > GANANCIA_MAXIMA_RELATIVA_MISMO_DIA) {
       const kilos = Math.round((nueva.pesoKg - referencia.pesoKg) * 10) / 10
+      // `referencia` es `anterior` cuando existe, o si no, `entrada` (ver
+      // más arriba). El mensaje tiene que decir cuál de las dos es en
+      // realidad -- un animal que nunca se pesó no tiene "último pesaje".
+      const contraQue = anterior ? 'al último pesaje' : 'al peso de entrada'
       return {
         nivel: 'advertencia',
-        mensaje: `El peso subió ${formato.format(kilos)} kg el mismo día frente al último pesaje. Revisa que esté bien digitado.`,
+        mensaje: `El peso subió ${formato.format(kilos)} kg el mismo día frente ${contraQue}. Revisa que esté bien digitado.`,
         gdp: null,
       }
     }

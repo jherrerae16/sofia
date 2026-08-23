@@ -734,6 +734,36 @@ describe('registrarSalida — vigilancia del peso de venta (hallazgo 2.1)', () =
     ).resolves.toBe(1)
   })
 
+  it('cuando el animal nunca se pesó, la advertencia de un dedazo de venta el mismo día del ingreso dice "peso de entrada", no "último pesaje" (defecto 2 del seguimiento)', async () => {
+    // Verificado por el revisor: animal que entra con 150 kg y se "vende" el
+    // mismo día con 2200 kg. No hay ningún `Pesaje` de por medio -- la
+    // referencia contra la que se compara es el peso de entrada, y el
+    // mensaje tiene que decir la verdad en ese caso, no repetir el texto
+    // pensado para cuando sí hay un pesaje real.
+    const [animal] = await listarAnimalesDeLote(loteId)
+
+    let error: unknown
+    try {
+      await registrarSalida(
+        {
+          animalIds: [animal.id],
+          estado: 'vendido',
+          fechaSalida: '2026-09-01',
+          motivoSalida: null,
+          pesosSalida: { [animal.id]: 2200 },
+        },
+        '2026-09-01',
+      )
+    } catch (e) {
+      error = e
+    }
+
+    expect(error).toBeInstanceOf(PesoSalidaSospechosoError)
+    const advertencias = (error as PesoSalidaSospechosoError).advertencias
+    expect(advertencias[0].mensaje).toContain('peso de entrada')
+    expect(advertencias[0].mensaje).not.toContain('último pesaje')
+  })
+
   it('registra un peso de venta el mismo día de un pesaje real, con el mismo valor -- el caso de la feria (defecto 1)', async () => {
     // El día de la feria: se pesa el lote en la mañana y se vende en la
     // tarde, mismo día, con la misma cifra real. `validarMedicion` rechaza

@@ -113,6 +113,57 @@ describe('validarMedicion', () => {
     expect(veredicto.nivel).toBe('advertencia')
   })
 
+  it('en contexto "salida" sin ningún pesaje previo, el mensaje del dedazo del mismo día dice "peso de entrada", no "último pesaje" -- porque no lo hay (defecto 2 del seguimiento)', () => {
+    // El caso exacto del hallazgo: un animal que entra con 150 kg y se
+    // "vende" el mismo día con 2200 kg, sin ningún pesaje real de por
+    // medio. `anterior` es null -- la referencia es el peso de entrada, no
+    // un pesaje -- así que el mensaje no puede decir "frente al último
+    // pesaje": eso no es lo que pasó.
+    const veredicto = validarMedicion(
+      entrada,
+      null,
+      { fecha: entrada.fecha, pesoKg: 2200 },
+      HOY,
+      'normal',
+      'salida',
+    )
+    expect(veredicto.nivel).toBe('advertencia')
+    expect(veredicto.mensaje).toContain('peso de entrada')
+    expect(veredicto.mensaje).not.toContain('último pesaje')
+  })
+
+  it('en contexto "salida" con un pesaje previo el mismo día, el mensaje del dedazo sí dice "último pesaje"', () => {
+    // Mismo hueco, pero con un pesaje real de la mañana: ahí la referencia
+    // sí es un pesaje, y el mensaje debe seguir diciéndolo.
+    const veredicto = validarMedicion(
+      entrada,
+      { fecha: '2026-10-01', pesoKg: 320 },
+      { fecha: '2026-10-01', pesoKg: 2200 },
+      HOY,
+      'normal',
+      'salida',
+    )
+    expect(veredicto.nivel).toBe('advertencia')
+    expect(veredicto.mensaje).toContain('último pesaje')
+    expect(veredicto.mensaje).not.toContain('peso de entrada')
+  })
+
+  it('en contexto "pesaje" (Digitar), el primer pesaje del animal registrado el mismo día de su ingreso también advierte el dedazo, contra el peso de entrada -- no es exclusivo de la venta', () => {
+    // La observación del revisor: la misma guardia relativa también se
+    // activa en la pantalla de Digitar, en el único caso donde ahí la
+    // ganancia diaria es nula -- el primer pesaje del animal, el mismo día
+    // de su ingreso. Es beneficiosa (caza un dedazo del día uno) y solo
+    // advierte, no bloquea.
+    const veredicto = validarMedicion(
+      entrada,
+      null,
+      { fecha: entrada.fecha, pesoKg: 2200 },
+      HOY,
+    )
+    expect(veredicto.nivel).toBe('advertencia')
+    expect(veredicto.mensaje).toContain('peso de entrada')
+  })
+
   it('en contexto "salida", una ganancia imposible frente al pesaje anterior sigue advirtiendo', () => {
     // El dedazo clásico (2200 en vez de 220) tiene que seguir advirtiendo en
     // una venta con un pesaje anterior de otro día -- el contexto "salida"
