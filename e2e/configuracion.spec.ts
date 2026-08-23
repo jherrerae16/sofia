@@ -156,12 +156,14 @@ test('una clave que no está en la lista de parámetros definidos se rechaza, si
   // El campo `clave` viaja en un input oculto -- nada en el HTML impide que
   // llegue otro valor. `guardarParametroAccion` tiene que rechazarlo contra
   // la lista de parámetros que la pantalla en verdad define, no escribirlo
-  // a ciegas.
+  // a ciegas. Se pisa el valor DESPUÉS de llenar los otros campos, no antes:
+  // es un input controlado (`value={clave}`), y cualquier re-render que
+  // dispare `onChange` de los otros campos lo devolvería a "gdp_objetivo".
+  await tarjeta.locator('input[name="valor"]').fill('750')
+  await tarjeta.locator('input[name="vigenteDesde"]').fill(HOY)
   await tarjeta.locator('input[name="clave"]').evaluate((input: HTMLInputElement) => {
     input.value = 'clave_inventada'
   })
-  await tarjeta.locator('input[name="valor"]').fill('750')
-  await tarjeta.locator('input[name="vigenteDesde"]').fill(HOY)
   await tarjeta.getByRole('button', { name: 'Guardar' }).click()
 
   await expect(tarjeta.getByText(/no es un parámetro configurable/)).toBeVisible()

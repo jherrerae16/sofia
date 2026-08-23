@@ -67,6 +67,16 @@ export const DEFINICION_PESO_OBJETIVO: DefinicionParametro = {
 }
 
 /**
+ * `formatearHectareas` (usada tal cual en la tabla de potreros, bajo una
+ * columna que ya dice "Hectáreas") no agrega la unidad -- a diferencia de
+ * `formatearGdp` y `formatearKg`, que sí la traen incluida. La tarjeta de
+ * un parámetro no tiene esa columna, así que aquí sí hace falta agregarla.
+ */
+function formatearHectareasConUnidad(hectareas: number): string {
+  return `${formatearHectareas(hectareas)} ha`
+}
+
+/**
  * A diferencia de los seis parámetros de arriba, esta clave no gobierna
  * ningún cálculo todavía -- se movió aquí (desde un campo suelto en `Finca`)
  * precisamente para que, cuando la carga animal empiece a consumirla, ya
@@ -78,7 +88,7 @@ export const DEFINICION_HECTAREAS: DefinicionParametro = {
   explicacion:
     'Las hectáreas realmente aprovechables para el ganado, descontando lo improductivo. De aquí sale cuántos kilos y cuántas cabezas caben por hectárea -- la carga animal de la finca.',
   unidad: 'ha',
-  formatear: formatearHectareas,
+  formatear: formatearHectareasConUnidad,
 }
 
 export const DEFINICIONES_PARAMETRO: DefinicionParametro[] = [
