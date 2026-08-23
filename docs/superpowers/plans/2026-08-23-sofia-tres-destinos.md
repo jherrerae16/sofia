@@ -2370,7 +2370,7 @@ export async function lineaDeTiempoDeAnimal(animalId: string, hoy: FechaISO): Pr
 
 Devuelve **de lo más reciente a lo más viejo**, que es como lo lee el dueño: lo último que pasó primero. Los movimientos son del lote, no del animal, así que se traen de `Movimiento` filtrando por el lote del animal y por fechas dentro de su estadía —un movimiento de antes de que entrara no le pasó a él.
 
-- [ ] **Step 1: Escribir las pruebas que fallan**
+- [x] **Step 1: Escribir las pruebas que fallan**
 
 Crear `src/datos/linea-de-tiempo.test.ts` con estos cuatro casos, montados sobre el mismo `beforeEach` de `src/datos/sanidad.test.ts` (crear finca, lote, un animal con chapeta '001' que entra el 2026-09-01 con 150 kg):
 
@@ -2381,12 +2381,12 @@ Crear `src/datos/linea-de-tiempo.test.ts` con estos cuatro casos, montados sobre
 
 Escribir los cuatro con aserciones exactas —no `expect(x).toBeTruthy()`—, siguiendo el estilo del resto de `src/datos/*.test.ts`.
 
-- [ ] **Step 2: Correr las pruebas y verlas fallar**
+- [x] **Step 2: Correr las pruebas y verlas fallar**
 
 Run: `npx vitest run src/datos/linea-de-tiempo.test.ts`
 Expected: FAIL — «Failed to resolve import "./linea-de-tiempo"».
 
-- [ ] **Step 3: Escribir la implementación**
+- [x] **Step 3: Escribir la implementación**
 
 `src/datos/linea-de-tiempo.ts` junta cuatro consultas y las mezcla en un solo orden:
 
@@ -2398,12 +2398,12 @@ Expected: FAIL — «Failed to resolve import "./linea-de-tiempo"».
 
 Todo ordenado por fecha descendente. La conversión de `Date` a `FechaISO` ocurre solo aquí, nunca en la pantalla.
 
-- [ ] **Step 4: Correr las pruebas y verlas pasar**
+- [x] **Step 4: Correr las pruebas y verlas pasar**
 
 Run: `npx vitest run src/datos/linea-de-tiempo.test.ts`
 Expected: PASS, las cuatro.
 
-- [ ] **Step 5: Escribir la prueba de navegador que falla**
+- [x] **Step 5: Escribir la prueba de navegador que falla**
 
 Crear `e2e/animal.spec.ts`:
 
@@ -2436,18 +2436,18 @@ test('desde la ficha se llega a anotarle el peso y a registrar su salida', async
 })
 ```
 
-- [ ] **Step 6: Reescribir la ficha**
+- [x] **Step 6: Reescribir la ficha**
 
 `src/app/animales/[id]/page.tsx`: el encabezado con la chapeta grande y su renglón de datos (lote, raza, sexo, cuándo entró y con cuánto, proveedor, edad al entrar); el sello «No está engordando» solo si su clasificación es `bajo` o `critico`; la `<Cinta>` con Peso actual, Ha ganado, Ganancia diaria y Días en finca; la `<GraficaLote>` reusada con la serie del animal —**no** la del lote— contra su propia trayectoria objetivo; la línea de tiempo; y los dos botones del pie.
 
 La gráfica del animal necesita una serie de un solo animal. En vez de escribir una función nueva, `serieDePesoPromedio` sirve tal cual si se le pasa un lote de un solo animal — pero eso es forzarla. Extraer en su lugar `serieDeAnimal(animalId, hoy): Promise<SerieLote>` en `src/datos/serie.ts`, que arma los puntos desde `historialDeAnimal` y calcula el objetivo con los días desde la entrada de ese animal. Es diez líneas y no ensucia la del lote.
 
-- [ ] **Step 7: Correr las pruebas y verlas pasar**
+- [x] **Step 7: Correr las pruebas y verlas pasar**
 
 Run: `npx playwright test e2e/animal.spec.ts && npx vitest run && npx tsc --noEmit`
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/datos/linea-de-tiempo.ts src/datos/linea-de-tiempo.test.ts src/datos/serie.ts src/app/animales e2e/animal.spec.ts
