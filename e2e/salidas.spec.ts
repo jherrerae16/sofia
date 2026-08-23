@@ -296,6 +296,10 @@ test('un animal muerto se ve distinto de uno activo, en Salidas y en su propia f
 
   // Y la ficha del propio animal ya no se ve idéntica a la de uno activo.
   await page.goto(`/animales/${animal.id}`)
-  await expect(page.getByText('Muerto', { exact: false })).toBeVisible()
-  await expect(page.getByText('Neumonía, no respondió al tratamiento')).toBeVisible()
+  // El sello de arriba dice el estado; el motivo vive en la línea de tiempo,
+  // que es donde va un hecho con fecha.
+  await expect(page.getByTestId('estado')).toContainText('Muerto')
+  await expect(
+    page.getByTestId('suceso').filter({ hasText: 'Neumonía, no respondió al tratamiento' }),
+  ).toHaveCount(1)
 })

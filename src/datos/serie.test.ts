@@ -5,7 +5,7 @@ import { limpiarTablasOperativas } from './limpieza-pruebas'
 import { crearLote } from './lotes'
 import { guardarParametro } from './parametros'
 import { guardarPesaje } from './pesajes'
-import { serieDePesoPromedio } from './serie'
+import { serieDeAnimal, serieDePesoPromedio } from './serie'
 
 let loteId: string
 let ids: Record<string, string>
@@ -144,5 +144,37 @@ describe('serieDePesoPromedio', () => {
 
     expect(serie.puntos).toEqual([])
     expect(serie.animalesDelLote).toBe(0)
+  })
+})
+
+describe('serieDeAnimal', () => {
+  it('arranca en la entrada del animal y agrega un punto por pesaje suyo', async () => {
+    await guardarParametro('gdp_objetivo', '800', '2026-01-01', 'u1')
+    await pesar('2026-02-15', { '001': 230, '002': 250 })
+
+    const serie = await serieDeAnimal(ids['001'], '2026-03-01')
+
+    expect(serie.animalesDelLote).toBe(1)
+    expect(serie.puntos).toHaveLength(2)
+    expect(serie.puntos[0]).toMatchObject({ fecha: '2026-01-15', pesoPromedioKg: 200 })
+    expect(serie.puntos[1]).toMatchObject({ fecha: '2026-02-15', pesoPromedioKg: 230, animales: 1 })
+    // 31 días a 800 g/día sobre sus 200 kg de entrada, no sobre el promedio
+    // del lote: la trayectoria de un animal es la suya.
+    expect(serie.puntos[1].objetivoKg).toBe(224.8)
+  })
+
+  it('no se contagia de los pesajes de sus compañeros de lote', async () => {
+    await pesar('2026-02-15', { '002': 250 })
+
+    const serie = await serieDeAnimal(ids['001'], '2026-03-01')
+
+    expect(serie.puntos).toHaveLength(1)
+    expect(serie.puntos[0].fecha).toBe('2026-01-15')
+  })
+
+  it('sin gdp objetivo configurado no se inventa una trayectoria', async () => {
+    await pesar('2026-02-15', { '001': 230 })
+    const serie = await serieDeAnimal(ids['001'], '2026-03-01')
+    expect(serie.puntos[1].objetivoKg).toBeNull()
   })
 })

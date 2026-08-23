@@ -111,3 +111,55 @@ export async function serieDePesoPromedio(loteId: string, hoy: FechaISO): Promis
 
   return { puntos, animalesDelLote: animales.length }
 }
+
+/**
+ * La curva de un animal solo, contra su propia trayectoria objetivo.
+ *
+ * Devuelve la misma forma que `serieDePesoPromedio` para que la gráfica sea
+ * una sola: un animal es un grupo de uno. La diferencia real es que la
+ * trayectoria se calcula sobre SU peso de entrada y SUS días en la finca, no
+ * sobre los promedios del lote.
+ */
+export async function serieDeAnimal(animalId: string, hoy: FechaISO): Promise<SerieLote> {
+  const animal = await prisma.animal.findUniqueOrThrow({
+    where: { id: animalId },
+    select: { fechaEntrada: true, pesoEntradaKg: true },
+  })
+  const entrada = {
+    fecha: aFechaISO(animal.fechaEntrada),
+    pesoKg: aKg(animal.pesoEntradaKg),
+  }
+
+  const mediciones = await prisma.medicion.findMany({
+    where: { animalId, pesaje: { anuladoEn: null } },
+    include: { pesaje: { select: { fecha: true } } },
+  })
+  const historial = mediciones
+    .map((medicion) => ({ fecha: aFechaISO(medicion.pesaje.fecha), pesoKg: aKg(medicion.pesoKg) }))
+    .sort((a, b) => a.fecha.localeCompare(b.fecha))
+
+  const gdpObjetivo = await leerGdpObjetivo(hoy)
+  const objetivoEn = (fecha: FechaISO) =>
+    gdpObjetivo === null
+      ? null
+      : redondear(entrada.pesoKg + (gdpObjetivo / 1000) * diasEntre(entrada.fecha, fecha))
+
+  const puntos: PuntoSerie[] = [
+    {
+      fecha: entrada.fecha,
+      pesoPromedioKg: entrada.pesoKg,
+      animales: 0,
+      objetivoKg: objetivoEn(entrada.fecha),
+    },
+    ...historial
+      .filter((medicion) => medicion.fecha !== entrada.fecha)
+      .map((medicion) => ({
+        fecha: medicion.fecha,
+        pesoPromedioKg: medicion.pesoKg,
+        animales: 1,
+        objetivoKg: objetivoEn(medicion.fecha),
+      })),
+  ]
+
+  return { puntos, animalesDelLote: 1 }
+}

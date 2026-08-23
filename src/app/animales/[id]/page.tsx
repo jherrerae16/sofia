@@ -1,31 +1,22 @@
-import type { EstadoAnimal } from '@prisma/client'
-import { hoyBogota } from '@/calc/fechas'
+import Link from 'next/link'
+import { clasificar } from '@/calc/clasificacion'
+import { diasEntre, hoyBogota } from '@/calc/fechas'
 import { gdpAcumulada } from '@/calc/gdp'
 import { prisma } from '@/datos/cliente'
 import { aFechaISO, aKg } from '@/datos/conversion'
-import { leerGdpObjetivo } from '@/datos/parametros'
+import { lineaDeTiempoDeAnimal } from '@/datos/linea-de-tiempo'
+import { leerUmbrales, ParametroFaltanteError } from '@/datos/parametros'
 import { historialDeAnimal } from '@/datos/pesajes'
-import { eventosDeAnimal } from '@/datos/sanidad'
-import { Cifra } from '@/ui/Cifra'
-import { CurvaPeso } from '@/ui/CurvaPeso'
-import { ETIQUETA_TIPO_EVENTO } from '@/ui/etiquetas'
-import { formatearGdp, formatearKg, SIN_DATO } from '@/ui/formato'
+import { serieDeAnimal } from '@/datos/serie'
+import { Cinta, type Celda } from '@/ui/Cinta'
+import { ETIQUETA_ESTADO_ANIMAL } from '@/ui/etiquetas'
+import { formatearGdp, formatearKg, separarUnidad } from '@/ui/formato'
+import { Marco } from '@/ui/Marco'
+import { GraficaLote } from '../../GraficaLote'
 
-// Hoy es dinámica solo porque lee `params`. Se declara explícito para que no
-// se vuelva estática el día que alguien deje de leerlo, y para que un pesaje
-// nuevo (que hoy no revalida esta ficha) al menos no quede además congelado
-// por el prerenderizado del build encima de eso.
+// La ficha cambia con cada pesaje y con cada aplicación sanitaria: sin esto
+// Next la prerenderiza en el build y la historia queda congelada.
 export const dynamic = 'force-dynamic'
-
-// Hallazgo 2.4: la ficha no mostraba `estado`, `fechaSalida`, `motivoSalida`
-// ni `pesoSalidaKg` -- un animal muerto de neumonía se veía idéntico a uno
-// activo en su propia ficha, y el motivo (obligatorio al escribirlo) no se
-// leía en ninguna parte.
-const ETIQUETA_ESTADO: Record<Exclude<EstadoAnimal, 'activo'>, string> = {
-  vendido: 'Vendido',
-  muerto: 'Muerto',
-  robado: 'Robado',
-}
 
 export default async function FichaAnimal({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -37,78 +28,143 @@ export default async function FichaAnimal({ params }: { params: Promise<{ id: st
   })
   const entrada = { fecha: aFechaISO(animal.fechaEntrada), pesoKg: aKg(animal.pesoEntradaKg) }
   const historial = await historialDeAnimal(id)
-  const eventos = await eventosDeAnimal(id)
   const ultimo = historial.at(-1) ?? null
-  const gdpObjetivo = await leerGdpObjetivo(hoy)
+  const gdp = ultimo ? gdpAcumulada(entrada, ultimo) : null
+
+  // Sin umbrales configurados no se puede decir que un animal va quedado --
+  // sería un criterio que nadie decidió. La ficha sigue en pie sin el sello.
+  let quedado = false
+  try {
+    const umbrales = await leerUmbrales(hoy)
+    quedado = ['bajo', 'critico'].includes(clasificar(gdp, umbrales))
+  } catch (error) {
+    if (!(error instanceof ParametroFaltanteError)) throw error
+  }
+
+  const pesoActual = animal.pesoSalidaKg ? aKg(animal.pesoSalidaKg) : (ultimo?.pesoKg ?? null)
+  const celdas: Celda[] = [
+    { rotulo: 'Peso actual', ...separarUnidad(formatearKg(pesoActual)) },
+    {
+      rotulo: 'Ha ganado',
+      ...separarUnidad(formatearKg(pesoActual === null ? null : pesoActual - entrada.pesoKg)),
+    },
+    { rotulo: 'Ganancia diaria', ...separarUnidad(formatearGdp(gdp)) },
+    {
+      rotulo: 'Días en finca',
+      valor: String(
+        diasEntre(entrada.fecha, animal.fechaSalida ? aFechaISO(animal.fechaSalida) : hoy),
+      ),
+    },
+  ]
+
+  const sucesos = await lineaDeTiempoDeAnimal(id, hoy)
+
+  const identidad = [
+    animal.lote.nombre,
+    animal.raza ?? 'raza sin registrar',
+    animal.sexo,
+    `entró el ${entrada.fecha} con ${formatearKg(entrada.pesoKg)}`,
+    animal.proveedor,
+    animal.edadEntradaMeses !== null ? `${animal.edadEntradaMeses} meses al entrar` : null,
+  ].filter(Boolean)
 
   return (
-    <main className="p-6">
-      <h1 className="font-serif text-3xl text-pasto">Chapeta {animal.chapeta}</h1>
-      <p className="mb-6 text-sm text-carbon/70">
-        {animal.lote.nombre} · {animal.raza ?? 'raza sin registrar'} · entró el{' '}
-        <span className="cifra">{entrada.fecha}</span> con{' '}
-        <span className="cifra">{formatearKg(entrada.pesoKg)}</span>
-        {animal.proveedor ? ` · ${animal.proveedor}` : ''}
-      </p>
+    <Marco>
+      <Link
+        href="/"
+        className="mt-8 inline-block text-[13px] text-carbon-3 underline underline-offset-[3px]"
+      >
+        ← El ganado
+      </Link>
 
-      {animal.estado !== 'activo' && (
-        <div
-          className={`mb-6 rounded-lg border p-4 text-sm ${
-            animal.estado === 'vendido'
-              ? 'border-tierra/30 bg-crema text-carbon'
-              : 'border-rojo-tierra/40 bg-rojo-tierra/10 text-carbon'
-          }`}
-        >
-          <p className="font-medium uppercase tracking-wide">
-            {ETIQUETA_ESTADO[animal.estado]}
-            {animal.fechaSalida && (
-              <>
-                {' '}
-                el <span className="cifra">{aFechaISO(animal.fechaSalida)}</span>
-              </>
-            )}
-          </p>
-          {animal.pesoSalidaKg && (
-            <p className="mt-1">
-              Peso de salida: <span className="cifra font-medium">{formatearKg(aKg(animal.pesoSalidaKg))}</span>
-            </p>
-          )}
-          {animal.motivoSalida && <p className="mt-1">Motivo: {animal.motivoSalida}</p>}
+      <div className="max-w-[820px] pt-6">
+        <h1 className="text-[clamp(32px,5vw,48px)] font-extrabold leading-none tracking-[0.04em] text-monte">
+          {animal.chapeta}
+        </h1>
+        <div data-testid="identidad" className="mt-[14px] text-[14px] leading-[1.6] text-carbon-2">
+          {identidad.join(' · ')}
         </div>
-      )}
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
-        <Cifra etiqueta="Peso actual" valor={formatearKg(ultimo?.pesoKg ?? null)} comparacion={ultimo ? `medido el ${ultimo.fecha}` : undefined} />
-        <Cifra etiqueta="Kilos ganados" valor={ultimo ? formatearKg(ultimo.pesoKg - entrada.pesoKg) : SIN_DATO} />
-        <Cifra etiqueta="Ganancia acumulada" valor={formatearGdp(ultimo ? gdpAcumulada(entrada, ultimo) : null)} />
+        {/* El estado de salida se dice una vez aquí, como sello, y el motivo
+            vive en la línea de tiempo: es un hecho con fecha, no una etiqueta
+            del animal. Repetirlo en los dos lados le hace creer al que lee
+            que son dos cosas distintas. */}
+        {animal.estado !== 'activo' && (
+          <p
+            data-testid="estado"
+            className={`mt-4 inline-block rounded border px-3 py-1 text-[12.5px] font-semibold ${
+              animal.estado === 'vendido'
+                ? 'border-borde-2 text-carbon-2'
+                : 'border-barro/40 text-barro'
+            }`}
+          >
+            {ETIQUETA_ESTADO_ANIMAL[animal.estado]}
+            {animal.fechaSalida && <span className="cifra"> el {aFechaISO(animal.fechaSalida)}</span>}
+          </p>
+        )}
+
+        {quedado && animal.estado === 'activo' && (
+          <p
+            data-testid="sello"
+            className="mt-4 inline-block rounded border border-barro/40 px-3 py-1 text-[12.5px] font-semibold text-barro"
+          >
+            No está engordando
+          </p>
+        )}
       </div>
 
-      <section className="mb-8 rounded-lg border border-tierra/20 bg-white p-4">
-        <h2 className="mb-3 font-serif text-xl text-pasto">Peso en el tiempo</h2>
-        <CurvaPeso entrada={entrada} historial={historial} gdpObjetivo={gdpObjetivo} />
-      </section>
+      <Cinta celdas={celdas} />
 
-      <section className="rounded-lg border border-tierra/20 bg-white p-4">
-        <h2 className="mb-3 font-serif text-xl text-pasto">Sanidad</h2>
-        {eventos.length === 0 ? (
-          <p className="text-sm text-carbon/60">Sin eventos registrados.</p>
-        ) : (
-          <ul className="space-y-2 text-sm">
-            {eventos.map((evento) => (
-              <li key={evento.id} className="border-b border-tierra/10 pb-2">
-                <span className="cifra">{evento.fecha}</span> · {ETIQUETA_TIPO_EVENTO[evento.tipo]} ·{' '}
-                {evento.producto}
-                {evento.dosis ? ` (${evento.dosis})` : ''} · {evento.responsable}
-                {evento.proximaFecha && (
-                  <span className="ml-2 text-ambar">
-                    próxima: <span className="cifra">{evento.proximaFecha}</span>
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </main>
+      <h2 className="rotulo mb-4 mt-13">Su peso contra el objetivo</h2>
+      <GraficaLote serie={await serieDeAnimal(id, hoy)} />
+
+      <h2 className="rotulo mb-4 mt-13">Todo lo que le ha pasado</h2>
+      <div className="border-t border-borde">
+        {sucesos.map((suceso, i) => (
+          <div
+            key={`${suceso.fecha}-${suceso.clase}-${i}`}
+            data-testid="suceso"
+            className="flex flex-wrap items-baseline gap-x-5 gap-y-1 border-b border-borde py-[13px]"
+          >
+            <div className="cifra w-[70px] flex-none text-[12.5px] text-carbon-3">
+              {suceso.fecha}
+            </div>
+            <div className="flex-1 basis-[240px]">
+              <div className={`text-[14px] ${suceso.malo ? 'text-barro' : 'text-carbon'}`}>
+                {suceso.que}
+              </div>
+              {suceso.detalle && (
+                <div className="mt-[3px] text-[12.5px] text-carbon-3">{suceso.detalle}</div>
+              )}
+            </div>
+            <div className="text-right">
+              {suceso.cifra && (
+                <div className={`cifra text-[14px] font-semibold ${suceso.malo ? 'text-barro' : ''}`}>
+                  {suceso.cifra}
+                </div>
+              )}
+              {suceso.cifraChica && (
+                <div className="cifra text-[12.5px] text-carbon-3">{suceso.cifraChica}</div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-8 flex flex-wrap gap-[10px]">
+        <Link
+          href="/anotar/pesos"
+          className="rounded bg-monte px-5 py-3 text-[14px] font-semibold text-crema no-underline"
+        >
+          Anotar su peso
+        </Link>
+        <Link
+          href="/anotar/salida"
+          className="rounded border border-borde-2 bg-white px-5 py-3 text-[14px] font-semibold text-carbon no-underline"
+        >
+          Registrar su salida
+        </Link>
+      </div>
+    </Marco>
   )
 }
