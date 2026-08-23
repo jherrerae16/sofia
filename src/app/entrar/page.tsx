@@ -11,25 +11,25 @@ export default function Entrar() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#F7F4EC] p-6">
+    <main className="flex min-h-screen items-center justify-center bg-crema p-6">
       <form action={entrar} className="w-full max-w-sm space-y-4">
-        <h1 className="font-serif text-3xl text-[#1B5E3F]">SOFÍA</h1>
-        <p className="text-sm text-[#23201B]/70">Finca Santa Verónica</p>
+        <h1 className="text-[28px] font-extrabold tracking-[0.2em] text-monte">SOFÍA</h1>
+        <p className="text-sm text-carbon-2">Finca Santa Verónica</p>
         <input
           name="correo"
           type="email"
           required
           placeholder="Correo"
-          className="w-full rounded border border-[#8B5E3C]/30 bg-white p-3"
+          className="w-full rounded border border-borde bg-white p-3"
         />
         <input
           name="clave"
           type="password"
           required
           placeholder="Clave"
-          className="w-full rounded border border-[#8B5E3C]/30 bg-white p-3"
+          className="w-full rounded border border-borde bg-white p-3"
         />
-        <button className="w-full rounded bg-[#1B5E3F] p-3 font-medium text-white">Entrar</button>
+        <button className="w-full rounded bg-monte p-3 text-[14px] font-semibold text-crema">Entrar</button>
       </form>
     </main>
   )

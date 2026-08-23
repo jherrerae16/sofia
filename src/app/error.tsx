@@ -24,8 +24,8 @@ export default function Error({
 
   return (
     <main className="p-6">
-      <div className="mx-auto max-w-lg rounded-lg border border-rojo-tierra/30 bg-white p-6 text-center">
-        <h1 className="mb-2 font-serif text-2xl text-rojo-tierra">Algo salió mal</h1>
+      <div className="mx-auto max-w-lg rounded-lg border border-barro/40 bg-white p-6 text-center">
+        <h1 className="mb-2 text-2xl font-semibold text-barro">Algo salió mal</h1>
         <p className="mb-4 text-sm text-carbon/70">
           Esta pantalla no pudo cargar por un problema inesperado. No es necesariamente algo que
           hiciste: puede ser un problema pasajero de conexión con la base de datos. Intenta de
@@ -33,7 +33,7 @@ export default function Error({
         </p>
         <button
           onClick={() => retry()}
-          className="rounded bg-pasto px-6 py-3 font-medium text-white"
+          className="rounded bg-monte px-6 py-3 text-[14px] font-semibold text-crema"
         >
           Intentar de nuevo
         </button>

@@ -21,23 +21,11 @@
   --color-carbon-3: #8b8378;
   --color-borde: rgba(31, 28, 23, 0.14);
   --color-borde-2: rgba(31, 28, 23, 0.28);
-
-  /* Alias de transición. Las siete pantallas viejas todavía usan estos
-     nombres y se borran en la Tarea 11 del plan; hasta entonces apuntan al
-     color nuevo que les corresponde para que nada quede a medio pintar.
-     No usarlos en código nuevo. */
-  --color-pasto: #0f4430;
-  --color-pasto-medio: #2e6b4c;
-  --color-ambar: #c25a2e;
-  --color-rojo-tierra: #c25a2e;
 }
 
 @theme {
   --font-sans: var(--fuente-interfaz), system-ui, sans-serif;
   --font-estrecha: var(--fuente-estrecha), system-ui, sans-serif;
-  /* La plataforma ya no usa serif. El alias queda para que las pantallas
-     viejas no se rompan antes de que la Tarea 11 las borre. */
-  --font-serif: var(--fuente-interfaz), system-ui, sans-serif;
 }
 
 body {
