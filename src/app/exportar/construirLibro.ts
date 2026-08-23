@@ -81,7 +81,6 @@ const COLUMNAS_LOTES: Column<FilaLoteExport>[] = [
   { ...columnaAncha('Fecha de cierre', 16), cell: (f) => celdaFecha(f.fechaCierre) },
   { ...columnaAncha('Potrero actual', 18), cell: (f) => celdaTexto(f.potreroActual) },
   { ...columnaAncha('Fecha de entrada al potrero', 22), cell: (f) => celdaFecha(f.fechaEntradaPotrero) },
-  { ...columnaAncha('Animales activos', 16), cell: (f) => celdaNumero(f.animalesActivos, FORMATO_NUMERO) },
 ]
 
 const COLUMNAS_POTREROS: Column<FilaPotreroExport>[] = [

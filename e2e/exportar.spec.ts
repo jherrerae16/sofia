@@ -235,10 +235,13 @@ test('el botón de Configuración descarga un .xlsx real con las 8 hojas y todo 
   expect(pesajeChapeta9001.Método.valor).toBe('báscula')
   expect(pesajeChapeta9001['Registrado por'].valor).toBe('Joseph')
 
-  // --- Lotes: el que sembramos, con el potrero actual y los animales activos ---
-  const lote = filasComoObjetos(hojaOFalla(hojas, 'Lotes')).find((f) => f.Nombre.valor === NOMBRE_LOTE)!
+  // --- Lotes: el que sembramos, con el potrero actual -- sin la columna
+  // calculada "Animales activos", que no existe en la base y se puede
+  // derivar de la hoja de Animales.
+  const hojaLotes = hojaOFalla(hojas, 'Lotes')
+  expect(hojaLotes.encabezados).not.toContain('Animales activos')
+  const lote = filasComoObjetos(hojaLotes).find((f) => f.Nombre.valor === NOMBRE_LOTE)!
   expect(lote['Potrero actual'].valor).toBe(NOMBRE_POTRERO_SUR)
-  expect(lote['Animales activos'].valor).toBe(2)
   expect(excelSerialAFechaISO(lote['Fecha de apertura'].valor as number)).toBe(FECHA_ENTRADA)
 
   // --- Potreros: agua real, hectáreas numéricas ---

@@ -175,6 +175,32 @@ describe('construirLibroExcel', () => {
     }
   })
 
+  // "Animales activos" es un conteo agregado que no existe en la base --
+  // se puede derivar de la hoja de Animales -- y el respaldo lleva hechos,
+  // no conclusiones: el día que se corrija el estado de un animal viejo,
+  // ese número congelado contradice a la pantalla y nadie sabe cuál tiene
+  // razón. No debe existir ni como encabezado ni como cadena en el archivo.
+  it('no incluye la columna calculada "Animales activos" en la hoja de Lotes', async () => {
+    const datos: DatosExportacion = {
+      ...datosDePrueba(),
+      lotes: [
+        {
+          nombre: 'Ceba 01',
+          tipo: 'Ceba',
+          fechaApertura: '2026-01-01',
+          fechaCierre: null,
+          potreroActual: null,
+          fechaEntradaPotrero: null,
+        },
+      ],
+    }
+
+    const buffer = await construirLibroExcel(datos)
+    const archivos = unzipSync(new Uint8Array(buffer))
+    const sharedStrings = strFromU8(archivos['xl/sharedStrings.xml'] ?? new Uint8Array())
+    expect(sharedStrings).not.toContain('Animales activos')
+  })
+
   it('produce un .xlsx real (zip con las 8 hojas) con la celda del peso guardada como número', async () => {
     const buffer = await construirLibroExcel(datosDePrueba())
 

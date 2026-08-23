@@ -48,7 +48,6 @@ export type FilaLoteExport = {
   fechaCierre: FechaISO | null
   potreroActual: string | null
   fechaEntradaPotrero: FechaISO | null
-  animalesActivos: number
 }
 
 export type FilaPotreroExport = {
@@ -171,10 +170,7 @@ export async function datosExportacionCompleta(): Promise<DatosExportacion> {
       orderBy: [{ pesaje: { fecha: 'asc' } }, { animal: { chapeta: 'asc' } }],
     }),
     prisma.lote.findMany({
-      include: {
-        potreroActual: { select: { nombre: true } },
-        _count: { select: { animales: { where: { estado: 'activo' } } } },
-      },
+      include: { potreroActual: { select: { nombre: true } } },
       orderBy: { nombre: 'asc' },
     }),
     prisma.potrero.findMany({ orderBy: { nombre: 'asc' } }),
@@ -240,7 +236,6 @@ export async function datosExportacionCompleta(): Promise<DatosExportacion> {
       fechaCierre: lote.fechaCierre ? aFechaISO(lote.fechaCierre) : null,
       potreroActual: lote.potreroActual?.nombre ?? null,
       fechaEntradaPotrero: lote.fechaEntradaPotrero ? aFechaISO(lote.fechaEntradaPotrero) : null,
-      animalesActivos: lote._count.animales,
     })),
 
     potreros: potreros.map((potrero) => ({
