@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es-CO"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOFÍA — Sanidad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800&family=Archivo+Narrow:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<style>input[type=checkbox],input[type=radio]{accent-color:var(--monte);width:15px;height:15px}</style>
+<style>
+.modos{display:flex;gap:2px;background:var(--crema-2);padding:3px;border-radius:var(--r);margin:40px 0 0;width:fit-content;flex-wrap:wrap}
+.modos a{color:var(--carbon-3);text-decoration:none;font-size:13.5px;font-weight:600;padding:9px 18px;border-radius:2px}
+.modos a.on{background:var(--monte);color:var(--crema)}
+.cab{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;margin:32px 0 0}
+.campo{display:flex;flex-direction:column;gap:7px}
+.campo k{font:600 10.5px 'Archivo Narrow';letter-spacing:.14em;text-transform:uppercase;color:var(--carbon-3)}
+.campo em{font-style:normal;font-size:11.5px;color:var(--carbon-3);margin-top:-3px}
+.campo input,.campo select{background:var(--crema-3);border:1px solid var(--borde);border-radius:var(--r);
+  color:var(--carbon);font:500 14px 'Archivo';padding:10px 12px;outline:none;min-width:170px}
+.campo input:focus,.campo select:focus{border-color:var(--tierra)}
+.quien{display:flex;gap:10px;margin:14px 0 0;flex-wrap:wrap}
+.quien label{display:inline-flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--borde);
+  border-radius:var(--r);padding:11px 16px;font-size:14px;cursor:pointer}
+.quien label.on{border-color:var(--monte);box-shadow:inset 0 0 0 1px var(--monte)}
+.marcar{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin-top:16px}
+.marcar label{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--borde);
+  border-radius:var(--r);padding:10px 12px;font:800 13.5px 'Archivo';letter-spacing:.07em;color:var(--carbon-3);cursor:pointer}
+.marcar label.on{border-color:var(--monte);color:var(--carbon)}
+.marcar label.fuera{opacity:.42}
+.resumen{margin-top:24px;padding:16px 18px;background:var(--crema-2);border-radius:var(--r);font-size:14px;color:var(--carbon-2)}
+.resumen b{color:var(--carbon)}
+.acciones{display:flex;gap:14px;align-items:center;margin-top:24px;flex-wrap:wrap}
+table{width:100%;border-collapse:collapse;margin-top:14px}
+th{font:600 10.5px 'Archivo Narrow';letter-spacing:.14em;text-transform:uppercase;color:var(--carbon-3);
+  text-align:left;padding:0 14px 12px 0;border-bottom:1px solid var(--borde)}
+td{padding:12px 14px 12px 0;border-bottom:1px solid var(--borde);font-size:14px;vertical-align:top}
+td.q{color:var(--carbon-3);font-size:13px}
+td b{font-weight:700}
+tr.vencido td.q{color:var(--barro)}
+</style></head><body><div class="marco">
+
+<header>
+  <a class="logo" href="ganado.html">SOFÍA</a>
+  <nav><a href="ganado.html">Ganado</a><a class="on" href="anotar.html">Anotar</a><a href="finca.html">Finca</a></nav>
+  <div class="quien" style="margin:0"><span class="quien" style="margin:0;color:var(--carbon-3);font-size:12.5px">Santa Verónica · Joseph</span></div>
+</header>
+
+<div class="titular">
+  <h1>¿Qué les pusiste?</h1>
+  <p>Queda guardado novillo por novillo, con el producto y la dosis. Si pones cuándo toca repetirlo, SOFÍA te avisa en «Ganado» cuando se venza.</p>
+</div>
+
+<div class="modos">
+  <a href="anotar.html">Pesos</a><a href="#">Venta o muerte</a><a href="#">Novedad</a>
+  <a href="#">Mover lote</a><a href="#">Entrada de ganado</a><a class="on" href="#">Sanidad</a>
+</div>
+
+<div class="cab">
+  <div class="campo"><k>Qué se aplicó</k>
+    <select><option>Vacuna</option><option>Desparasitación</option><option selected>Vitamina</option><option>Tratamiento</option></select></div>
+  <div class="campo"><k>Producto</k><input value="Complejo B" placeholder="Nombre del frasco"></div>
+  <div class="campo"><k>Dosis</k><input value="5 ml" placeholder="Opcional"><em>Por animal</em></div>
+  <div class="campo"><k>Fecha</k><input type="date" value="2026-08-22"></div>
+  <div class="campo"><k>Quién lo aplicó</k><input value="Joseph"></div>
+  <div class="campo"><k>Vuelve a tocar el</k><input type="date" value="2026-11-22"><em>Déjalo vacío si no se repite</em></div>
+</div>
+
+<h2>¿A cuáles?</h2>
+<div class="quien">
+  <label class="on"><input type="radio" name="a" checked> Todo Ceba 01 · 14 novillos</label>
+  <label><input type="radio" name="a"> Solo algunos</label>
+</div>
+
+<div class="marcar">
+  <label class="on"><input type="checkbox" checked> 001</label>
+  <label class="on"><input type="checkbox" checked> 002</label>
+  <label class="on"><input type="checkbox" checked> 003</label>
+  <label class="on"><input type="checkbox" checked> 004</label>
+  <label class="on"><input type="checkbox" checked> 005</label>
+  <label class="on"><input type="checkbox" checked> 006</label>
+  <label class="on"><input type="checkbox" checked> 007</label>
+  <label class="on"><input type="checkbox" checked> 008</label>
+  <label class="on"><input type="checkbox" checked> 009</label>
+  <label class="on"><input type="checkbox" checked> 010</label>
+  <label class="on"><input type="checkbox" checked> 011</label>
+  <label class="on"><input type="checkbox" checked> 012</label>
+  <label class="on"><input type="checkbox" checked> 013</label>
+  <label class="on"><input type="checkbox" checked> 014</label>
+  <label class="fuera"><input type="checkbox"> 015</label>
+</div>
+<p class="nota" style="margin-top:14px">La 015 está apagada porque entró a la finca el 25 de agosto: ese día no estaba. Los que ya se vendieron tampoco aparecen.</p>
+
+<div class="resumen">
+  Se guardan <b>14 anotaciones</b>, una por novillo, no una del lote. Así el récord de cada animal lo sigue
+  a donde lo muevas y no se pierde cuando lo vendas. En la ficha de cada uno vas a ver
+  «<b>Vitamina · Complejo B · 5 ml · 22 de agosto</b>».
+</div>
+
+<div class="acciones">
+  <a class="btn" href="#">Guardar las 14</a>
+  <a class="btn fantasma" href="#">Cancelar</a>
+</div>
+
+<h2>Lo último que les has puesto</h2>
+<table>
+  <tr><th>Qué</th><th>Producto</th><th>A quién</th><th>Cuándo</th><th>Vuelve a tocar</th><th></th></tr>
+  <tr class="vencido">
+    <td><b>Desparasitación</b></td><td>Ivermectina 1%<div class="q">1 ml / 50 kg</div></td>
+    <td>Ceba 01 · 14 novillos</td><td>10 may 2026</td><td class="q">10 ago — vencida hace 12 días</td><td class="q"><a href="#">Anular</a></td></tr>
+  <tr>
+    <td><b>Tratamiento</b></td><td>Oxitetraciclina<div class="q">20 ml</div></td>
+    <td>Solo 014</td><td>2 ago 2026</td><td class="q">no se repite</td><td class="q"><a href="#">Anular</a></td></tr>
+  <tr>
+    <td><b>Vacuna</b></td><td>Aftosa<div class="q">2 ml</div></td>
+    <td>Ceba 01 · 14 novillos</td><td>15 abr 2026</td><td class="q">15 oct 2026</td><td class="q"><a href="#">Anular</a></td></tr>
+</table>
+
+<footer>SOFÍA — por Sofanor Echeverría.</footer>
+</div></body></html>
