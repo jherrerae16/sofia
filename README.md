@@ -35,6 +35,15 @@ Necesitas Node.js y una instancia de PostgreSQL local.
    npm install
    ```
 
+   `npm install` (y `npm ci`) no generan el cliente de Prisma por su cuenta
+   -- este proyecto no tiene un `postinstall` que lo haga. Sin ese paso,
+   `npx tsc --noEmit` y `npx next build` fallan en `prisma/seed.ts` porque
+   el cliente generado no conoce el esquema. Genéralo explícitamente:
+
+   ```bash
+   npx prisma generate
+   ```
+
 2. Crea el archivo `.env` en la raíz del proyecto con, al menos:
 
    ```bash
