@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { capitalizar, formatearGdp, formatearHectareas, formatearKg, formatearPesos } from './formato'
+import {
+  capitalizar,
+  formatearGdp,
+  formatearHectareas,
+  formatearKg,
+  formatearPesos,
+  separarUnidad,
+  SIN_DATO,
+} from './formato'
 
 describe('formatearGdp', () => {
   it('muestra gramos por día con separador de miles', () => {
@@ -52,5 +60,23 @@ describe('capitalizar', () => {
 
   it('no toca una cadena vacía', () => {
     expect(capitalizar('')).toBe('')
+  })
+})
+
+describe('separarUnidad', () => {
+  it('parte la cifra de su unidad', () => {
+    expect(separarUnidad(formatearKg(3892))).toEqual({ valor: '3.892,0', unidad: 'kg' })
+  })
+
+  it('la unidad de la ganancia diaria lleva su barra completa', () => {
+    expect(separarUnidad(formatearGdp(692))).toEqual({ valor: '692', unidad: 'g/día' })
+  })
+
+  it('el guion de "sin dato" no se parte ni se le inventa una unidad', () => {
+    expect(separarUnidad(SIN_DATO)).toEqual({ valor: SIN_DATO })
+  })
+
+  it('una cifra sin unidad se devuelve entera', () => {
+    expect(separarUnidad('14')).toEqual({ valor: '14' })
   })
 })

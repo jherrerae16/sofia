@@ -36,3 +36,18 @@ export function formatearHectareas(hectareas: number): string {
 export function capitalizar(texto: string): string {
   return texto.charAt(0).toUpperCase() + texto.slice(1)
 }
+
+/**
+ * Parte `'3.892,0 kg'` en `{ valor: '3.892,0', unidad: 'kg' }`.
+ *
+ * La cinta de cifras dibuja la unidad en chico y en gris al lado del número,
+ * pero `formatearKg` y `formatearGdp` la devuelven pegada -- y son la única
+ * fuente del formato colombiano. Se parte lo que ellas devuelven en vez de
+ * mantener un segundo formateador que tarde o temprano se desincroniza.
+ */
+export function separarUnidad(formateado: string): { valor: string; unidad?: string } {
+  if (formateado === SIN_DATO) return { valor: SIN_DATO }
+  const corte = formateado.indexOf(' ')
+  if (corte === -1) return { valor: formateado }
+  return { valor: formateado.slice(0, corte), unidad: formateado.slice(corte + 1) }
+}

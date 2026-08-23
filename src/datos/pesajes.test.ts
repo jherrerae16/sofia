@@ -11,6 +11,7 @@ import {
   listarPesajesDeLote,
   pesoVivoPorLote,
   revisarTanda,
+  ultimaTandaDeLote,
   ultimoPesoPorAnimal,
 } from './pesajes'
 
@@ -522,5 +523,94 @@ describe('listarPesajesDeLote', () => {
 
     expect(await listarPesajesDeLote(loteId)).toHaveLength(0)
     expect(await listarPesajesDeLote(otroLoteId)).toHaveLength(1)
+  })
+})
+
+describe('ultimaTandaDeLote', () => {
+  it('devuelve la fecha de la última tanda que tocó a este lote', async () => {
+    const animalId = (await listarAnimalesDeLote(loteId))[0].id
+    for (const fecha of ['2026-10-01', '2026-10-20']) {
+      await guardarPesaje(
+        {
+          fecha,
+          metodo: 'cinta',
+          responsable: 'Joseph',
+          notas: null,
+          registradoPorId: 'u1',
+          mediciones: [{ animalId, pesoKg: fecha === '2026-10-01' ? 174 : 190 }],
+        },
+        '2026-10-20',
+      )
+    }
+
+    expect(await ultimaTandaDeLote(loteId)).toBe('2026-10-20')
+  })
+
+  it('una tanda anulada no cuenta como el último pesaje', async () => {
+    const animalId = (await listarAnimalesDeLote(loteId))[0].id
+    await guardarPesaje(
+      {
+        fecha: '2026-10-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId, pesoKg: 174 }],
+      },
+      '2026-10-20',
+    )
+    const anulada = await guardarPesaje(
+      {
+        fecha: '2026-10-20',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId, pesoKg: 190 }],
+      },
+      '2026-10-20',
+    )
+    await anularPesaje(anulada, 'Se digitó con la cinta equivocada', 'u1')
+
+    // Si la anulada contara, la portada diría "pesaste hace 0 días" sobre una
+    // tanda que el dueño ya declaró que no existe.
+    expect(await ultimaTandaDeLote(loteId)).toBe('2026-10-01')
+  })
+
+  it('un lote que nunca se ha pesado devuelve null, no una fecha inventada', async () => {
+    expect(await ultimaTandaDeLote(loteId)).toBeNull()
+  })
+
+  it('no se contagia de la tanda de otro lote', async () => {
+    const otroLoteId = await crearLote({
+      nombre: 'Ceba Ajena',
+      tipo: 'ceba',
+      fechaApertura: '2026-09-01',
+    })
+    await crearAnimales({
+      loteId: otroLoteId,
+      chapetas: ['901'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: null,
+      pesos: { '901': 150 },
+    })
+    const ajenoId = (await listarAnimalesDeLote(otroLoteId))[0].id
+    await guardarPesaje(
+      {
+        fecha: '2026-10-20',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: ajenoId, pesoKg: 174 }],
+      },
+      '2026-10-20',
+    )
+
+    expect(await ultimaTandaDeLote(loteId)).toBeNull()
   })
 })

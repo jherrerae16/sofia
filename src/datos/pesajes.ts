@@ -276,3 +276,21 @@ export async function pesoVivoPorLote(tipo?: TipoLote): Promise<Map<string, numb
   }
   return total
 }
+
+/**
+ * La fecha de la última tanda que de verdad tocó a este lote, sin contar las
+ * anuladas. Null si nunca se ha pesado.
+ *
+ * `frescura` responde algo parecido pero para la finca entera: sirve para la
+ * alarma de "hace cuánto que nadie anota nada", no para decirle al dueño hace
+ * cuánto pesó ESTE lote. Con dos lotes andando, la respuesta de la finca es
+ * casi siempre la del otro lote.
+ */
+export async function ultimaTandaDeLote(loteId: string): Promise<FechaISO | null> {
+  const pesaje = await prisma.pesaje.findFirst({
+    where: { anuladoEn: null, mediciones: { some: { animal: { loteId } } } },
+    orderBy: { fecha: 'desc' },
+    select: { fecha: true },
+  })
+  return pesaje ? aFechaISO(pesaje.fecha) : null
+}
