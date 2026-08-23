@@ -8,24 +8,38 @@ export type Veredicto = { nivel: Nivel; mensaje: string; gdp: number | null }
 const GDP_MAXIMA_CREIBLE = 2000
 const PERDIDA_MAXIMA_TOLERADA = 0.1
 
-// Defecto de seguimiento del plan 1c (2026-08-22): cuando el peso de venta
-// comparte fecha con el pesaje contra el que se mide (`contexto: 'salida'`,
-// el caso de la feria), `gdpEntre` da null -- no hay días transcurridos con
-// los que calcular una ganancia diaria -- así que la guardia de arriba
+// Defecto de seguimiento del plan 1c (2026-08-22): cuando la nueva medición
+// comparte fecha con su referencia -- el pesaje o el peso de entrada contra
+// el que se mide --, `gdpEntre` da null: no hay días transcurridos con los
+// que calcular una ganancia diaria, así que la guardia de arriba
 // (`GDP_MAXIMA_CREIBLE`) no evalúa nada, y la de pérdida de más abajo solo
 // mira hacia abajo. El dedazo del revisor (320 kg de pesaje, 2200 kg de
 // venta, mismo día) pasaba en silencio.
 //
-// El peso de venta sí tiene un pesaje previo contra el cual compararse,
-// aunque sea del mismo día: un salto del 600% frente al último peso
-// conocido es un dedazo con o sin días de por medio. Por eso el arreglo es
+// Esto no es exclusivo del peso de venta (`contexto: 'salida'`, el caso de
+// la feria: se pesa el lote en la mañana y se vende en la tarde). También
+// se activa en la pantalla de Digitar (`contexto: 'pesaje'`, el valor por
+// omisión), en el único caso donde ahí `gdp` también sale null: el primer
+// pesaje que se registra del animal, el mismo día de su ingreso -- ahí no
+// hay `anterior` con qué comparar, así que la referencia es el peso de
+// entrada, y `diasEntre` da 0 igual que en el caso de la feria. Cualquier
+// otro repique del mismo animal el mismo día en Digitar ya se rechaza antes
+// por la regla de "mismo día" (más abajo); este chequeo solo alcanza a
+// sobrevivir esa regla cuando no hay `anterior` en absoluto. Es beneficioso
+// ahí también -- caza un dedazo del día uno -- y no bloquea nada porque solo
+// advierte.
+//
+// Toda medición que llega hasta aquí sí tiene una referencia contra la cual
+// compararse, aunque sea del mismo día: el propio pesaje anterior, o si el
+// animal nunca se pesó, su peso de entrada. Un salto del 600% frente a esa
+// referencia es un dedazo con o sin días de por medio. Por eso el arreglo es
 // un chequeo relativo simétrico al de pérdida (`PERDIDA_MAXIMA_TOLERADA`),
 // no un rango absoluto como `validarPesoEntrada` -- ese rango absoluto
 // existe porque el peso de ENTRADA no tiene ningún pesaje anterior contra
-// el cual medirse; el de venta sí lo tiene siempre (el propio pesaje del
-// mismo día, o si nunca se pesó, su peso de entrada), así que ignorar esa
-// referencia y comparar contra un rango absoluto desperdiciaría la
-// información más precisa que ya está disponible.
+// el cual medirse; a partir de aquí siempre hay algo (un pesaje real, o si
+// no, el propio peso de entrada), así que ignorar esa referencia y comparar
+// contra un rango absoluto desperdiciaría la información más precisa que ya
+// está disponible.
 //
 // Se activa solo cuando `gdp` es null -- es decir, solo cuando la guardia
 // de arriba no tiene nada que evaluar -- y no de forma incondicional como
