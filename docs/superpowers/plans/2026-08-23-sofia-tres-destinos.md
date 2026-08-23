@@ -1521,7 +1521,7 @@ Los seis modos, en este orden: **Pesos · Venta o muerte · Novedad · Mover lot
 
 **Nada de la lógica de digitar cambia.** `TablaPesaje`, `PesajesRecientes` y sus acciones se mudan de carpeta y se les aplica el sistema visual; su comportamiento —revisar antes de guardar, la advertencia por dedazo, el reinicio del formulario, la anulación— queda igual. Las pruebas de `e2e/digitar.spec.ts` se mudan a `e2e/anotar.spec.ts` cambiando solo la URL de `/digitar` a `/anotar/pesos`. **Si alguna de esas pruebas falla después de la mudanza, es que se rompió algo: arreglarlo, no cambiar la prueba.**
 
-- [ ] **Step 1: Escribir la prueba del caparazón que falla**
+- [x] **Step 1: Escribir la prueba del caparazón que falla**
 
 Crear `e2e/anotar.spec.ts` (arriba del archivo; las pruebas mudadas de digitar van debajo, en el Paso 5):
 
@@ -1557,12 +1557,12 @@ test('el modo en el que estás queda marcado, y solo ese', async ({ page }) => {
 })
 ```
 
-- [ ] **Step 2: Correr las pruebas y verlas fallar**
+- [x] **Step 2: Correr las pruebas y verlas fallar**
 
 Run: `npx playwright test e2e/anotar.spec.ts`
 Expected: FAIL — no existe `data-testid="modos"` y `/anotar/novedad` da 404.
 
-- [ ] **Step 3: Escribir el caparazón de Anotar**
+- [x] **Step 3: Escribir el caparazón de Anotar**
 
 `src/app/anotar/ModosAnotar.tsx`:
 
@@ -1623,7 +1623,7 @@ export default function AnotarLayout({ children }: { children: React.ReactNode }
 
 Los seis `page.tsx` ponen su propio titular debajo de la cinta de modos, porque cada modo dice algo distinto («Pasa la libreta.», «¿Qué les pusiste?»).
 
-- [ ] **Step 4: Mudar el modo Pesos**
+- [x] **Step 4: Mudar el modo Pesos**
 
 ```bash
 git mv src/app/digitar/TablaPesaje.tsx src/app/anotar/pesos/TablaPesaje.tsx
@@ -1648,16 +1648,16 @@ Dentro de `TablaPesaje` y `PesajesRecientes`, cambiar las clases del sistema vie
 
 En `revalidatePath` dentro de `src/app/anotar/pesos/acciones.ts`, cambiar `'/digitar'` por `'/anotar/pesos'` y agregar `revalidatePath('/')` — la portada de Ganado muestra el último pesaje y tiene que refrescarse cuando se guarda una tanda.
 
-- [ ] **Step 5: Mudar las pruebas de digitar**
+- [x] **Step 5: Mudar las pruebas de digitar**
 
 Mover el contenido de `e2e/digitar.spec.ts` al final de `e2e/anotar.spec.ts`, cambiando `page.goto('/digitar')` por `page.goto('/anotar/pesos')`. Borrar `e2e/digitar.spec.ts`.
 
-- [ ] **Step 6: Correr las pruebas y verlas pasar**
+- [x] **Step 6: Correr las pruebas y verlas pasar**
 
 Run: `npx playwright test e2e/anotar.spec.ts && npx tsc --noEmit`
 Expected: PASS — las tres nuevas y las cuatro mudadas de digitar, sin cambiarles una sola aserción.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A src/app/anotar src/app/digitar e2e
