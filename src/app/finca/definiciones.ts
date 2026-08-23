@@ -20,7 +20,7 @@ export const DEFINICIONES_UMBRAL: DefinicionParametro[] = [
     clave: 'umbral_excelente',
     titulo: 'Umbral "Excelente"',
     explicacion:
-      'Un novillo que gana esto o más por día se pinta en el nivel más alto del semáforo, en "Cómo vamos". La portada no pinta colores: solo cuenta cuántos animales quedan por debajo del umbral "Bajo". La ficha de cada animal tampoco clasifica nada todavía.',
+      'Un novillo que gana esto o más por día queda en el nivel más alto. De los cuatro umbrales, el único que hoy cambia lo que ves es "Bajo": es el que decide quién sale marcado como quedado en Ganado y en su propia ficha.',
     unidad: 'g/día',
     formatear: formatearGdp,
   },
@@ -52,16 +52,16 @@ export const DEFINICION_GDP_OBJETIVO: DefinicionParametro = {
   clave: 'gdp_objetivo',
   titulo: 'Meta de ganancia diaria',
   explicacion:
-    'La ganancia que la finca se propone lograr por animal por día. Es la línea punteada de la curva de peso en la ficha de cada animal, y contra ella se compara el promedio real en "Cómo vamos". La portada no la usa: no muestra ni el objetivo ni la comparación.',
+    'Cuántos gramos quieres que gane un novillo cada día. Es la línea punteada de las curvas de peso -- la del lote en Ganado y la de cada animal en su ficha -- y es contra este número que se compara lo que de verdad están ganando.',
   unidad: 'g/día',
   formatear: formatearGdp,
 }
 
 export const DEFINICION_PESO_OBJETIVO: DefinicionParametro = {
   clave: 'peso_objetivo_venta_kg',
-  titulo: 'Peso de venta',
+  titulo: 'Peso al que se vende UN novillo',
   explicacion:
-    'El peso al que se considera listo un novillo para vender. Por ahora es solo referencia: ninguna pantalla lo consume todavía, así que cambiarlo no mueve nada más en la plataforma.',
+    'El peso de un solo animal, no el del lote entero: a partir de aquí ese novillo aparece marcado como listo en Ganado, y el chip «Listos» te dice cuántos ya lo pasaron. Con 320 kg y catorce novillos, el lote pesaría 4.480 kg -- pero ese total no se configura en ninguna parte, sale solo de sumar.',
   unidad: 'kg',
   formatear: formatearKg,
 }
@@ -77,16 +77,14 @@ function formatearHectareasConUnidad(hectareas: number): string {
 }
 
 /**
- * A diferencia de los seis parámetros de arriba, esta clave no gobierna
- * ningún cálculo todavía -- se movió aquí (desde un campo suelto en `Finca`)
- * precisamente para que, cuando la carga animal empiece a consumirla, ya
- * tenga vigencia e histórico desde el primer día.
+ * Se movió aquí desde un campo suelto en `Finca` para que llevara vigencia e
+ * histórico; desde entonces la carga animal de la portada ya la consume.
  */
 export const DEFINICION_HECTAREAS: DefinicionParametro = {
   clave: 'hectareas_utiles',
   titulo: 'Hectáreas útiles de la finca',
   explicacion:
-    'Las hectáreas realmente aprovechables para el ganado, descontando lo improductivo. De aquí sale cuántos kilos y cuántas cabezas caben por hectárea -- la carga animal de la finca.',
+    'Las hectáreas de verdad aprovechables para el ganado, descontando lo improductivo. De aquí sale la carga que ves en Ganado: cuántos kilos vivos hay encima de cada hectárea. Es el número que dice si el pasto aguanta más novillos o si ya está topado.',
   unidad: 'ha',
   formatear: formatearHectareasConUnidad,
 }

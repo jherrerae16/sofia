@@ -30,23 +30,25 @@ describe('definiciones de parámetros', () => {
     }
   })
 
-  // El semáforo (los cuatro umbrales) solo se pinta en "Cómo vamos": la
-  // portada no pinta colores (solo cuenta cuántos animales quedan por debajo
-  // del umbral "Bajo") y la ficha del animal todavía no clasifica nada.
-  // Prometerle al ganadero que va a ver el cambio en una pantalla que no lo
-  // muestra es justo el defecto que estas pruebas fijan.
-  it('el umbral "Excelente" aclara que el semáforo solo se pinta en "Cómo vamos", no en la portada ni en la ficha', () => {
-    const explicacion = DEFINICIONES_UMBRAL[0].explicacion
-    expect(explicacion).toMatch(/semáforo, en "Cómo vamos"/)
-    expect(explicacion).toMatch(/portada no pinta colores/)
-    expect(explicacion).toMatch(/ficha de cada animal tampoco clasifica nada/)
+  // Prometerle al ganadero que un número cambia algo en una pantalla que no
+  // lo muestra es el defecto que estas tres pruebas fijan. Se rompen a
+  // propósito cuando una pantalla cambia de nombre o deja de consumir un
+  // parámetro: ese es su trabajo -- avisar que el texto quedó mintiendo.
+  it('de los cuatro umbrales, la explicación dice cuál es el único que hoy cambia algo', () => {
+    expect(DEFINICIONES_UMBRAL[0].explicacion).toMatch(/el único que hoy cambia lo que ves es "Bajo"/)
+    expect(DEFINICIONES_UMBRAL[0].explicacion).toMatch(/quedado en Ganado/)
   })
 
-  it('la meta de ganancia diaria aclara que la portada no la usa', () => {
-    expect(DEFINICION_GDP_OBJETIVO.explicacion).toMatch(/portada no la usa/)
+  it('la meta de ganancia diaria dice que es la línea punteada de las dos curvas', () => {
+    expect(DEFINICION_GDP_OBJETIVO.explicacion).toMatch(/línea punteada/)
+    expect(DEFINICION_GDP_OBJETIVO.explicacion).toMatch(/Ganado/)
   })
 
-  it('el peso de venta avisa que hoy no mueve ninguna pantalla', () => {
-    expect(DEFINICION_PESO_OBJETIVO.explicacion).toMatch(/ninguna pantalla lo consume todavía/)
+  // El dueño leyó "Peso de venta" como el peso total esperado del lote, no el
+  // de un animal. El título y la explicación tienen que dejarlo sin lugar a
+  // duda: es por cabeza.
+  it('el peso de venta deja claro que es por animal, no del lote entero', () => {
+    expect(DEFINICION_PESO_OBJETIVO.titulo).toMatch(/UN novillo/)
+    expect(DEFINICION_PESO_OBJETIVO.explicacion).toMatch(/no el del lote entero/)
   })
 })
