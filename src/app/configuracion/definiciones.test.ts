@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { CLAVES_UMBRAL } from '@/datos/parametros'
-import { DEFINICIONES_PARAMETRO, DEFINICIONES_UMBRAL } from './definiciones'
+import {
+  DEFINICION_GDP_OBJETIVO,
+  DEFINICION_PESO_OBJETIVO,
+  DEFINICIONES_PARAMETRO,
+  DEFINICIONES_UMBRAL,
+} from './definiciones'
 
 // Las claves de aquí son texto suelto, sin el tipo literal que las ataría a
 // CLAVES_UMBRAL en tiempo de compilación: un typo (p. ej. "umbral_excelnte")
@@ -23,5 +28,25 @@ describe('definiciones de parámetros', () => {
       expect(definicion.titulo.length).toBeGreaterThan(0)
       expect(definicion.unidad.length).toBeGreaterThan(0)
     }
+  })
+
+  // El semáforo (los cuatro umbrales) solo se pinta en "Cómo vamos": la
+  // portada no pinta colores (solo cuenta cuántos animales quedan por debajo
+  // del umbral "Bajo") y la ficha del animal todavía no clasifica nada.
+  // Prometerle al ganadero que va a ver el cambio en una pantalla que no lo
+  // muestra es justo el defecto que estas pruebas fijan.
+  it('el umbral "Excelente" aclara que el semáforo solo se pinta en "Cómo vamos", no en la portada ni en la ficha', () => {
+    const explicacion = DEFINICIONES_UMBRAL[0].explicacion
+    expect(explicacion).toMatch(/semáforo, en "Cómo vamos"/)
+    expect(explicacion).toMatch(/portada no pinta colores/)
+    expect(explicacion).toMatch(/ficha de cada animal tampoco clasifica nada/)
+  })
+
+  it('la meta de ganancia diaria aclara que la portada no la usa', () => {
+    expect(DEFINICION_GDP_OBJETIVO.explicacion).toMatch(/portada no la usa/)
+  })
+
+  it('el peso de venta avisa que hoy no mueve ninguna pantalla', () => {
+    expect(DEFINICION_PESO_OBJETIVO.explicacion).toMatch(/ninguna pantalla lo consume todavía/)
   })
 })

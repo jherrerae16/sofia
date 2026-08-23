@@ -37,9 +37,10 @@ export default async function Configuracion() {
         <h2 className="mb-1 font-serif text-xl text-pasto">Semáforo de desempeño</h2>
         <p className="mb-4 max-w-2xl text-sm text-carbon/70">
           La ganancia diaria de cada novillo se compara contra estos cuatro cortes para decidir en qué color
-          aparece -- en la portada, en &quot;Cómo vamos&quot; y en la ficha de cada animal. Por debajo del más bajo
-          de los cuatro, el animal cae en &quot;Crítico&quot;: ese nivel no tiene un número propio, es todo lo que
-          queda por debajo.
+          aparece, pero eso solo se ve en &quot;Cómo vamos&quot;: la portada no pinta el semáforo, solo cuenta
+          cuántos animales quedan por debajo del umbral &quot;Bajo&quot;, y la ficha de cada animal todavía no
+          clasifica nada. Por debajo del más bajo de los cuatro, el animal cae en &quot;Crítico&quot;: ese nivel no
+          tiene un número propio, es todo lo que queda por debajo.
         </p>
         <div className="space-y-6 divide-y divide-tierra/10 [&>*+*]:pt-6">
           {DEFINICIONES_UMBRAL.map((definicion, i) => (

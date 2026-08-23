@@ -20,7 +20,7 @@ export const DEFINICIONES_UMBRAL: DefinicionParametro[] = [
     clave: 'umbral_excelente',
     titulo: 'Umbral "Excelente"',
     explicacion:
-      'Un novillo que gana esto o más por día se pinta en el nivel más alto del semáforo -- en la portada, en "Cómo vamos" y en la ficha de cada animal.',
+      'Un novillo que gana esto o más por día se pinta en el nivel más alto del semáforo, en "Cómo vamos". La portada no pinta colores: solo cuenta cuántos animales quedan por debajo del umbral "Bajo". La ficha de cada animal tampoco clasifica nada todavía.',
     unidad: 'g/día',
     formatear: formatearGdp,
   },
@@ -52,7 +52,7 @@ export const DEFINICION_GDP_OBJETIVO: DefinicionParametro = {
   clave: 'gdp_objetivo',
   titulo: 'Meta de ganancia diaria',
   explicacion:
-    'La ganancia que la finca se propone lograr por animal por día. Es la línea punteada de la curva de peso en la ficha de cada animal, y contra ella se compara el promedio real en "Cómo vamos" y en la portada.',
+    'La ganancia que la finca se propone lograr por animal por día. Es la línea punteada de la curva de peso en la ficha de cada animal, y contra ella se compara el promedio real en "Cómo vamos". La portada no la usa: no muestra ni el objetivo ni la comparación.',
   unidad: 'g/día',
   formatear: formatearGdp,
 }
@@ -60,7 +60,8 @@ export const DEFINICION_GDP_OBJETIVO: DefinicionParametro = {
 export const DEFINICION_PESO_OBJETIVO: DefinicionParametro = {
   clave: 'peso_objetivo_venta_kg',
   titulo: 'Peso de venta',
-  explicacion: 'El peso al que se considera listo un novillo para vender.',
+  explicacion:
+    'El peso al que se considera listo un novillo para vender. Por ahora es solo referencia: ninguna pantalla lo consume todavía, así que cambiarlo no mueve nada más en la plataforma.',
   unidad: 'kg',
   formatear: formatearKg,
 }
