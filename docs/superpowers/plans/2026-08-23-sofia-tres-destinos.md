@@ -439,7 +439,7 @@ export async function serieDePesoPromedio(loteId: string, hoy: FechaISO): Promis
 
 **Regla que define la función:** en cada fecha en que hubo pesaje, el promedio incluye a **todos** los animales activos que ya habían entrado, usando para cada uno su peso conocido más reciente en esa fecha (o su peso de entrada, si nunca lo han pesado). Sin eso, una tanda que solo alcanzó a 10 de 14 hace que el promedio brinque —si los 4 que faltaron eran los flacos, la curva sube sin que ningún animal haya engordado— y el dueño lee una mejora que no pasó. `animales` cuenta cuántos se pesaron **ese día**, que es el dato con el que el pie de la gráfica avisa la cobertura.
 
-- [ ] **Step 1: Escribir las pruebas que fallan**
+- [x] **Step 1: Escribir las pruebas que fallan**
 
 Crear `src/datos/serie.test.ts`:
 
@@ -555,12 +555,12 @@ describe('serieDePesoPromedio', () => {
 })
 ```
 
-- [ ] **Step 2: Correr las pruebas y verlas fallar**
+- [x] **Step 2: Correr las pruebas y verlas fallar**
 
 Run: `npx vitest run src/datos/serie.test.ts`
 Expected: FAIL — «Failed to resolve import "./serie"».
 
-- [ ] **Step 3: Escribir la implementación mínima**
+- [x] **Step 3: Escribir la implementación mínima**
 
 `src/datos/serie.ts`:
 
@@ -661,12 +661,12 @@ export async function serieDePesoPromedio(loteId: string, hoy: FechaISO): Promis
 
 `Pesaje.anuladoEn` es el campo que marca una tanda anulada, y `Medicion.pesaje` la relación: el `where` de arriba es el mismo que ya usa `historialDeAnimal` en `src/datos/pesajes.ts:27`. Un pesaje anulado no entra en la curva.
 
-- [ ] **Step 4: Correr las pruebas y verlas pasar**
+- [x] **Step 4: Correr las pruebas y verlas pasar**
 
 Run: `npx vitest run src/datos/serie.test.ts`
 Expected: PASS, las cinco.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/datos/serie.ts src/datos/serie.test.ts
