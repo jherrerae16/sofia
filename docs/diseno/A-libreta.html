@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es-CO"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOFÍA — Propuesta A: Libreta de campo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#F2EDE3; --papel-2:#EAE3D6; --linea:#D9CFBC;
+  --tinta:#1B1917; --tinta-2:#5A534A; --tinta-3:#8A8177;
+  --tierra:#A9612B; --monte:#41603F; --sangre:#9A3823;
+  --u:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--papel);color:var(--tinta);font:400 15px/1.55 'Instrument Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.hoja{max-width:940px;margin:0 auto;padding:0 24px 96px}
+
+/* Cabecera: no es una barra de navegación, es el encabezado de una libreta */
+header{padding:40px 0 28px;border-bottom:2px solid var(--tinta)}
+.marca{display:flex;align-items:baseline;gap:12px}
+.marca h1{font:600 22px/1 'Instrument Sans';letter-spacing:.14em}
+.marca span{color:var(--tinta-3);font-size:13px}
+nav{display:flex;gap:28px;margin-top:22px}
+nav a{color:var(--tinta-2);text-decoration:none;font-weight:500;font-size:15px;padding-bottom:6px;border-bottom:2px solid transparent;margin-bottom:-2px}
+nav a.hoy{color:var(--tinta);border-color:var(--tierra)}
+
+/* El único número que manda */
+.pulso{display:flex;align-items:flex-end;gap:36px;padding:44px 0 14px;flex-wrap:wrap}
+.gdp{display:flex;align-items:baseline;gap:10px}
+.gdp b{font:700 68px/0.85 'Roboto Mono';letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.gdp i{font-style:normal;font-size:17px;color:var(--tinta-2)}
+.contra{font-size:14px;color:var(--sangre);font-weight:500;padding-bottom:8px}
+.pulso p{font-size:13.5px;color:var(--tinta-3);padding-bottom:9px;max-width:230px;line-height:1.4}
+
+/* Regla de progreso hacia el objetivo: la única "gráfica" */
+.regla{margin:22px 0 8px;height:3px;background:var(--linea);position:relative}
+.regla .barra{position:absolute;inset:0 auto 0 0;width:92%;background:var(--tierra)}
+.regla .meta{position:absolute;top:-7px;bottom:-7px;left:100%;width:2px;background:var(--tinta)}
+.pies{display:flex;justify-content:space-between;font-size:11.5px;color:var(--tinta-3);letter-spacing:.04em}
+
+/* La pared de chapetas */
+h2{font:600 13px/1 'Instrument Sans';letter-spacing:.16em;text-transform:uppercase;color:var(--tinta-3);margin:56px 0 4px}
+.aviso{font-size:13.5px;color:var(--tinta-2);margin-bottom:18px}
+.res{display:grid;grid-template-columns:76px 1fr 132px 92px;align-items:center;gap:18px;padding:13px 0;border-bottom:1px solid var(--linea)}
+.res:first-of-type{border-top:1px solid var(--linea)}
+/* la chapeta como objeto físico */
+.chapeta{position:relative;background:var(--papel-2);border:1.5px solid var(--tinta-3);border-radius:4px;padding:5px 0 5px 14px;text-align:center;font:700 15px/1 'Roboto Mono';letter-spacing:.06em}
+.chapeta::before{content:'';position:absolute;left:5px;top:50%;transform:translateY(-50%);width:5px;height:5px;border-radius:50%;background:var(--papel);box-shadow:inset 0 0 0 1.5px var(--tinta-3)}
+.dato{font:500 16px/1 'Roboto Mono';font-variant-numeric:tabular-nums}
+.dato small{display:block;font:400 12px/1.4 'Instrument Sans';color:var(--tinta-3);margin-top:5px;letter-spacing:.01em}
+.barrita{height:22px;display:flex;align-items:center;gap:9px}
+.barrita span{height:6px;background:var(--tinta-3);opacity:.5}
+.barrita.bien span{background:var(--monte);opacity:1}
+.barrita.mal span{background:var(--sangre);opacity:1}
+.estado{font-size:13px;font-weight:500;text-align:right}
+.mal .estado,.estado.mal{color:var(--sangre)}
+.bien .estado,.estado.bien{color:var(--monte)}
+.viejo{color:var(--tinta-3);font-size:12.5px;text-align:right;font-style:italic}
+.mas{margin-top:20px;font-size:14px;color:var(--tinta-2);text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+footer{margin-top:72px;padding-top:18px;border-top:1px solid var(--linea);font-size:12.5px;color:var(--tinta-3)}
+</style></head><body>
+<div class="hoja">
+  <header>
+    <div class="marca"><h1>SOFÍA</h1><span>Santa Verónica · Ceba 01 · La Loma, 25 días</span></div>
+    <nav><a class="hoy" href="#">El ganado</a><a href="#">Anotar</a><a href="#">La finca</a></nav>
+  </header>
+
+  <section class="pulso">
+    <div class="gdp"><b>692</b><i>g/día</i></div>
+    <div class="contra">58 por debajo del objetivo</div>
+    <p>14 de 14 novillos pesados el 18 de agosto, hace 4 días.</p>
+  </section>
+  <div class="regla"><div class="barra"></div><div class="meta"></div></div>
+  <div class="pies"><span>0</span><span>OBJETIVO 750 g/día</span></div>
+
+  <h2>Los que van quedados</h2>
+  <p class="aviso">Cuatro por debajo de 600 g/día. El 014 y el 013 no se dejaron pesar en agosto.</p>
+
+  <div class="res mal"><div class="chapeta">014</div>
+    <div class="dato">300 <small>205,0 kg · 188 días en finca</small></div>
+    <div class="barrita mal"><span style="width:40%"></span></div><div class="estado">Crítico</div></div>
+
+  <div class="res mal"><div class="chapeta">013</div>
+    <div class="dato">380 <small>214,8 kg · pesado el 25 de julio</small></div>
+    <div class="barrita mal"><span style="width:51%"></span></div><div class="estado">Crítico</div></div>
+
+  <div class="res"><div class="chapeta">012</div>
+    <div class="dato">480 <small>227,8 kg · pesado el 25 de julio</small></div>
+    <div class="barrita"><span style="width:64%"></span></div><div class="estado" style="color:var(--tierra)">Bajo</div></div>
+
+  <div class="res"><div class="chapeta">011</div>
+    <div class="dato">560 <small>237,6 kg · pesado el 25 de julio</small></div>
+    <div class="barrita"><span style="width:75%"></span></div><div class="estado" style="color:var(--tierra)">Bajo</div></div>
+
+  <h2>Los demás</h2>
+  <p class="aviso">Diez novillos entre 640 y 979 g/día.</p>
+
+  <div class="res"><div class="chapeta">010</div>
+    <div class="dato">642 <small>277,8 kg</small></div>
+    <div class="barrita"><span style="width:86%"></span></div><div class="estado" style="color:var(--tinta-2)">Normal</div></div>
+
+  <div class="res bien"><div class="chapeta">001</div>
+    <div class="dato">979 <small>328,3 kg · listo para vender</small></div>
+    <div class="barrita bien"><span style="width:100%"></span></div><div class="estado">Excelente</div></div>
+
+  <p class="mas">Ver los catorce</p>
+
+  <footer>SOFÍA — por Sofanor Echeverría.</footer>
+</div></body></html>
