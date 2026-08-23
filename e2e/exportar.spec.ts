@@ -181,13 +181,13 @@ test.beforeAll(async () => {
   })
 })
 
-test('el botón de Configuración descarga un .xlsx real con la portada, las 8 hojas y todo lo sembrado', async ({ page }) => {
+test('el botón de la Finca descarga un .xlsx real con la portada, las 8 hojas y todo lo sembrado', async ({ page }) => {
   await iniciarSesion(page)
-  await page.goto('/configuracion')
+  await page.goto('/finca')
 
   const [descarga] = await Promise.all([
     page.waitForEvent('download'),
-    page.getByRole('link', { name: 'Exportar todo a Excel' }).click(),
+    page.getByRole('link', { name: 'Bajar todo a Excel' }).click(),
   ])
 
   expect(descarga.suggestedFilename()).toBe(`santa-veronica-${HOY}.xlsx`)

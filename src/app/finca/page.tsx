@@ -1,11 +1,18 @@
 import { hoyBogota } from '@/calc/fechas'
 import { obtenerFinca } from '@/datos/finca'
-import { CLAVE_HECTAREAS_UTILES, leerParametro } from '@/datos/parametros'
+import { CLAVE_HECTAREAS_UTILES, estadoParametro, leerParametro } from '@/datos/parametros'
 import { listarPotreros } from '@/datos/potreros'
 import { formatearHectareas } from '@/ui/formato'
 import { Marco } from '@/ui/Marco'
 import { Titular } from '@/ui/Titular'
 import { crearPotreroAccion } from './acciones'
+import {
+  DEFINICION_GDP_OBJETIVO,
+  DEFINICION_HECTAREAS,
+  DEFINICION_PESO_OBJETIVO,
+  DEFINICIONES_UMBRAL,
+} from './definiciones'
+import { FilaCriterio } from './FilaCriterio'
 import { TarjetaPotrero } from './TarjetaPotrero'
 
 // Los días de ocupación y de descanso se calculan contra la fecha de hoy: sin
@@ -20,6 +27,13 @@ export default async function Finca() {
   const potreros = await listarPotreros(hoy)
   const hectareasTexto = await leerParametro(CLAVE_HECTAREAS_UTILES, hoy)
   const hectareas = hectareasTexto === null ? null : Number(hectareasTexto)
+
+  const [umbrales, gdpObjetivo, pesoObjetivo, estadoHectareas] = await Promise.all([
+    Promise.all(DEFINICIONES_UMBRAL.map((definicion) => estadoParametro(definicion.clave, hoy))),
+    estadoParametro(DEFINICION_GDP_OBJETIVO.clave, hoy),
+    estadoParametro(DEFINICION_PESO_OBJETIVO.clave, hoy),
+    estadoParametro(DEFINICION_HECTAREAS.clave, hoy),
+  ])
 
   const ocupados = potreros.filter((potrero) => potrero.lotesOcupantes.length > 0)
   const descansando = potreros.filter((potrero) => potrero.lotesOcupantes.length === 0)
@@ -99,6 +113,44 @@ export default async function Finca() {
           Agregar el potrero
         </button>
       </form>
+
+      <h2 className="rotulo mb-4 mt-13">Los criterios de la finca</h2>
+      <p className="mb-4 max-w-[640px] text-[13.5px] text-carbon-2">
+        Estos números gobiernan lo que ves en las otras pantallas. Cambiarlos no reescribe el
+        pasado: cada valor queda con la fecha desde la que rige, y lo que hubo antes no se borra.
+        Por debajo del más bajo de los cuatro umbrales, un novillo cae en «crítico»: ese nivel no
+        tiene un número propio, es todo lo que queda por debajo.
+      </p>
+      <div className="border-t border-borde">
+        {DEFINICIONES_UMBRAL.map((definicion, i) => (
+          <FilaCriterio
+            key={definicion.clave}
+            definicion={definicion}
+            estado={umbrales[i]}
+            hoy={hoy}
+          />
+        ))}
+        <FilaCriterio definicion={DEFINICION_GDP_OBJETIVO} estado={gdpObjetivo} hoy={hoy} />
+        <FilaCriterio definicion={DEFINICION_PESO_OBJETIVO} estado={pesoObjetivo} hoy={hoy} />
+        <FilaCriterio definicion={DEFINICION_HECTAREAS} estado={estadoHectareas} hoy={hoy} />
+      </div>
+
+      <h2 className="rotulo mb-4 mt-13">Tu copia de todo</h2>
+      <div className="flex flex-wrap items-center gap-[22px] rounded border border-borde bg-crema-2 p-[22px]">
+        <p className="min-w-[280px] flex-1 text-[14px] leading-[1.55] text-carbon-2">
+          Baja la finca entera a un archivo de Excel: los animales, los pesajes, los lotes, los
+          potreros, los movimientos, la sanidad, las novedades y los parámetros, con todo el
+          histórico e incluyendo lo anulado y lo que ya salió. No es un informe: son los datos tal
+          cual están guardados. <b className="text-carbon">Es tu salida:</b> con ese archivo puedes
+          dejar SOFÍA cuando quieras y quedarte con tu información.
+        </p>
+        <a
+          href="/exportar"
+          className="rounded bg-monte px-5 py-3 text-[14px] font-semibold text-crema no-underline"
+        >
+          Bajar todo a Excel
+        </a>
+      </div>
     </Marco>
   )
 }

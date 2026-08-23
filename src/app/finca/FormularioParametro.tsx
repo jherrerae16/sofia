@@ -57,9 +57,9 @@ export function FormularioParametro({ clave, unidad, hoy }: { clave: string; uni
               required
               defaultValue={estado.valorEnviado ?? ''}
               onChange={marcarEditado}
-              className="cifra w-28 rounded border border-tierra/30 p-2"
+              className="cifra w-28 rounded border border-borde p-2"
             />
-            <span className="text-xs text-carbon/60">{unidad}</span>
+            <span className="text-xs text-carbon-3">{unidad}</span>
           </span>
         </label>
         <label>
@@ -71,19 +71,19 @@ export function FormularioParametro({ clave, unidad, hoy }: { clave: string; uni
             required
             defaultValue={estado.vigenteDesdeEnviada ?? hoy}
             onChange={marcarEditado}
-            className="ml-2 rounded border border-tierra/30 p-2"
+            className="ml-2 rounded border border-borde p-2"
           />
         </label>
         <button
           disabled={enviando}
-          className="rounded bg-pasto px-4 py-2 text-white disabled:opacity-50"
+          className="rounded bg-monte px-4 py-2 text-crema disabled:opacity-50"
         >
           {pidiendoConfirmacion ? 'Guardar de todas formas' : 'Guardar'}
         </button>
       </div>
-      {estado.guardado && <p className="text-pasto">Guardado.</p>}
-      {estado.aviso && <p className="text-ambar">{estado.aviso}</p>}
-      {estado.error && <p className="text-rojo-tierra">{estado.error}</p>}
+      {estado.guardado && <p className="text-monte">Guardado.</p>}
+      {estado.aviso && <p className="text-barro">{estado.aviso}</p>}
+      {estado.error && <p className="text-barro">{estado.error}</p>}
     </form>
   )
 }
