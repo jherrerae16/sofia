@@ -1,4 +1,5 @@
 import writeXlsxFile, { getSheetData, type Cell, type Column, type SheetData } from 'write-excel-file/node'
+import { aFechaHoraBogota } from '@/calc/fechas'
 import type {
   DatosExportacion,
   FilaAnimalExport,
@@ -24,7 +25,7 @@ function celdaFecha(fecha: string | null): Cell {
 
 function celdaFechaHora(fecha: Date | null): Cell {
   if (fecha === null) return null
-  return { value: fecha, type: Date, format: FORMATO_FECHA_HORA }
+  return { value: aFechaHoraBogota(fecha), type: Date, format: FORMATO_FECHA_HORA }
 }
 
 function celdaTexto(texto: string | null): Cell {
