@@ -1678,7 +1678,7 @@ git commit -m "diseño: Anotar reúne los seis modos, empezando por los pesos"
 
 **Es una mudanza, no una reescritura.** Las cuatro pantallas ya funcionan y sus reglas costaron trabajo: la advertencia por ganancia inverosímil, la casilla única para toda la tanda, el aviso de capacidad del potrero al mover, la chapeta repetida entre activos, el hueco del día de la feria. Nada de eso se toca. Lo que cambia es dónde vive el archivo, su envoltura visual y las rutas de `revalidatePath`.
 
-- [ ] **Step 1: Mudar las pruebas primero, y verlas fallar**
+- [x] **Step 1: Mudar las pruebas primero, y verlas fallar**
 
 Antes de mover un solo componente, mover las pruebas: llevar el contenido de `e2e/salidas.spec.ts`, `e2e/novedades.spec.ts`, `e2e/mover-lote.spec.ts` y `e2e/lotes.spec.ts` a `e2e/anotar.spec.ts`, cambiando las URLs:
 
@@ -1694,7 +1694,7 @@ Borrar los cuatro archivos viejos.
 Run: `npx playwright test e2e/anotar.spec.ts`
 Expected: FAIL — las cuatro rutas nuevas dan 404. Este es el rojo que hay que ver antes de mudar nada.
 
-- [ ] **Step 2: Mudar los cuatro modos**
+- [x] **Step 2: Mudar los cuatro modos**
 
 ```bash
 git mv src/app/salidas/SalidaForm.tsx src/app/anotar/salida/SalidaForm.tsx
@@ -1721,16 +1721,16 @@ Cada `page.tsx` nuevo toma el contenido del viejo, quita su `<Marco>` (lo pone `
 | `mover` | «¿A dónde los pasas?» | «SOFÍA te avisa si el potrero queda cargado, pero no te lo impide: la decisión es tuya.» |
 | `entrada` | «¿Qué entró?» | «Abre el lote y mete la planilla completa de una vez. Los pesos raros se avisan antes de guardar.» |
 
-- [ ] **Step 3: Ajustar imports, clases y revalidaciones**
+- [x] **Step 3: Ajustar imports, clases y revalidaciones**
 
 En los cuatro: arreglar los `import` relativos, cambiar las clases del sistema viejo (`bg-pasto`→`bg-monte`, `text-rojo-tierra`/`text-ambar`→`text-barro`, quitar `font-serif`), y en cada `acciones.ts` cambiar el `revalidatePath` de la ruta vieja a la nueva **y agregar `revalidatePath('/')`**: las cuatro cambian lo que muestra la portada de Ganado.
 
-- [ ] **Step 4: Correr las pruebas y verlas pasar**
+- [x] **Step 4: Correr las pruebas y verlas pasar**
 
 Run: `npx playwright test e2e/anotar.spec.ts && npx tsc --noEmit && npm run test`
 Expected: PASS — las 3 del caparazón, las 4 de pesos, las 7 de salidas, las 3 de novedades, la de mover y las 3 de lotes. Ninguna aserción cambió: solo la URL.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A src/app e2e
