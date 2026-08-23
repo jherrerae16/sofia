@@ -57,8 +57,24 @@ export default async function Configuracion() {
         <TarjetaParametro definicion={DEFINICION_PESO_OBJETIVO} estado={pesoObjetivo} hoy={hoy} />
       </section>
 
-      <section className="rounded-lg border border-tierra/20 bg-white p-4">
+      <section className="mb-8 rounded-lg border border-tierra/20 bg-white p-4">
         <TarjetaParametro definicion={DEFINICION_HECTAREAS} estado={hectareas} hoy={hoy} />
+      </section>
+
+      <section className="rounded-lg border border-tierra/20 bg-white p-4">
+        <h2 className="mb-1 font-serif text-xl text-pasto">Exportar todo a Excel</h2>
+        <p className="mb-4 max-w-2xl text-sm text-carbon/70">
+          Un respaldo completo de la finca -- animales, pesajes, lotes, potreros, movimientos, novedades, eventos
+          sanitarios y parámetros, con todo el histórico, incluido lo anulado y lo cerrado -- en un solo archivo
+          que sirve fuera de SOFÍA: en un computador sin internet, en manos de un contador o un veterinario, o el
+          día que decidas dejar de usar esta plataforma. No es un informe: son los datos tal cual están guardados.
+        </p>
+        <a
+          href="/exportar"
+          className="inline-block rounded bg-pasto px-4 py-2 text-white hover:bg-pasto/90"
+        >
+          Exportar todo a Excel
+        </a>
       </section>
     </main>
   )
