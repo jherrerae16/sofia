@@ -294,3 +294,18 @@ export async function ultimaTandaDeLote(loteId: string): Promise<FechaISO | null
   })
   return pesaje ? aFechaISO(pesaje.fecha) : null
 }
+
+/**
+ * Quiénes entraron en la última tanda del lote. Los que no aparecen aquí no
+ * se dejaron pesar esa vez: su ganancia diaria sigue siendo la de la tanda
+ * anterior, y mostrarla igual que la de los recién pesados haría creer que
+ * es un dato fresco.
+ */
+export async function animalesDeLaUltimaTanda(loteId: string): Promise<Set<string>> {
+  const pesaje = await prisma.pesaje.findFirst({
+    where: { anuladoEn: null, mediciones: { some: { animal: { loteId } } } },
+    orderBy: { fecha: 'desc' },
+    select: { mediciones: { where: { animal: { loteId } }, select: { animalId: true } } },
+  })
+  return new Set(pesaje?.mediciones.map((medicion) => medicion.animalId) ?? [])
+}

@@ -157,6 +157,16 @@ function esClaveUmbral(clave: string): clave is ClaveUmbral {
  */
 export const CLAVE_HECTAREAS_UTILES = 'hectareas_utiles'
 
+/**
+ * El peso a partir del cual un novillo aparece como listo para vender.
+ *
+ * Puede no estar configurado, y eso no es un error: mientras no lo esté,
+ * ninguna pantalla puede decir que un animal "está listo" -- sería una
+ * opinión de la plataforma sobre cuándo vender, que es justo la decisión que
+ * el dueño no delegó.
+ */
+export const CLAVE_PESO_VENTA = 'peso_objetivo_venta_kg'
+
 async function valoresUmbralEfectivos(
   en: FechaISO,
   cambios: Partial<Record<ClaveUmbral, number>>,

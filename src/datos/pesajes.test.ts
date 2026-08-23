@@ -10,6 +10,7 @@ import {
   historialDeAnimal,
   listarPesajesDeLote,
   pesoVivoPorLote,
+  animalesDeLaUltimaTanda,
   revisarTanda,
   ultimaTandaDeLote,
   ultimoPesoPorAnimal,
@@ -612,5 +613,86 @@ describe('ultimaTandaDeLote', () => {
     )
 
     expect(await ultimaTandaDeLote(loteId)).toBeNull()
+  })
+})
+
+describe('animalesDeLaUltimaTanda', () => {
+  it('trae solo a los que se pesaron en la última tanda, no a todo el lote', async () => {
+    await crearAnimales({
+      loteId,
+      chapetas: ['601'],
+      sexo: 'macho',
+      raza: null,
+      cruce: null,
+      proveedor: null,
+      fechaEntrada: '2026-09-01',
+      edadEntradaMeses: null,
+      pesos: { '601': 150 },
+    })
+    const animales = await listarAnimalesDeLote(loteId)
+    const primero = animales[0]
+
+    // Una tanda vieja con todos, una nueva con uno solo: el que no entró en
+    // la nueva es el que la pantalla tiene que poder mostrar apagado.
+    await guardarPesaje(
+      {
+        fecha: '2026-10-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: animales.map((animal) => ({ animalId: animal.id, pesoKg: 174 })),
+      },
+      '2026-10-20',
+    )
+    await guardarPesaje(
+      {
+        fecha: '2026-10-20',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: primero.id, pesoKg: 190 }],
+      },
+      '2026-10-20',
+    )
+
+    const pesados = await animalesDeLaUltimaTanda(loteId)
+
+    expect(pesados.has(primero.id)).toBe(true)
+    expect(pesados.size).toBe(1)
+  })
+
+  it('una tanda anulada no es la última tanda', async () => {
+    const animalId = (await listarAnimalesDeLote(loteId))[0].id
+    await guardarPesaje(
+      {
+        fecha: '2026-10-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId, pesoKg: 174 }],
+      },
+      '2026-10-20',
+    )
+    const anulada = await guardarPesaje(
+      {
+        fecha: '2026-10-20',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId, pesoKg: 190 }],
+      },
+      '2026-10-20',
+    )
+    await anularPesaje(anulada, 'Se digitó con la cinta equivocada', 'u1')
+
+    expect((await animalesDeLaUltimaTanda(loteId)).size).toBe(1)
+  })
+
+  it('un lote que nunca se ha pesado no tiene a nadie pesado', async () => {
+    expect((await animalesDeLaUltimaTanda(loteId)).size).toBe(0)
   })
 })

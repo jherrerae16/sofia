@@ -1,4 +1,4 @@
-import { hoyBogota } from '@/calc/fechas'
+import { diasEntre, hoyBogota } from '@/calc/fechas'
 import { promediarGdp } from '@/calc/lote'
 import { calcularCarga, diasOcupacion } from '@/calc/potrero'
 import { kgProducidos, type AnimalProduccion } from '@/calc/produccion'
@@ -9,21 +9,28 @@ import { listarLotes } from '@/datos/lotes'
 import { listarSuministrosVigentes } from '@/datos/novedades'
 import {
   CLAVE_HECTAREAS_UTILES,
+  CLAVE_PESO_VENTA,
   leerGdpObjetivo,
   leerParametro,
   ParametroFaltanteError,
 } from '@/datos/parametros'
-import { pesoVivoPorLote, ultimaTandaDeLote } from '@/datos/pesajes'
+import { animalesDeLaUltimaTanda, pesoVivoPorLote, ultimaTandaDeLote } from '@/datos/pesajes'
 import { listarPotreros } from '@/datos/potreros'
 import { eventosVencidos } from '@/datos/sanidad'
 import { serieDePesoPromedio } from '@/datos/serie'
+import { FiltrosGanado, type Chip } from './FiltrosGanado'
 import { GraficaLote } from './GraficaLote'
+import { RejillaGanado, type FilaGanado, type Vista } from './RejillaGanado'
 import { Cinta, type Celda } from '@/ui/Cinta'
 import { ETIQUETA_TIPO_EVENTO } from '@/ui/etiquetas'
 import { capitalizar, formatearGdp, formatearKg, separarUnidad, SIN_DATO } from '@/ui/formato'
 import { Marco } from '@/ui/Marco'
 import { Titular, type Aviso } from '@/ui/Titular'
-import { diasEntre } from '@/calc/fechas'
+
+/** Quedado es lo que el dueño configuró como quedado, no un número de aquí. */
+function esQuedado(fila: FilaDesempeno): boolean {
+  return fila.clasificacion === 'bajo' || fila.clasificacion === 'critico'
+}
 
 // Todo lo que se ve aquí cambia con el día y con lo que se digitó hace un
 // minuto. Sin esto Next prerenderiza la ruta en el momento de construir --
@@ -77,9 +84,7 @@ export default async function Ganado({
     delLote.map((fila) => fila.gdpPeriodo),
     delLote.length,
   )
-  const quedados = delLote.filter(
-    (fila) => fila.clasificacion === 'bajo' || fila.clasificacion === 'critico',
-  )
+  const quedados = delLote.filter(esQuedado)
 
   const animales = await prisma.animal.findMany({
     where: { loteId: lote.id },
@@ -175,6 +180,73 @@ export default async function Ganado({
       : { rotulo: 'Carga', valor: SIN_DATO },
   ]
 
+  // --- La lista. Los chips y el orden salen de los mismos datos que la
+  // rejilla, así que la cuenta del chip y lo que aparece al pulsarlo no
+  // pueden separarse.
+  const pesadosEnLaUltima = await animalesDeLaUltimaTanda(lote.id)
+  const pesoVentaTexto = await leerParametro(CLAVE_PESO_VENTA, hoy)
+  const pesoVenta = pesoVentaTexto === null ? null : Number(pesoVentaTexto)
+
+  const conEstado: FilaGanado[] = delLote.map((fila) => ({
+    ...fila,
+    sinPesarEnLaUltima: !pesadosEnLaUltima.has(fila.animalId),
+    listo:
+      pesoVenta !== null &&
+      Number.isFinite(pesoVenta) &&
+      fila.pesoActualKg !== null &&
+      fila.pesoActualKg >= pesoVenta,
+  }))
+
+  const salidos = animales.filter((animal) => animal.estado !== 'activo')
+  const chips: Chip[] = [
+    { clave: 'todos', texto: 'Todos', cuenta: conEstado.length },
+    {
+      clave: 'quedados',
+      texto: 'Quedados',
+      cuenta: conEstado.filter((fila) => esQuedado(fila)).length,
+    },
+    {
+      clave: 'sin_pesar',
+      texto: 'Sin pesar',
+      cuenta: conEstado.filter((fila) => fila.sinPesarEnLaUltima).length,
+    },
+  ]
+  // El chip de listos solo existe si hay un peso de venta configurado: sin
+  // ese criterio, "listo" sería una opinión de la plataforma.
+  if (pesoVenta !== null && Number.isFinite(pesoVenta)) {
+    chips.push({
+      clave: 'listos',
+      texto: 'Listos',
+      cuenta: conEstado.filter((fila) => fila.listo).length,
+    })
+  }
+  if (salidos.length > 0) {
+    chips.push({ clave: 'salieron', texto: 'Ya salieron', cuenta: salidos.length })
+  }
+
+  const filtro = params.filtro ?? 'todos'
+  const busqueda = (params.q ?? '').trim().toLowerCase()
+  let visibles = conEstado
+  if (filtro === 'quedados') visibles = visibles.filter((fila) => esQuedado(fila))
+  if (filtro === 'sin_pesar') visibles = visibles.filter((fila) => fila.sinPesarEnLaUltima)
+  if (filtro === 'listos') visibles = visibles.filter((fila) => fila.listo)
+  if (busqueda) {
+    visibles = visibles.filter((fila) => fila.chapeta.toLowerCase().includes(busqueda))
+  }
+
+  // Peor primero por defecto: la pantalla se abre para ver a quién hay que
+  // mirarle algo, no para ver al campeón. Los sin dato van al final en los
+  // dos órdenes numéricos -- no son ni los peores ni los mejores.
+  const orden = params.orden ?? 'peor'
+  visibles = [...visibles].sort((a, b) => {
+    if (orden === 'chapeta') return a.chapeta.localeCompare(b.chapeta)
+    if (a.gdpPeriodo === null) return 1
+    if (b.gdpPeriodo === null) return -1
+    return orden === 'mejor' ? b.gdpPeriodo - a.gdpPeriodo : a.gdpPeriodo - b.gdpPeriodo
+  })
+
+  const vista: Vista = params.vista === 'tabla' ? 'tabla' : 'rejilla'
+
   return (
     <Marco>
       <Titular avisos={avisos}>
@@ -209,6 +281,13 @@ export default async function Ganado({
 
       <h2 className="rotulo mb-4 mt-13">Cómo viene engordando el lote</h2>
       <GraficaLote serie={await serieDePesoPromedio(lote.id, hoy)} />
+
+      <h2 className="rotulo mb-4 mt-13">El ganado</h2>
+      <FiltrosGanado
+        lotes={lotes.map((l) => ({ id: l.id, nombre: l.nombre, animales: l.animalesActivos }))}
+        chips={chips}
+      />
+      <RejillaGanado filas={visibles} vista={vista} />
 
       <Pie />
     </Marco>

@@ -144,3 +144,68 @@ test('sin gdp objetivo la gráfica se dibuja sin trayectoria, no vacía', async 
     })
   }
 })
+
+test('la rejilla trae una tarja por animal activo del lote', async ({ page }) => {
+  await expect(page.getByTestId('tarja')).toHaveCount(14)
+})
+
+test('el chip de quedados deja solo a los quedados, y la cuenta cuadra', async ({ page }) => {
+  const chip = page.getByRole('button', { name: /^Quedados/ })
+  const cuenta = Number((await chip.innerText()).replace(/\D/g, ''))
+  expect(cuenta).toBeGreaterThan(0)
+
+  await chip.click()
+  await expect(page.getByTestId('tarja')).toHaveCount(cuenta)
+})
+
+test('el chip de sin pesar señala a los que no entraron en la última tanda', async ({ page }) => {
+  // La siembra pesó a diez de los catorce en la última tanda.
+  const chip = page.getByRole('button', { name: /^Sin pesar/ })
+  await expect(chip).toContainText('4')
+  await chip.click()
+  await expect(page.getByTestId('tarja')).toHaveCount(4)
+})
+
+test('el filtro Desde cambia el periodo contra el que se mide, y queda en la URL', async ({ page }) => {
+  await page.getByLabel('Desde').selectOption('dias_30')
+  await expect(page).toHaveURL(/desde=dias_30/)
+  // Y no se lleva por delante el lote que se estaba mirando.
+  await expect(page).toHaveURL(/lote=/)
+})
+
+test('la vista Tabla trae las columnas que estaban en Cómo vamos', async ({ page }) => {
+  await page.getByRole('button', { name: 'Tabla' }).click()
+  const encabezados = page.locator('table thead th')
+  await expect(encabezados).toContainText(['Chapeta'])
+  await expect(encabezados).toContainText(['Kg ganados'])
+  await expect(encabezados).toContainText(['Días en finca'])
+})
+
+test('buscar una chapeta deja solo esa', async ({ page }) => {
+  await page.getByPlaceholder('Buscar chapeta').fill('001')
+  await expect(page.getByTestId('tarja')).toHaveCount(1)
+  await expect(page.getByTestId('tarja')).toContainText('001')
+})
+
+test('cada tarja lleva a la ficha de su animal', async ({ page }) => {
+  await page.getByTestId('tarja').first().click()
+  await expect(page).toHaveURL(/\/animales\//)
+})
+
+test('sin peso de venta configurado no se inventa el chip de listos', async ({ page }) => {
+  await prisma.parametro.deleteMany({ where: { clave: 'peso_objetivo_venta_kg' } })
+  try {
+    await irAlLoteConHistoria(page)
+    await expect(page.getByRole('button', { name: /^Listos/ })).toHaveCount(0)
+    // Pero la lista sigue ahí: falta un criterio, no los animales.
+    await expect(page.getByTestId('tarja')).toHaveCount(14)
+  } finally {
+    await prisma.parametro.create({
+      data: {
+        clave: 'peso_objetivo_venta_kg',
+        valor: '320',
+        vigenteDesde: new Date('2000-01-01T00:00:00.000Z'),
+      },
+    })
+  }
+})
