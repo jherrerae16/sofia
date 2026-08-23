@@ -180,6 +180,48 @@ test('un peso de venta con ganancia inverosímil se frena con una advertencia ha
   expect(guardado.estado).toBe('vendido')
 })
 
+// Defecto 1 del seguimiento de esta revisión (2026-08-22): el arreglo de
+// arriba ("un animal pesado hoy se puede vender hoy mismo") apagó la regla
+// de "mismo día" para el peso de venta, pero de paso destapó un hueco --
+// justo ese mismo día -- porque `gdpEntre` da null sin días transcurridos y
+// la guardia de "ganancia imposible" no tenía nada que evaluar. El revisor
+// reprodujo el caso exacto: pesaje de hoy con 320 kg, venta hoy con 2200 kg
+// -- sin advertencia en pantalla, y en la base quedaba `estado=vendido`,
+// `pesoSalidaKg=2200`. Esta prueba pasa por la interfaz real para demostrar
+// que ahora sí aparece la advertencia y nada se guarda hasta confirmarla.
+test('un dedazo de venta el mismo día de un pesaje real se advierte -- el hueco de la feria', async ({
+  page,
+}) => {
+  const lote = await sembrarLotePropio('Salidas — dedazo el mismo día del pesaje', ['951'])
+  const [animal] = await prisma.animal.findMany({ where: { loteId: lote.id } })
+  await prisma.pesaje.create({
+    data: {
+      fecha: aFechaDb(HOY),
+      metodo: 'cinta',
+      responsable: 'Joseph',
+      registradoPorId: 'siembra',
+      mediciones: { create: [{ animalId: animal.id, pesoKg: 320 }] },
+    },
+  })
+
+  await iniciarSesion(page)
+  await page.goto(`/salidas?lote=${lote.id}`)
+
+  await page.locator('input[name^="sel_"]').check()
+  await page.selectOption('select[name="estado"]', 'vendido')
+  await page.fill('input[name="fechaSalida"]', HOY)
+  await page.locator('input[name^="peso_"]').fill('2200')
+
+  await page.getByRole('button', { name: 'Registrar salida' }).click()
+
+  await expect(page.getByText(/Revisa estos pesos de venta/)).toBeVisible()
+
+  // Nada se guardó todavía: el animal sigue activo.
+  const guardadoAntes = await prisma.animal.findUniqueOrThrow({ where: { id: animal.id } })
+  expect(guardadoAntes.estado).toBe('activo')
+  expect(guardadoAntes.pesoSalidaKg).toBeNull()
+})
+
 // Hallazgo 2.4: lo que sale de la finca quedaba invisible -- ni la pantalla
 // de Salidas ni la ficha del animal mostraban nada distinto de un animal
 // activo. Esta prueba registra una muerte con su motivo y comprueba que

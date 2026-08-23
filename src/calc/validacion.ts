@@ -8,6 +8,40 @@ export type Veredicto = { nivel: Nivel; mensaje: string; gdp: number | null }
 const GDP_MAXIMA_CREIBLE = 2000
 const PERDIDA_MAXIMA_TOLERADA = 0.1
 
+// Defecto de seguimiento del plan 1c (2026-08-22): cuando el peso de venta
+// comparte fecha con el pesaje contra el que se mide (`contexto: 'salida'`,
+// el caso de la feria), `gdpEntre` da null -- no hay días transcurridos con
+// los que calcular una ganancia diaria -- así que la guardia de arriba
+// (`GDP_MAXIMA_CREIBLE`) no evalúa nada, y la de pérdida de más abajo solo
+// mira hacia abajo. El dedazo del revisor (320 kg de pesaje, 2200 kg de
+// venta, mismo día) pasaba en silencio.
+//
+// El peso de venta sí tiene un pesaje previo contra el cual compararse,
+// aunque sea del mismo día: un salto del 600% frente al último peso
+// conocido es un dedazo con o sin días de por medio. Por eso el arreglo es
+// un chequeo relativo simétrico al de pérdida (`PERDIDA_MAXIMA_TOLERADA`),
+// no un rango absoluto como `validarPesoEntrada` -- ese rango absoluto
+// existe porque el peso de ENTRADA no tiene ningún pesaje anterior contra
+// el cual medirse; el de venta sí lo tiene siempre (el propio pesaje del
+// mismo día, o si nunca se pesó, su peso de entrada), así que ignorar esa
+// referencia y comparar contra un rango absoluto desperdiciaría la
+// información más precisa que ya está disponible.
+//
+// Se activa solo cuando `gdp` es null -- es decir, solo cuando la guardia
+// de arriba no tiene nada que evaluar -- y no de forma incondicional como
+// la de pérdida: a diferencia de una pérdida (donde cualquier magnitud
+// fuera de lo normal es rara en cualquier plazo), una ganancia grande es
+// exactamente lo esperable en un ciclo de ceba completo (un novillo puede
+// más que duplicar su peso de entrada a lo largo de meses) y ya está
+// vigilada por `GDP_MAXIMA_CREIBLE` cuando sí hay días de por medio. Un
+// umbral incondicional bajo dispararía advertencias en ventas normales de
+// fin de ciclo. El umbral del 50% deja margen generoso sobre la variación
+// real de peso de un bovino en un mismo día -- llenado del rumen, agua,
+// estrés de manejo, incluso el "shrink" documentado de transporte largo
+// (hasta 10-12%) -- sin acercarse al caso del dedazo (320 -> 2200 kg,
+// +587%).
+const GANANCIA_MAXIMA_RELATIVA_MISMO_DIA = 0.5
+
 const formato = new Intl.NumberFormat('es-CO')
 
 /**
@@ -98,6 +132,18 @@ export function validarMedicion(
       nivel: 'advertencia',
       mensaje: `Ganancia de ${formato.format(gdp)} g/día. Revisa que el peso esté bien digitado.`,
       gdp,
+    }
+  }
+
+  if (gdp === null) {
+    const ganancia = (nueva.pesoKg - referencia.pesoKg) / referencia.pesoKg
+    if (ganancia > GANANCIA_MAXIMA_RELATIVA_MISMO_DIA) {
+      const kilos = Math.round((nueva.pesoKg - referencia.pesoKg) * 10) / 10
+      return {
+        nivel: 'advertencia',
+        mensaje: `El peso subió ${formato.format(kilos)} kg el mismo día frente al último pesaje. Revisa que esté bien digitado.`,
+        gdp: null,
+      }
     }
   }
 

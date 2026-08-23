@@ -778,9 +778,10 @@ describe('registrarSalida — vigilancia del peso de venta (hallazgo 2.1)', () =
     // Variante del caso anterior con una cifra distinta entre el pesaje de
     // la mañana y la venta de la tarde: sigue sin ser un "segundo pesaje",
     // así que sigue sin caer bajo la regla de "mismo día". Las demás
-    // guardias -- ganancia imposible, pérdida excesiva -- se evalúan igual;
-    // acá no se disparan porque no hay un intervalo de días contra el cual
-    // medir una ganancia diaria (gdp queda en null).
+    // guardias -- ganancia imposible, pérdida excesiva, y la relativa del
+    // mismo día que cierra el hueco de la feria (defecto 1 de la revisión
+    // de 2026-08-22) -- se evalúan igual; acá no se disparan porque 210 a
+    // 220 kg es una subida pequeña y real, no un dedazo.
     const [animal] = await listarAnimalesDeLote(loteId)
     await guardarPesaje(
       {
@@ -809,6 +810,49 @@ describe('registrarSalida — vigilancia del peso de venta (hallazgo 2.1)', () =
     const guardado = await prisma.animal.findUniqueOrThrow({ where: { id: animal.id } })
     expect(guardado.estado).toBe('vendido')
     expect(aKg(guardado.pesoSalidaKg!)).toBe(220)
+  })
+
+  it('advierte -- no acepta en silencio -- un dedazo de venta el mismo día de un pesaje real (defecto 1 de esta revisión, el hueco de la feria)', async () => {
+    // El caso exacto que ejecutó el revisor: pesaje de hoy con 320 kg, venta
+    // hoy con 2200 kg. Antes de este arreglo esto pasaba sin ninguna
+    // advertencia -- `gdpEntre` da null sin días transcurridos, así que la
+    // guardia de "ganancia imposible" (que compara g/día) no evaluaba nada,
+    // y quedaba `estado=vendido`, `pesoSalidaKg=2200` sin que nadie lo viera.
+    const [animal] = await listarAnimalesDeLote(loteId)
+    await guardarPesaje(
+      {
+        fecha: '2026-11-01',
+        metodo: 'cinta',
+        responsable: 'Joseph',
+        notas: null,
+        registradoPorId: 'u1',
+        mediciones: [{ animalId: animal.id, pesoKg: 320 }],
+      },
+      '2026-11-01',
+    )
+
+    let error: unknown
+    try {
+      await registrarSalida(
+        {
+          animalIds: [animal.id],
+          estado: 'vendido',
+          fechaSalida: '2026-11-01',
+          motivoSalida: null,
+          pesosSalida: { [animal.id]: 2200 },
+        },
+        '2026-11-01',
+      )
+    } catch (e) {
+      error = e
+    }
+
+    expect(error).toBeInstanceOf(PesoSalidaSospechosoError)
+
+    // Nada se guardó: el animal sigue activo, sin fecha ni peso de salida.
+    const guardado = await prisma.animal.findUniqueOrThrow({ where: { id: animal.id } })
+    expect(guardado.estado).toBe('activo')
+    expect(guardado.pesoSalidaKg).toBeNull()
   })
 
   it('traduce a español el desborde de la columna cuando el peso confirmado es absurdamente grande (hallazgo 2.3)', async () => {

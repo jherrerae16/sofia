@@ -96,6 +96,23 @@ describe('validarMedicion', () => {
     expect(veredicto.mensaje).toContain('mayor que cero')
   })
 
+  it('en contexto "salida", el mismo día de un pesaje real, advierte una subida de dedazo -- el hueco de la feria (defecto 1 de esta revisión)', () => {
+    // El caso exacto que reprodujo el revisor: pesaje de hoy (320 kg), venta
+    // hoy (2200 kg). `gdpEntre` da null porque no hay días transcurridos, así
+    // que la guardia de "ganancia imposible" (que compara g/día) no evalúa
+    // nada -- y la de pérdida solo mira hacia abajo. Sin una guardia nueva
+    // para este hueco, el veredicto sale 'ok' y el dedazo pasa en silencio.
+    const veredicto = validarMedicion(
+      entrada,
+      { fecha: '2026-10-01', pesoKg: 320 },
+      { fecha: '2026-10-01', pesoKg: 2200 },
+      HOY,
+      'normal',
+      'salida',
+    )
+    expect(veredicto.nivel).toBe('advertencia')
+  })
+
   it('en contexto "salida", una ganancia imposible frente al pesaje anterior sigue advirtiendo', () => {
     // El dedazo clásico (2200 en vez de 220) tiene que seguir advirtiendo en
     // una venta con un pesaje anterior de otro día -- el contexto "salida"
