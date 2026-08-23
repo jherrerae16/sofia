@@ -1791,7 +1791,7 @@ export async function anularAplicacion(animalIds: string[], claveTanda: string, 
 
 **Decisión: una tanda es un grupo de filas, no una fila.** Desde el arreglo de `sanidad.ts`, aplicarle algo a un lote crea una fila por animal. Anular «la desparasitación del 10 de mayo» tiene que anular las catorce a la vez, no una. `claveTanda` es lo que las junta: `${tipo}|${fecha}|${producto}|${loteId ?? animalId}`. No hace falta una columna nueva —esos cuatro campos ya identifican la tanda sin ambigüedad, porque un mismo producto no se aplica dos veces el mismo día al mismo lote.
 
-- [ ] **Step 1: Escribir las pruebas de la capa de datos que fallan**
+- [x] **Step 1: Escribir las pruebas de la capa de datos que fallan**
 
 Agregar a `src/datos/sanidad.test.ts`:
 
@@ -1934,12 +1934,12 @@ describe('ultimasAplicaciones', () => {
 })
 ```
 
-- [ ] **Step 2: Correr las pruebas y verlas fallar**
+- [x] **Step 2: Correr las pruebas y verlas fallar**
 
 Run: `npx vitest run src/datos/sanidad.test.ts`
 Expected: FAIL — «candidatosDeAplicacion is not exported».
 
-- [ ] **Step 3: La migración de anulación**
+- [x] **Step 3: La migración de anulación**
 
 En `prisma/schema.prisma`, dentro de `model EventoSanitario`, junto a `creadoEn`:
 
@@ -1958,7 +1958,7 @@ npx prisma migrate dev --name anular_evento_sanitario
 
 Es una migración aditiva de tres columnas opcionales: no necesita relleno a mano.
 
-- [ ] **Step 4: Escribir las tres funciones**
+- [x] **Step 4: Escribir las tres funciones**
 
 En `src/datos/sanidad.ts`. Agregar `anuladoEn: null` al `where` de `eventosDeAnimal` y de `eventosVencidos` —si no, anular no apaga nada— y después:
 
@@ -2100,12 +2100,12 @@ export async function anularAplicacion(
 }
 ```
 
-- [ ] **Step 5: Correr las pruebas de datos y verlas pasar**
+- [x] **Step 5: Correr las pruebas de datos y verlas pasar**
 
 Run: `npx vitest run src/datos/sanidad.test.ts`
 Expected: PASS, las 18 (13 de antes + 5 nuevas).
 
-- [ ] **Step 6: Escribir la prueba de navegador que falla**
+- [x] **Step 6: Escribir la prueba de navegador que falla**
 
 Crear `e2e/sanidad.spec.ts`:
 
@@ -2187,12 +2187,12 @@ test('anular una tanda la saca de la lista y apaga su aviso en Ganado', async ({
 })
 ```
 
-- [ ] **Step 7: Correr la prueba y verla fallar**
+- [x] **Step 7: Correr la prueba y verla fallar**
 
 Run: `npx playwright test e2e/sanidad.spec.ts`
 Expected: FAIL — `/anotar/sanidad` da 404.
 
-- [ ] **Step 8: Escribir la acción de servidor**
+- [x] **Step 8: Escribir la acción de servidor**
 
 `src/app/anotar/sanidad/acciones.ts`, siguiendo el patrón de `src/app/anotar/novedad/acciones.ts` (que devuelve el estado con `datosEnviados` para repoblar el formulario tras un rechazo):
 
@@ -2309,7 +2309,7 @@ export async function anularSanidadAccion(_estado: { error: string | null }, dat
 
 `hoyBogota()` se usa para el valor por defecto de la fecha en el formulario, no aquí.
 
-- [ ] **Step 9: Escribir la pantalla**
+- [x] **Step 9: Escribir la pantalla**
 
 `src/app/anotar/sanidad/page.tsx` (servidor) lee el lote de `?lote=`, llama `candidatosDeAplicacion(lote.id, fecha)` y `ultimasAplicaciones(lote.id, hoy)`, y pasa todo a `SanidadForm`.
 
@@ -2323,12 +2323,12 @@ export async function anularSanidadAccion(_estado: { error: string | null }, dat
 
 Cambiar la fecha vuelve a pedir los candidatos: es un `<form>` con `method="GET"` sobre el mismo `page.tsx` para el campo de fecha, o un `router.replace` con `?fecha=`. **No** filtrar los candidatos en el cliente: quién había entrado en una fecha es una pregunta de la base, no del navegador.
 
-- [ ] **Step 10: Correr las pruebas y verlas pasar**
+- [x] **Step 10: Correr las pruebas y verlas pasar**
 
 Run: `npx playwright test e2e/sanidad.spec.ts && npx vitest run && npx tsc --noEmit`
 Expected: PASS las cinco de navegador y las 18 de datos.
 
-- [ ] **Step 11: Commit**
+- [x] **Step 11: Commit**
 
 ```bash
 git add prisma src/datos/sanidad.ts src/datos/sanidad.test.ts src/app/anotar/sanidad e2e/sanidad.spec.ts
