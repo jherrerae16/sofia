@@ -8,6 +8,7 @@ import {
 } from '@/ui/etiquetas'
 import { prisma } from './cliente'
 import { aFechaISO, aNumero } from './conversion'
+import { obtenerFinca, type FincaVista } from './finca'
 
 export type FilaAnimalExport = {
   chapeta: string
@@ -113,6 +114,9 @@ export type FilaParametroExport = {
 }
 
 export type DatosExportacion = {
+  /** Para la portada del archivo: el nombre de la finca (null si aún no se ha creado ninguna) y el instante exacto de esta exportación. */
+  finca: FincaVista | null
+  exportadoEn: Date
   animales: FilaAnimalExport[]
   pesajes: FilaPesajeExport[]
   lotes: FilaLoteExport[]
@@ -152,10 +156,17 @@ function valorParametroExport(valor: string): number | string {
  * que abra este Excel fuera de la plataforma.
  */
 export async function datosExportacionCompleta(): Promise<DatosExportacion> {
+  // Se captura al entrar, no al terminar: son las mismas consultas que el
+  // resto de la función, así que un archivo grande no debería tardar tanto
+  // como para que la diferencia importe, y así queda el instante en el que
+  // se pidió el respaldo, no el que tardó en armarse.
+  const exportadoEn = new Date()
+
   const usuarios = new Map((await prisma.usuario.findMany({ select: { id: true, nombre: true } })).map(
     (usuario) => [usuario.id, usuario.nombre],
   ))
   const nombreUsuario = (id: string | null): string | null => (id === null ? null : (usuarios.get(id) ?? id))
+  const finca = await obtenerFinca()
 
   const [animales, mediciones, lotes, potreros, movimientos, novedades, eventos, parametros] = await Promise.all([
     prisma.animal.findMany({
@@ -197,6 +208,8 @@ export async function datosExportacionCompleta(): Promise<DatosExportacion> {
   ])
 
   return {
+    finca,
+    exportadoEn,
     animales: animales.map((animal) => ({
       chapeta: animal.chapeta,
       lote: animal.lote.nombre,

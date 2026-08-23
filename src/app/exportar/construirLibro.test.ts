@@ -14,6 +14,8 @@ import { construirLibroExcel } from './construirLibro'
  */
 function datosDePrueba(): DatosExportacion {
   return {
+    finca: { nombre: 'Santa Verónica' },
+    exportadoEn: new Date('2026-08-23T01:52:00.000Z'), // 2026-08-22 20:52 hora de Bogotá
     animales: [
       {
         chapeta: '001',
@@ -201,7 +203,7 @@ describe('construirLibroExcel', () => {
     expect(sharedStrings).not.toContain('Animales activos')
   })
 
-  it('produce un .xlsx real (zip con las 8 hojas) con la celda del peso guardada como número', async () => {
+  it('produce un .xlsx real (zip con las 9 hojas) con la celda del peso guardada como número', async () => {
     const buffer = await construirLibroExcel(datosDePrueba())
 
     // Firma de archivo ZIP: cualquier .xlsx (y cualquier .docx, .zip, etc)
@@ -211,10 +213,11 @@ describe('construirLibroExcel', () => {
 
     const archivos = unzipSync(new Uint8Array(buffer))
     const nombresHoja = Object.keys(archivos).filter((n) => /^xl\/worksheets\/sheet\d+\.xml$/.test(n))
-    expect(nombresHoja).toHaveLength(8)
+    expect(nombresHoja).toHaveLength(9)
 
     const workbook = strFromU8(archivos['xl/workbook.xml'])
     for (const nombre of [
+      'Portada',
       'Animales',
       'Pesajes',
       'Lotes',
@@ -227,17 +230,70 @@ describe('construirLibroExcel', () => {
       expect(workbook).toContain(`name="${nombre}"`)
     }
 
-    // La hoja de Animales es la primera declarada -> sheet1.xml. La fila 2
-    // (la 1 es el encabezado) trae, en la columna J, el peso de entrada
-    // (180.5, décima columna: Chapeta, Lote, Sexo, Raza, Cruce, Proveedor,
-    // Fecha de entrada, Edad, Condición corporal, Peso de entrada).
-    const hojaAnimales = strFromU8(archivos['xl/worksheets/sheet1.xml'])
-    const celdaPeso = hojaAnimales.match(/<c r="J2"[^>]*>[\s\S]*?<\/c>/)?.[0]
+    // Resuelta por NOMBRE, no por posición: la portada corrió el número de
+    // archivo de todas las demás hojas. La fila 2 (la 1 es el encabezado)
+    // trae, en la columna J, el peso de entrada (180.5, décima columna:
+    // Chapeta, Lote, Sexo, Raza, Cruce, Proveedor, Fecha de entrada, Edad,
+    // Condición corporal, Peso de entrada).
+    const hojaAnimales = xmlDeHoja(archivos, 'Animales')
+    const celdaPeso = celda(hojaAnimales, 'J2')
     expect(celdaPeso).toBeDefined()
     // Sin atributo `t`, o `t="n"`: las dos formas en que un `.xlsx` marca una
     // celda numérica. `t="s"` (cadena compartida) o `t="str"` (fórmula de
     // texto) es justo el defecto que esta prueba existe para atrapar.
     expect(celdaPeso).not.toMatch(/t="(s|str|inlineStr)"/)
     expect(celdaPeso).toMatch(/<v>182\.5<\/v>/)
+  })
+
+  // El archivo no se explicaba a sí mismo: ocho hojas sin portada, sin
+  // fecha de exportación y sin una línea que diga qué es cada hoja. Ese
+  // texto vivía solo en la pantalla de Configuración -- que es justo lo que
+  // el dueño ya no tiene el día que necesite este archivo por fuera de
+  // SOFÍA.
+  it('agrega una portada con el nombre de la finca, la fecha y hora de exportación en hora de Bogotá, y una línea por hoja', async () => {
+    const buffer = await construirLibroExcel(datosDePrueba())
+    const archivos = unzipSync(new Uint8Array(buffer))
+
+    const workbook = strFromU8(archivos['xl/workbook.xml'])
+    const declaraciones = [...workbook.matchAll(/<sheet\b[^>]*\/>/g)].map((m) => m[0])
+    // La portada es la PRIMERA hoja: es lo primero que alguien ve al abrir
+    // el archivo, no un anexo al final.
+    expect(atributo(declaraciones[0], 'name')).toBe('Portada')
+
+    const sharedStrings = strFromU8(archivos['xl/sharedStrings.xml'] ?? new Uint8Array())
+    expect(sharedStrings).toContain('Santa Verónica')
+
+    // Una línea por cada una de las otras ocho hojas, en lenguaje de
+    // ganadero -- no solo el nombre de la hoja repetido.
+    for (const nombreHoja of [
+      'Animales',
+      'Pesajes',
+      'Lotes',
+      'Potreros',
+      'Movimientos',
+      'Novedades',
+      'Eventos sanitarios',
+      'Parámetros',
+    ]) {
+      expect(sharedStrings).toContain(nombreHoja)
+    }
+
+    // La fecha y hora de exportación, igual que las demás fechas del
+    // archivo, en hora de la finca -- no en UTC. `datosDePrueba()` usa
+    // 2026-08-23T01:52:00.000Z, que son las 20:52 del 22 de agosto en
+    // Bogotá: el mismo cruce de medianoche que el defecto de horas.
+    const hojaPortada = xmlDeHoja(archivos, 'Portada')
+    const celdasFecha = [...hojaPortada.matchAll(/<c r="[A-Z]+\d+"[^>]*>[\s\S]*?<\/c>/g)]
+      .map((m) => m[0])
+      .filter((c) => /<v>\d+\.\d+<\/v>/.test(c)) // única celda numérica no entera: la fecha-hora
+    expect(celdasFecha).toHaveLength(1)
+    const fechaHoraUtc = serialAFechaHoraUtc(valorNumerico(celdasFecha[0]))
+    expect([
+      fechaHoraUtc.getUTCFullYear(),
+      fechaHoraUtc.getUTCMonth(),
+      fechaHoraUtc.getUTCDate(),
+      fechaHoraUtc.getUTCHours(),
+      fechaHoraUtc.getUTCMinutes(),
+    ]).toEqual([2026, 7, 22, 20, 52])
   })
 })

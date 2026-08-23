@@ -146,19 +146,57 @@ const COLUMNAS_PARAMETROS: Column<FilaParametroExport>[] = [
 ]
 
 /**
- * Arma el libro de Excel completo -- una hoja por cosa, en el mismo orden en
- * que aparecen en `DatosExportacion` -- y lo entrega como un `Buffer` listo
- * para servirse como descarga. `write-excel-file` se eligió por dos razones:
- * escribe tipos de celda reales (un número queda guardado como número en el
- * XML del `.xlsx`, no como texto con apariencia de número, que es el defecto
- * que este archivo existe para evitar), y no arrastra ninguna vulnerabilidad
- * conocida -- su único dependencia es `fflate` (cero dependencias propias,
- * sin avisos abiertos), a diferencia de la librería más popular del
- * ecosistema (`xlsx`/SheetJS), cuya versión publicada en npm sí tiene
- * vulnerabilidades conocidas sin parchear (prototype pollution y ReDoS).
+ * Una línea por hoja, corta y en lenguaje de ganadero -- no de programador
+ * -- para que la portada se explique a cualquiera que abra este archivo sin
+ * haber visto nunca la plataforma.
+ */
+const DESCRIPCION_HOJA: Record<string, string> = {
+  Animales: 'Cada animal que ha pasado por la finca, activo o ya vendido o muerto, con su lote, peso de entrada y de salida.',
+  Pesajes: 'Cada pesaje que se ha registrado, con la chapeta, el lote y el peso, incluidos los que se anularon.',
+  Lotes: 'Cada lote de ceba de la finca, abierto o cerrado, con el potrero donde está o donde estuvo.',
+  Potreros: 'Cada potrero de la finca, con sus hectáreas y su capacidad, incluidos los que ya no se usan.',
+  Movimientos: 'Cada traslado de un lote de un potrero a otro.',
+  Novedades: 'Los hechos y los suministros anotados en un lote o un potrero, incluidos los que se anularon.',
+  'Eventos sanitarios': 'Las vacunas, desparasitaciones y demás cosas aplicadas a un animal puntual o a un lote entero.',
+  Parámetros: 'El histórico de los umbrales y objetivos configurados en la plataforma, con la fecha desde la que rigió cada uno.',
+}
+
+/**
+ * La portada -- lo único que hace que el archivo se explique solo. Todo ese
+ * texto vivía hasta ahora solo en la pantalla de Configuración, que es
+ * exactamente lo que el dueño ya no tiene el día que necesita este archivo
+ * por fuera de SOFÍA: sin internet, en manos de un contador, o el día que
+ * deje la plataforma.
+ */
+function hojaPortada(datos: DatosExportacion): { sheet: string; data: SheetData; columns: { width?: number }[]; stickyRowsCount: number } {
+  const nombreFinca = datos.finca?.nombre ?? 'la finca'
+  const filas: SheetData = [
+    [{ value: `Respaldo de ${nombreFinca}`, fontWeight: 'bold', fontSize: 14 }],
+    [],
+    [{ value: 'Exportado el', fontWeight: 'bold' }, celdaFechaHora(datos.exportadoEn)],
+    [],
+    [{ value: 'Qué trae cada hoja', fontWeight: 'bold' }],
+    ...Object.entries(DESCRIPCION_HOJA).map(([nombre, descripcion]) => [celdaTexto(nombre), celdaTexto(descripcion)]),
+  ]
+  return { sheet: 'Portada', data: filas, columns: [{ width: 22 }, { width: 90 }], stickyRowsCount: 0 }
+}
+
+/**
+ * Arma el libro de Excel completo -- una portada y una hoja por cosa, en el
+ * mismo orden en que aparecen en `DatosExportacion` -- y lo entrega como un
+ * `Buffer` listo para servirse como descarga. `write-excel-file` se eligió
+ * por dos razones: escribe tipos de celda reales (un número queda guardado
+ * como número en el XML del `.xlsx`, no como texto con apariencia de
+ * número, que es el defecto que este archivo existe para evitar), y no
+ * arrastra ninguna vulnerabilidad conocida -- su único dependencia es
+ * `fflate` (cero dependencias propias, sin avisos abiertos), a diferencia
+ * de la librería más popular del ecosistema (`xlsx`/SheetJS), cuya versión
+ * publicada en npm sí tiene vulnerabilidades conocidas sin parchear
+ * (prototype pollution y ReDoS).
  */
 export async function construirLibroExcel(datos: DatosExportacion): Promise<Buffer> {
   return writeXlsxFile([
+    hojaPortada(datos),
     hoja('Animales', datos.animales, COLUMNAS_ANIMALES),
     hoja('Pesajes', datos.pesajes, COLUMNAS_PESAJES),
     hoja('Lotes', datos.lotes, COLUMNAS_LOTES),

@@ -8,6 +8,7 @@ import { moverLote } from '../src/datos/movimientos'
 import { cerrarSuministro, registrarHecho, registrarSuministro } from '../src/datos/novedades'
 import { anularPesaje, guardarPesaje } from '../src/datos/pesajes'
 import { crearPotrero } from '../src/datos/potreros'
+import { registrarEvento } from '../src/datos/sanidad'
 import { excelSerialAFechaISO, filaComoObjeto, leerXlsx, type HojaLeida } from './xlsxReader'
 
 // Mismo motivo que en las demás pruebas de navegador: fechas relativas a
@@ -161,9 +162,26 @@ test.beforeAll(async () => {
     },
     HOY,
   )
+
+  // Un evento sanitario puntual (no de lote): la hoja tiene que traer,
+  // aparte del lote del EVENTO (vacío aquí), el lote del ANIMAL -- la
+  // chapeta sola no basta para identificarlo porque solo es única entre
+  // animales activos.
+  await registrarEvento({
+    tipo: 'vacuna',
+    fecha: sumarDias(HOY, -12),
+    producto: 'Triple viral',
+    dosis: '5ml',
+    responsable: 'Vet. Gómez',
+    proximaFecha: null,
+    notas: null,
+    animalId: idPorChapeta.get('9001')!,
+    loteId: null,
+    registradoPorId: usuario.id,
+  })
 })
 
-test('el botón de Configuración descarga un .xlsx real con las 8 hojas y todo lo sembrado', async ({ page }) => {
+test('el botón de Configuración descarga un .xlsx real con la portada, las 8 hojas y todo lo sembrado', async ({ page }) => {
   await iniciarSesion(page)
   await page.goto('/configuracion')
 
@@ -181,6 +199,7 @@ test('el botón de Configuración descarga un .xlsx real con las 8 hojas y todo 
 
   const hojas = leerXlsx(buffer)
   expect(hojas.map((h) => h.nombre)).toEqual([
+    'Portada',
     'Animales',
     'Pesajes',
     'Lotes',
@@ -190,6 +209,24 @@ test('el botón de Configuración descarga un .xlsx real con las 8 hojas y todo 
     'Eventos sanitarios',
     'Parámetros',
   ])
+
+  // --- Portada: el archivo se explica solo, sin la pantalla de Configuración ---
+  const portada = hojaOFalla(hojas, 'Portada')
+  const celdasPortada = [portada.encabezados, ...portada.filas.map((f) => f.map((c) => c.valor))].flat()
+  expect(celdasPortada.some((v) => typeof v === 'string' && v.includes('Santa Verónica'))).toBe(true)
+  expect(celdasPortada.some((v) => v === 'Exportado el')).toBe(true)
+  for (const nombreHoja of [
+    'Animales',
+    'Pesajes',
+    'Lotes',
+    'Potreros',
+    'Movimientos',
+    'Novedades',
+    'Eventos sanitarios',
+    'Parámetros',
+  ]) {
+    expect(celdasPortada).toContain(nombreHoja)
+  }
 
   // --- Animales: activos, vendido y muerto, todos presentes ---
   const animales = filasComoObjetos(hojaOFalla(hojas, 'Animales')).filter((f) => f.Lote.valor === NOMBRE_LOTE)
@@ -278,9 +315,14 @@ test('el botón de Configuración descarga un .xlsx real con las 8 hojas y todo 
   expect(hecho.Lote.valor).toBeNull()
   expect(hecho.Potrero.valor).toBe(NOMBRE_POTRERO_SUR)
 
-  // --- Eventos sanitarios y Parámetros: la hoja existe con sus encabezados, aunque esta prueba no siembre datos propios ---
-  const eventos = hojaOFalla(hojas, 'Eventos sanitarios')
-  expect(eventos.encabezados).toContain('Chapeta')
+  // --- Eventos sanitarios: el evento puntual trae el lote del ANIMAL,
+  // distinto del lote del EVENTO (vacío porque no se aplicó a un lote
+  // entero) -- la chapeta sola no identifica al animal fuera de los
+  // activos.
+  const eventos = filasComoObjetos(hojaOFalla(hojas, 'Eventos sanitarios'))
+  const vacuna = eventos.find((f) => f.Chapeta.valor === '9001')!
+  expect(vacuna['Lote del animal'].valor).toBe(NOMBRE_LOTE)
+  expect(vacuna['Lote del evento'].valor).toBeNull()
 
   const parametros = filasComoObjetos(hojaOFalla(hojas, 'Parámetros'))
   const hectareasUtiles = parametros.find((f) => f.Clave.valor === 'hectareas_utiles')!

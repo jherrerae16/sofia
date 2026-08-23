@@ -19,10 +19,12 @@ beforeEach(async () => {
   await limpiarTablasOperativas()
   await prisma.parametro.deleteMany()
   await prisma.usuario.deleteMany()
+  await prisma.finca.deleteMany()
 
   await prisma.usuario.create({
     data: { id: 'u1', nombre: 'Joseph', correo: 'joseph@ejemplo.com', claveHash: 'x' },
   })
+  await prisma.finca.create({ data: { nombre: 'Santa Verónica' } })
 
   loteId = await crearLote({ nombre: 'Ceba 01', tipo: 'ceba', fechaApertura: '2026-01-01' })
   potreroId = await crearPotrero({
@@ -313,5 +315,24 @@ describe('datosExportacionCompleta', () => {
 
     const datos = await datosExportacionCompleta()
     expect(datos.parametros[0].valor).toBe('seiscientos')
+  })
+
+  // El nombre de la finca y el momento de la exportación son lo que la
+  // portada del archivo necesita para explicarse sola -- ver
+  // src/app/exportar/construirLibro.ts.
+  it('trae el nombre de la finca y el momento exacto de la exportación', async () => {
+    const antes = new Date()
+    const datos = await datosExportacionCompleta()
+    const despues = new Date()
+
+    expect(datos.finca).toEqual({ nombre: 'Santa Verónica' })
+    expect(datos.exportadoEn.getTime()).toBeGreaterThanOrEqual(antes.getTime())
+    expect(datos.exportadoEn.getTime()).toBeLessThanOrEqual(despues.getTime())
+  })
+
+  it('trae null como finca cuando todavía no se ha creado ninguna', async () => {
+    await prisma.finca.deleteMany()
+    const datos = await datosExportacionCompleta()
+    expect(datos.finca).toBeNull()
   })
 })
