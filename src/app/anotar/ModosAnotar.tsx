@@ -22,7 +22,7 @@ export function ModosAnotar() {
   return (
     <div
       data-testid="modos"
-      className="mt-10 flex w-fit max-w-full flex-wrap gap-[2px] rounded bg-crema-2 p-[3px]"
+      className="mt-10 flex w-fit max-w-full flex-wrap gap-[2px] rounded bg-papel-2 p-[3px]"
     >
       {MODOS.map((modo) => {
         const activo = ruta === modo.href
@@ -32,7 +32,7 @@ export function ModosAnotar() {
             href={modo.href}
             aria-current={activo ? 'page' : undefined}
             className={`rounded-[2px] px-[18px] py-[9px] text-[13.5px] font-semibold no-underline ${
-              activo ? 'bg-monte text-crema' : 'text-carbon-3'
+              activo ? 'bg-monte text-papel' : 'text-carbon-3'
             }`}
           >
             {modo.texto}

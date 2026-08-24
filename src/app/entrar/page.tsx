@@ -11,29 +11,40 @@ export default function Entrar() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-crema p-6">
-      <form action={entrar} className="w-full max-w-sm space-y-4">
-        <h1 className="text-[28px] font-extrabold tracking-[0.2em] text-monte">SOFÍA</h1>
-        {/* El nombre de la finca no se escribe aquí: estaba a mano en el
-            código (contra la regla de que nada se hardcodea) y además es un
-            dato de adentro, que no tiene por qué leer cualquiera que abra la
-            dirección. */}
-        <p className="text-[14px] text-carbon-2">Entra para seguir el ganado.</p>
-        <input
-          name="correo"
-          type="email"
-          required
-          placeholder="Correo"
-          className="w-full rounded border border-borde bg-white p-3"
+    <main className="flex min-h-screen items-center justify-center bg-papel p-6">
+      <form action={entrar} className="w-full max-w-[300px]">
+        {/* La marca de la finca manda aquí y en ningún otro lado: esta es la
+            puerta. Adentro manda SOFÍA, que es la herramienta. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/marca/santa-veronica.png"
+          alt="Ganadería Santa Verónica"
+          width={545}
+          height={420}
+          className="mx-auto mb-8 h-[112px] w-auto"
         />
-        <input
-          name="clave"
-          type="password"
-          required
-          placeholder="Clave"
-          className="w-full rounded border border-borde bg-white p-3"
-        />
-        <button className="w-full rounded bg-monte p-3 text-[14px] font-semibold text-crema">Entrar</button>
+
+        <div className="space-y-3">
+          <input
+            name="correo"
+            type="email"
+            required
+            placeholder="Correo"
+            className="w-full rounded border border-borde bg-papel p-3 text-[14px] outline-none"
+          />
+          <input
+            name="clave"
+            type="password"
+            required
+            placeholder="Clave"
+            className="w-full rounded border border-borde bg-papel p-3 text-[14px] outline-none"
+          />
+          <button className="w-full rounded bg-monte p-3 text-[14px] font-semibold text-papel">
+            Entrar
+          </button>
+        </div>
+
+        <p className="mt-6 text-center text-[11px] tracking-[0.2em] text-carbon-3">SOFÍA</p>
       </form>
     </main>
   )

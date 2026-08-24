@@ -52,7 +52,7 @@ function FilaSuministro({ suministro, hoy }: { suministro: NovedadVista; hoy: st
       {abierto && (
         <form
           action={cerrar}
-          className="mt-3 space-y-2 rounded border border-borde bg-crema p-3 text-sm"
+          className="mt-3 space-y-2 rounded border border-borde bg-papel p-3 text-sm"
         >
           <input type="hidden" name="id" value={suministro.id} />
           <p className="text-carbon-2">
@@ -74,7 +74,7 @@ function FilaSuministro({ suministro, hoy }: { suministro: NovedadVista; hoy: st
           <div className="flex gap-2">
             <button
               disabled={cerrando}
-              className="rounded bg-monte px-4 py-2 text-crema disabled:opacity-50"
+              className="rounded bg-monte px-4 py-2 text-papel disabled:opacity-50"
             >
               {cerrando ? 'Cerrando…' : 'Confirmar cierre'}
             </button>

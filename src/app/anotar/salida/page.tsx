@@ -14,16 +14,19 @@ export const dynamic = 'force-dynamic'
 export default async function Salida({
   searchParams,
 }: {
-  searchParams: Promise<{ lote?: string }>
+  searchParams: Promise<{ lote?: string; animales?: string }>
 }) {
-  const { lote: loteSeleccionado } = await searchParams
+  const { lote: loteSeleccionado, animales: marcados } = await searchParams
   const lotes = await listarLotes()
   const loteId = loteSeleccionado ?? lotes[0]?.id
   const animales = loteId ? await listarAnimalesDeLote(loteId) : []
+  // Llegando desde una selección en Ganado, el formulario trae solo esos.
+  const escogidos = new Set((marcados ?? '').split(',').filter(Boolean))
   const ultimos = loteId ? await ultimoPesoPorAnimal() : new Map()
 
   const activos = animales
     .filter((animal) => animal.estado === 'activo')
+    .filter((animal) => escogidos.size === 0 || escogidos.has(animal.id))
     .map((animal) => ({
       id: animal.id,
       chapeta: animal.chapeta,

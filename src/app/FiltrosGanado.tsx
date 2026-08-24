@@ -20,15 +20,17 @@ const ORDENES = [
   { valor: 'chapeta', texto: 'Por chapeta' },
 ] as const
 
-const CAJA =
-  'inline-flex items-center gap-2 rounded border border-borde bg-white px-3 py-2 text-[13.5px] text-carbon'
+const SELECT =
+  'appearance-none rounded border border-borde bg-papel py-[6px] pl-[10px] pr-[26px] text-[13px] text-carbon outline-none'
 
 /**
- * Los filtros escriben en la dirección web, no en estado de React.
+ * Todo lo que filtra la lista, en una sola fila: antes estaba repartido entre
+ * tres sitios de la pantalla y había que buscar cada cosa.
  *
- * Así el dueño puede guardar "Ceba 01, peor primero" en el navegador y volver
- * ahí mañana, la lista sigue armándose en el servidor -- sin traerse los 56
- * animales al navegador para filtrarlos allá -- y el botón Atrás funciona.
+ * Los filtros escriben en la dirección web, no en estado de React. Así se
+ * puede guardar "Ceba 01, peor primero" en el navegador y volver ahí mañana,
+ * la lista se sigue armando en el servidor -- sin traerse los 56 animales al
+ * navegador para filtrarlos allá -- y el botón Atrás funciona.
  */
 export function FiltrosGanado({ lotes, chips }: { lotes: LoteElegible[]; chips: Chip[] }) {
   const router = useRouter()
@@ -36,76 +38,58 @@ export function FiltrosGanado({ lotes, chips }: { lotes: LoteElegible[]; chips: 
   const params = useSearchParams()
 
   // Un solo lugar donde se escribe la dirección: cambiar un filtro conserva
-  // los demás. Sin esto, elegir un lote borraría el orden y la búsqueda.
+  // los demás. Cambiar de lote sí borra la selección -- los animales marcados
+  // son de otro lote y no tendría sentido arrastrarlos.
   function poner(clave: string, valor: string | null) {
     const siguientes = new URLSearchParams(params.toString())
     if (valor === null || valor === '') siguientes.delete(clave)
     else siguientes.set(clave, valor)
+    if (clave === 'lote') siguientes.delete('sel')
     router.replace(`${ruta}?${siguientes.toString()}`, { scroll: false })
   }
 
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-[9px]">
-      <label className={CAJA}>
-        <span className="text-[12px] font-semibold text-carbon-3">Lote</span>
-        <select
-          aria-label="Lote"
-          className="bg-transparent outline-none"
-          value={params.get('lote') ?? lotes[0]?.id ?? ''}
-          onChange={(evento) => poner('lote', evento.target.value)}
-        >
-          {lotes.map((lote) => (
-            <option key={lote.id} value={lote.id}>
-              {lote.nombre} · {lote.animales} animales
-            </option>
-          ))}
-        </select>
-      </label>
+    <div className="mb-3 flex flex-wrap items-center gap-2 rounded border border-borde bg-papel px-3 py-[9px]">
+      <select
+        aria-label="Lote"
+        className={SELECT}
+        value={params.get('lote') ?? lotes[0]?.id ?? ''}
+        onChange={(evento) => poner('lote', evento.target.value)}
+      >
+        {lotes.map((lote) => (
+          <option key={lote.id} value={lote.id}>
+            {lote.nombre} · {lote.animales} animales
+          </option>
+        ))}
+      </select>
 
-      <label className={CAJA}>
-        <span className="text-[12px] font-semibold text-carbon-3">Desde</span>
-        <select
-          aria-label="Desde"
-          className="bg-transparent outline-none"
-          value={params.get('desde') ?? 'ultimo_pesaje'}
-          onChange={(evento) => poner('desde', evento.target.value)}
-        >
-          {PERIODOS.map((periodo) => (
-            <option key={periodo.valor} value={periodo.valor}>
-              {periodo.texto}
-            </option>
-          ))}
-        </select>
-      </label>
+      <select
+        aria-label="Desde"
+        className={SELECT}
+        value={params.get('desde') ?? 'ultimo_pesaje'}
+        onChange={(evento) => poner('desde', evento.target.value)}
+      >
+        {PERIODOS.map((periodo) => (
+          <option key={periodo.valor} value={periodo.valor}>
+            {periodo.texto}
+          </option>
+        ))}
+      </select>
 
-      <label className={CAJA}>
-        <span className="text-[12px] font-semibold text-carbon-3">Orden</span>
-        <select
-          aria-label="Orden"
-          className="bg-transparent outline-none"
-          value={params.get('orden') ?? 'peor'}
-          onChange={(evento) => poner('orden', evento.target.value)}
-        >
-          {ORDENES.map((orden) => (
-            <option key={orden.valor} value={orden.valor}>
-              {orden.texto}
-            </option>
-          ))}
-        </select>
-      </label>
+      <select
+        aria-label="Orden"
+        className={SELECT}
+        value={params.get('orden') ?? 'peor'}
+        onChange={(evento) => poner('orden', evento.target.value)}
+      >
+        {ORDENES.map((orden) => (
+          <option key={orden.valor} value={orden.valor}>
+            {orden.texto}
+          </option>
+        ))}
+      </select>
 
-      <label className={CAJA}>
-        <span aria-hidden>🔍</span>
-        <input
-          placeholder="Buscar chapeta"
-          aria-label="Buscar chapeta"
-          className="w-[118px] bg-transparent outline-none"
-          defaultValue={params.get('q') ?? ''}
-          onChange={(evento) => poner('q', evento.target.value)}
-        />
-      </label>
-
-      <span className="flex-1" />
+      <span className="mx-1 h-[20px] w-px bg-borde" aria-hidden />
 
       {chips.map((chip) => {
         const activo = (params.get('filtro') ?? 'todos') === chip.clave
@@ -114,18 +98,26 @@ export function FiltrosGanado({ lotes, chips }: { lotes: LoteElegible[]; chips: 
             key={chip.clave}
             type="button"
             onClick={() => poner('filtro', chip.clave === 'todos' ? null : chip.clave)}
-            className={`rounded-full border px-[13px] py-[7px] text-[12.5px] ${
+            className={`rounded-full border px-[11px] py-[5px] text-[12px] ${
               activo
-                ? 'border-monte bg-monte font-semibold text-crema'
-                : 'border-borde bg-white text-carbon-2'
+                ? 'border-monte bg-monte font-semibold text-papel'
+                : 'border-borde bg-papel text-carbon-2'
             }`}
           >
-            {chip.texto} {chip.cuenta}
+            {chip.texto} <span className="cifra">{chip.cuenta}</span>
           </button>
         )
       })}
 
-      <div className="flex gap-[2px] rounded bg-crema-2 p-[3px]">
+      <input
+        placeholder="Buscar chapeta"
+        aria-label="Buscar chapeta"
+        className="ml-auto w-[150px] rounded border border-borde bg-papel px-[10px] py-[6px] text-[13px] outline-none"
+        defaultValue={params.get('q') ?? ''}
+        onChange={(evento) => poner('q', evento.target.value)}
+      />
+
+      <div className="flex gap-[2px] rounded bg-papel-2 p-[2px]">
         {(['rejilla', 'tabla'] as const).map((vista) => {
           const activo = (params.get('vista') ?? 'rejilla') === vista
           return (
@@ -133,8 +125,8 @@ export function FiltrosGanado({ lotes, chips }: { lotes: LoteElegible[]; chips: 
               key={vista}
               type="button"
               onClick={() => poner('vista', vista === 'rejilla' ? null : vista)}
-              className={`rounded-[2px] px-3 py-[6px] text-[12.5px] font-semibold ${
-                activo ? 'bg-white text-carbon shadow-sm' : 'text-carbon-2'
+              className={`rounded-[3px] px-[10px] py-[5px] text-[12px] font-semibold ${
+                activo ? 'bg-papel text-carbon' : 'text-carbon-2'
               }`}
             >
               {vista === 'rejilla' ? 'Rejilla' : 'Tabla'}
@@ -143,5 +135,32 @@ export function FiltrosGanado({ lotes, chips }: { lotes: LoteElegible[]; chips: 
         })}
       </div>
     </div>
+  )
+}
+
+/** Enciende y apaga el modo selección. Vive en el encabezado, con las acciones. */
+export function BotonSeleccionar() {
+  const router = useRouter()
+  const ruta = usePathname()
+  const params = useSearchParams()
+  const activo = params.get('sel') !== null
+
+  function alternar() {
+    const siguientes = new URLSearchParams(params.toString())
+    if (activo) siguientes.delete('sel')
+    else siguientes.set('sel', '')
+    router.replace(`${ruta}?${siguientes.toString()}`, { scroll: false })
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={alternar}
+      className={`rounded-full border px-4 py-2 text-[13px] font-semibold ${
+        activo ? 'border-monte bg-monte text-papel' : 'border-borde bg-papel text-carbon'
+      }`}
+    >
+      {activo ? 'Salir de selección' : 'Seleccionar animales'}
+    </button>
   )
 }

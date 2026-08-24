@@ -13,7 +13,7 @@ type Props = {
 
 export function Boton({ children, href, fantasma, type = 'button', disabled, name, value }: Props) {
   const clases = `inline-block rounded px-5 py-3 text-[14px] font-semibold no-underline ${
-    fantasma ? 'border border-borde-2 bg-white text-carbon' : 'border-0 bg-monte text-crema'
+    fantasma ? 'border border-borde-2 bg-papel text-carbon' : 'border-0 bg-monte text-papel'
   } ${disabled ? 'opacity-50' : ''}`
 
   if (href) {

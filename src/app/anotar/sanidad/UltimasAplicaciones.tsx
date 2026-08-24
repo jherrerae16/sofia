@@ -100,13 +100,13 @@ function Fila({ aplicacion }: { aplicacion: AplicacionVista }) {
                 <input
                   name="motivo"
                   placeholder="Por qué esta anotación no cuenta"
-                  className="w-full rounded border border-borde bg-white px-3 py-2 text-[14px] outline-none"
+                  className="w-full rounded border border-borde bg-papel px-3 py-2 text-[14px] outline-none"
                 />
               </label>
               <button
                 type="submit"
                 disabled={anulando}
-                className="rounded border border-barro bg-white px-4 py-2 text-[13.5px] font-semibold text-barro disabled:opacity-50"
+                className="rounded border border-barro bg-papel px-4 py-2 text-[13.5px] font-semibold text-barro disabled:opacity-50"
               >
                 Anular la aplicación
               </button>

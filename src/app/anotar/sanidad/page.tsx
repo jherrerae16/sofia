@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic'
 export default async function Sanidad({
   searchParams,
 }: {
-  searchParams: Promise<{ lote?: string; fecha?: string }>
+  searchParams: Promise<{ lote?: string; fecha?: string; animales?: string }>
 }) {
   const params = await searchParams
   const hoy = hoyBogota()
@@ -50,6 +50,9 @@ export default async function Sanidad({
         fecha={fecha}
         candidatos={candidatos}
         responsablePorDefecto={usuario.nombre}
+        // Llegando desde una selección en Ganado, el formulario abre en «solo
+        // algunos» con esos ya marcados.
+        marcadosIniciales={(params.animales ?? '').split(',').filter(Boolean)}
       />
 
       <h2 className="rotulo mb-4 mt-13">Lo último que les has puesto</h2>

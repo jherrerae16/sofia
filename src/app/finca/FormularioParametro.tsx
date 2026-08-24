@@ -76,7 +76,7 @@ export function FormularioParametro({ clave, unidad, hoy }: { clave: string; uni
         </label>
         <button
           disabled={enviando}
-          className="rounded bg-monte px-4 py-2 text-crema disabled:opacity-50"
+          className="rounded bg-monte px-4 py-2 text-papel disabled:opacity-50"
         >
           {pidiendoConfirmacion ? 'Guardar de todas formas' : 'Guardar'}
         </button>

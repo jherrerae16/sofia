@@ -14,12 +14,18 @@ export const dynamic = 'force-dynamic'
 export default async function Pesos({
   searchParams,
 }: {
-  searchParams: Promise<{ lote?: string }>
+  searchParams: Promise<{ lote?: string; animales?: string }>
 }) {
-  const { lote: loteSeleccionado } = await searchParams
+  const { lote: loteSeleccionado, animales: marcados } = await searchParams
   const lotes = await listarLotes()
   const loteId = loteSeleccionado ?? lotes[0]?.id
-  const animales = loteId ? await listarAnimalesDeLote(loteId) : []
+  const todos = loteId ? await listarAnimalesDeLote(loteId) : []
+
+  // Cuando se llega desde una selección en Ganado, la tabla trae solo esos.
+  // Sin esto la selección no serviría de nada: habría que volver a buscarlos
+  // uno por uno entre los catorce.
+  const escogidos = new Set((marcados ?? '').split(',').filter(Boolean))
+  const animales = escogidos.size > 0 ? todos.filter((animal) => escogidos.has(animal.id)) : todos
   const pesajesRecientes = loteId ? await listarPesajesDeLote(loteId) : []
 
   return (
@@ -33,15 +39,25 @@ export default async function Pesos({
         </p>
       </div>
 
-      <nav className="mt-8 mb-6 flex flex-wrap gap-2">
+      {escogidos.size > 0 && (
+        <p className="mt-6 rounded border border-borde bg-papel-2 px-4 py-3 text-[13.5px] text-carbon-2">
+          Estás pesando {escogidos.size} {escogidos.size === 1 ? 'animal' : 'animales'} que
+          escogiste en Ganado.{' '}
+          <Link href={`/anotar/pesos?lote=${loteId}`} className="text-carbon underline underline-offset-[3px]">
+            Pesar todo el lote
+          </Link>
+        </p>
+      )}
+
+      <nav className="mt-6 mb-6 flex flex-wrap gap-2">
         {lotes.map((lote) => (
           <Link
             key={lote.id}
             href={`/anotar/pesos?lote=${lote.id}`}
             className={`rounded border px-3 py-2 text-[13.5px] no-underline ${
               lote.id === loteId
-                ? 'border-monte bg-monte font-semibold text-crema'
-                : 'border-borde bg-white text-carbon-2'
+                ? 'border-monte bg-monte font-semibold text-papel'
+                : 'border-borde bg-papel text-carbon-2'
             }`}
           >
             {lote.nombre} ({lote.animalesActivos})

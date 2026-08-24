@@ -6,6 +6,11 @@ export const config = {
   // "/entrarXYZ" o "/api/authorization", que no son las rutas públicas
   // reales pero coincidían por empezar con la misma cadena.
   //
+  // "marca/" son las imágenes de marca (el logo de la finca y la silueta de
+  // la vaca). Van excluidas porque la pantalla de entrar necesita su propio
+  // logo: sin esta exclusión el middleware redirige la petición de la imagen
+  // a /entrar, y la puerta de la finca queda con el logo roto.
+  //
   // "_next/image" llevaba el mismo problema al revés: anclado solo con "/"
   // al final, dejaba "/_next/image" (sin barra, que es como Next sirve el
   // propio servicio de optimización de imágenes) fuera de la exclusión y
@@ -16,7 +21,7 @@ export const config = {
   // suma "?" para no dejar fuera "/_next/image?url=...", que es la forma en
   // que Next arma esa dirección en la práctica.
   matcher: [
-    '/((?!entrar(?:$|/)|api/auth/|_next/static/|_next/image(?:$|/|\\?)|favicon\\.ico$).*)',
+    '/((?!entrar(?:$|/)|api/auth/|marca/|_next/static/|_next/image(?:$|/|\\?)|favicon\\.ico$).*)',
   ],
   // La convención "middleware" (deprecada en Next 16 a favor de "proxy") sigue
   // usando el runtime Edge por defecto, donde Prisma no funciona. `auth()`

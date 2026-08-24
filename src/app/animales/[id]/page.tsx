@@ -154,13 +154,13 @@ export default async function FichaAnimal({ params }: { params: Promise<{ id: st
       <div className="mt-8 flex flex-wrap gap-[10px]">
         <Link
           href="/anotar/pesos"
-          className="rounded bg-monte px-5 py-3 text-[14px] font-semibold text-crema no-underline"
+          className="rounded bg-monte px-5 py-3 text-[14px] font-semibold text-papel no-underline"
         >
           Anotar su peso
         </Link>
         <Link
           href="/anotar/salida"
-          className="rounded border border-borde-2 bg-white px-5 py-3 text-[14px] font-semibold text-carbon no-underline"
+          className="rounded border border-borde-2 bg-papel px-5 py-3 text-[14px] font-semibold text-carbon no-underline"
         >
           Registrar su salida
         </Link>

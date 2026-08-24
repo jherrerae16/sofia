@@ -1,26 +1,27 @@
 @import 'tailwindcss';
 
-/* Sistema visual v3 -- verde monte sobre crema.
-   Solo dos cosas llevan color: lo que va mal (barro) y lo que va bien
-   (monte). Todo lo demás es tinta sobre crema.
+/* Sistema visual v4 -- tinta sobre blanco.
+   El fondo es blanco de verdad, no crema: los cuadros se separan con línea
+   fina, no con un color de relleno distinto. Una sola estrategia de
+   profundidad (bordes) en toda la plataforma, sin sombras.
 
-   El par viejo (#1B5E3F verde contra #A63D40 rojo) daba ΔE 1,7 con
-   daltonismo protán: indistinguible para ~8% de los hombres. Este par da
-   ΔE 17,0. No reintroducir los colores viejos. */
+   El verde es el de la finca. El barro y el tierra son los únicos otros dos
+   colores, y significan algo: barro es lo que va mal, tierra es la línea de
+   peso real en las curvas. */
 @theme {
-  --color-crema: #f7f4ec;
-  --color-crema-2: #efeae0;
-  --color-crema-3: #e6e0d4;
-  --color-monte: #0f4430;
-  --color-monte-2: #2e6b4c;
-  --color-pasto-claro: #a8d5ba;
+  --color-papel: #ffffff;
+  --color-papel-2: #f4f4f5;
+  --color-papel-3: #e9e9eb;
+  --color-monte: #008000;
+  --color-monte-2: #006400;
+  --color-monte-suave: #e8f4e8;
   --color-tierra: #8b5e3c;
   --color-barro: #c25a2e;
-  --color-carbon: #1f1c17;
-  --color-carbon-2: #5c554a;
-  --color-carbon-3: #8b8378;
-  --color-borde: rgba(31, 28, 23, 0.14);
-  --color-borde-2: rgba(31, 28, 23, 0.28);
+  --color-carbon: #18181b;
+  --color-carbon-2: #52525b;
+  --color-carbon-3: #8a8a93;
+  --color-borde: rgba(24, 24, 27, 0.12);
+  --color-borde-2: rgba(24, 24, 27, 0.26);
 }
 
 @theme {
@@ -29,7 +30,7 @@
 }
 
 body {
-  background-color: var(--color-crema);
+  background-color: var(--color-papel);
   color: var(--color-carbon);
   font-family: var(--font-sans);
   font-weight: 500;
@@ -42,9 +43,9 @@ body {
   font-feature-settings: 'tnum';
 }
 
-/* Rótulo pequeño en versalitas. Se repite en la cinta de cifras, en los
-   encabezados de sección y en las etiquetas de los campos: es más corto como
-   clase que como seis utilidades repetidas en veinte lugares. */
+/* Rótulo pequeño en versalitas. Se repite en los encabezados de sección y en
+   las etiquetas de los campos: es más corto como clase que como seis
+   utilidades repetidas en veinte lugares. */
 .rotulo {
   font-family: var(--font-estrecha);
   font-weight: 600;
@@ -53,4 +54,20 @@ body {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-carbon-3);
+}
+
+/* La chapeta es el número que en el corral se lee a diez metros. En pantalla
+   es el elemento firma de la plataforma: aparece igual en la lista, en la
+   ficha, en la tabla de pesaje y en las casillas de sanidad. */
+.chapeta {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  color: var(--color-carbon);
+  background: var(--color-papel-2);
+  border: 1px solid var(--color-borde);
+  border-radius: 3px;
+  padding: 3px 7px;
+  line-height: 1.1;
 }

@@ -8,7 +8,7 @@ test.describe('sin haber entrado', () => {
     // Ofrecer Ganado, Anotar y Finca a quien no ha entrado es ofrecer puertas
     // cerradas. Y el nombre de la finca es un dato de adentro: no tiene por
     // qué leerlo cualquiera que abra la dirección.
-    await expect(page.locator('header')).toHaveCount(0)
+    await expect(page.getByTestId('menu')).toHaveCount(0)
     await expect(page.getByText('Santa Verónica', { exact: false })).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible()
   })
@@ -19,19 +19,41 @@ test.describe('con la sesión abierta', () => {
     await entrar(page)
   })
 
-  test('el encabezado ofrece exactamente tres destinos', async ({ page }) => {
+  test('el menú lateral ofrece las diez funciones, cada una a un clic', async ({ page }) => {
     await page.goto('/')
-    await expect(page.locator('header nav a')).toHaveText(['Ganado', 'Anotar', 'Finca'])
+    // Planas, sin submenús: pesar o aplicar una vacuna costaba dos pasos
+    // (entrar a Anotar y escoger el modo) y ahora cuesta uno.
+    await expect(page.getByTestId('menu').locator('nav a')).toHaveText([
+      'Ganado',
+      'Potreros',
+      'Pesos',
+      'Sanidad',
+      'Venta o muerte',
+      'Novedad',
+      'Mover lote',
+      'Entrada de ganado',
+      'Criterios',
+      'Bajar todo a Excel',
+    ])
+  })
+
+  test('el menú se puede contraer y se recuerda al volver', async ({ page }) => {
+    await page.goto('/')
+    await page.getByRole('button', { name: 'Contraer menú' }).click()
+    await expect(page.getByTestId('menu').getByText('Sanidad')).toHaveCount(0)
+
+    await page.goto('/anotar/pesos')
+    await expect(page.getByTestId('menu').getByText('Sanidad')).toHaveCount(0)
   })
 
   test('el destino en el que estás queda marcado, y solo ese', async ({ page }) => {
     await page.goto('/anotar/pesos')
-    await expect(page.locator('header nav a[aria-current="page"]')).toHaveText(['Anotar'])
+    await expect(page.getByTestId('menu').locator('[aria-current="page"]')).toHaveText(['Pesos'])
   })
 
   test('estando en Ganado no se marca ningún otro destino', async ({ page }) => {
     await page.goto('/')
-    await expect(page.locator('header nav a[aria-current="page"]')).toHaveText(['Ganado'])
+    await expect(page.getByTestId('menu').locator('[aria-current="page"]')).toHaveText(['Ganado'])
   })
 
   test('/anotar cae en el modo Pesos', async ({ page }) => {

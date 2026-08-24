@@ -21,7 +21,7 @@ export function TarjetaPotrero({ potrero }: { potrero: PotreroVista }) {
     <div
       data-testid="potrero"
       className={`relative overflow-hidden rounded border border-borde p-[18px] ${
-        ocupado ? 'bg-crema-2' : 'bg-crema'
+        ocupado ? 'bg-papel-2' : 'bg-papel'
       }`}
     >
       <h3 className="text-[17px] font-extrabold leading-none">{potrero.nombre}</h3>

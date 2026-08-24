@@ -11,7 +11,7 @@ import { registrarSanidadAccion, type EstadoSanidad } from './acciones'
 // funciones asíncronas.
 const INICIAL: EstadoSanidad = { guardadas: null, datosEnviados: null, error: null }
 
-const CAMPO = 'rounded border border-borde bg-white px-3 py-[10px] text-[14px] text-carbon outline-none min-w-[170px]'
+const CAMPO = 'rounded border border-borde bg-papel px-3 py-[10px] text-[14px] text-carbon outline-none min-w-[170px]'
 
 export function SanidadForm({
   loteId,
@@ -19,19 +19,26 @@ export function SanidadForm({
   fecha,
   candidatos,
   responsablePorDefecto,
+  marcadosIniciales = [],
 }: {
   loteId: string
   loteNombre: string
   fecha: string
   candidatos: CandidatoAplicacion[]
   responsablePorDefecto: string
+  /** Animales que vienen escogidos desde Ganado. Vacío si se entró directo. */
+  marcadosIniciales?: string[]
 }) {
   const [estado, enviar, enviando] = useActionState(registrarSanidadAccion, INICIAL)
   const router = useRouter()
   const params = useSearchParams()
 
-  const [alcance, setAlcance] = useState<'lote' | 'algunos'>('lote')
-  const [marcados, setMarcados] = useState<string[]>([])
+  // Si se llegó con animales escogidos, el formulario abre en «solo algunos»:
+  // abrir en «todo el lote» y perder la selección sería peor que no traerla.
+  const [alcance, setAlcance] = useState<'lote' | 'algunos'>(
+    marcadosIniciales.length > 0 ? 'algunos' : 'lote',
+  )
+  const [marcados, setMarcados] = useState<string[]>(marcadosIniciales)
 
   const aplicables = candidatos.filter((candidato) => candidato.aplicable)
   const cuantas = alcance === 'lote' ? aplicables.length : marcados.length
@@ -159,8 +166,8 @@ export function SanidadForm({
               title={candidato.razon ?? undefined}
               className={`flex items-center gap-2 rounded border px-3 py-2 text-[13px] ${
                 candidato.aplicable
-                  ? 'border-borde bg-white text-carbon'
-                  : 'border-borde bg-crema-2 text-carbon-3'
+                  ? 'border-borde bg-papel text-carbon'
+                  : 'border-borde bg-papel-2 text-carbon-3'
               }`}
             >
               <input
@@ -189,7 +196,7 @@ export function SanidadForm({
 
       <p
         data-testid="resumen"
-        className="mt-6 max-w-[820px] rounded border border-borde bg-crema-2 px-4 py-3 text-[13.5px] leading-[1.6] text-carbon-2"
+        className="mt-6 max-w-[820px] rounded border border-borde bg-papel-2 px-4 py-3 text-[13.5px] leading-[1.6] text-carbon-2"
       >
         Se guardan{' '}
         <b className="text-carbon">
@@ -203,7 +210,7 @@ export function SanidadForm({
         <p
           data-testid="error"
           role="alert"
-          className="mt-4 rounded border border-barro/40 bg-white px-4 py-3 text-[14px] text-barro"
+          className="mt-4 rounded border border-barro/40 bg-papel px-4 py-3 text-[14px] text-barro"
         >
           {estado.error}
         </p>
@@ -216,7 +223,7 @@ export function SanidadForm({
         <button
           type="submit"
           disabled={enviando || cuantas === 0}
-          className="rounded bg-monte px-5 py-3 text-[14px] font-semibold text-crema disabled:opacity-50"
+          className="rounded bg-monte px-5 py-3 text-[14px] font-semibold text-papel disabled:opacity-50"
         >
           Guardar {cuantas === 1 ? 'la anotación' : `las ${cuantas}`}
         </button>

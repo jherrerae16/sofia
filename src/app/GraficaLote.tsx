@@ -25,7 +25,7 @@ function diaYMes(fecha: string): string {
 export function GraficaLote({ serie }: { serie: SerieLote }) {
   if (serie.puntos.length < 2) {
     return (
-      <figure className="rounded border border-borde bg-white px-6 py-[22px]">
+      <figure className="rounded border border-borde bg-papel px-6 py-[22px]">
         <figcaption className="text-[12.5px] leading-[1.45] text-carbon-2">
           Con un solo punto todavía no hay curva que dibujar. Anota la próxima tanda de pesos y
           aquí va a aparecer cómo viene engordando el lote.
@@ -59,7 +59,7 @@ export function GraficaLote({ serie }: { serie: SerieLote }) {
   const hayObjetivo = serie.puntos.some((punto) => punto.objetivoKg !== null)
 
   return (
-    <figure className="overflow-x-auto rounded border border-borde bg-white px-6 pb-[18px] pt-[22px]">
+    <figure className="overflow-x-auto rounded border border-borde bg-papel px-6 pb-[18px] pt-[22px]">
       <svg
         viewBox={`0 0 ${ANCHO} ${ALTO}`}
         width="100%"

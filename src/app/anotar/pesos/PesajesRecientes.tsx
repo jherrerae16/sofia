@@ -19,7 +19,7 @@ export function PesajesRecientes({ pesajes }: { pesajes: ResumenPesaje[] }) {
   if (pesajes.length === 0) return null
 
   return (
-    <section className="mt-8 rounded-lg border border-borde bg-white p-4">
+    <section className="mt-8 rounded-lg border border-borde bg-papel p-4">
       <h2 className="mb-1 rotulo">Pesajes recientes de este lote</h2>
       <p className="mb-3 text-sm text-carbon-2">
         Si una sesión quedó mal digitada, anúlala aquí. Anular no borra nada: las mediciones
@@ -98,7 +98,7 @@ function FilaPesaje({ pesaje }: { pesaje: ResumenPesaje }) {
           <div className="flex gap-2">
             <button
               disabled={anulando}
-              className="rounded bg-barro px-4 py-2 text-crema disabled:opacity-50"
+              className="rounded bg-barro px-4 py-2 text-papel disabled:opacity-50"
             >
               {anulando ? 'Anulando…' : 'Confirmar anulación'}
             </button>

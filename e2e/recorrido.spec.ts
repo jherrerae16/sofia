@@ -10,13 +10,14 @@ test.beforeEach(async ({ page }) => {
   await entrar(page)
 })
 
+// `/potreros` ya no redirige: volvió a ser una pantalla, ahora solo con los
+// potreros (mover un lote vive en el menú, bajo Anotar).
 const REDIRECCIONES = [
   ['/como-vamos', '/'],
   ['/digitar', '/anotar/pesos'],
   ['/salidas', '/anotar/salida'],
   ['/novedades', '/anotar/novedad'],
   ['/lotes', '/anotar/entrada'],
-  ['/potreros', '/anotar/mover'],
   ['/configuracion', '/finca'],
 ] as const
 
@@ -29,15 +30,23 @@ for (const [vieja, nueva] of REDIRECCIONES) {
   })
 }
 
-test('desde Ganado se llega a los seis modos de Anotar sin que ninguno reviente', async ({
-  page,
-}) => {
-  const modos = ['Pesos', 'Venta o muerte', 'Novedad', 'Mover lote', 'Entrada de ganado', 'Sanidad']
+test('desde el menú se llega a las diez funciones sin que ninguna reviente', async ({ page }) => {
+  const funciones = [
+    'Potreros',
+    'Pesos',
+    'Sanidad',
+    'Venta o muerte',
+    'Novedad',
+    'Mover lote',
+    'Entrada de ganado',
+    'Criterios',
+    'Ganado',
+  ]
   await page.goto('/')
 
-  for (const modo of modos) {
-    await page.getByRole('link', { name: 'Anotar', exact: true }).click()
-    await page.getByTestId('modos').getByRole('link', { name: modo, exact: true }).click()
+  for (const funcion of funciones) {
+    // Un clic desde donde se esté: esa es la promesa del menú lateral.
+    await page.getByTestId('menu').getByRole('link', { name: funcion, exact: true }).click()
     await expect(page.locator('h1')).toBeVisible()
     // Ninguna pantalla abre con un error crudo en la cara.
     await expect(page.getByText(/Application error|Unhandled Runtime Error/)).toHaveCount(0)
@@ -67,6 +76,7 @@ test('los tres destinos y la ficha abren sin dejar escapar un valor crudo de enu
     '/anotar/mover',
     '/anotar/entrada',
     '/anotar/sanidad',
+    '/potreros',
     '/finca',
     `/animales/${animal.id}`,
   ]) {

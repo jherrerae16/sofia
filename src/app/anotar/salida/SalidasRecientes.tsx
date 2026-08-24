@@ -29,7 +29,7 @@ export function SalidasRecientes({ animales }: { animales: AnimalVista[] }) {
   if (salidos.length === 0) return null
 
   return (
-    <section className="mt-8 rounded-lg border border-borde bg-white p-4">
+    <section className="mt-8 rounded-lg border border-borde bg-papel p-4">
       <h2 className="mb-3 rotulo">Qué salió de este lote</h2>
       <ul className="divide-y divide-tierra/10 text-sm">
         {salidos.map((animal) => (

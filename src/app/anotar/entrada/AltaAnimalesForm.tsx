@@ -206,7 +206,7 @@ export function AltaAnimalesForm({ lotes, hoy }: { lotes: Opcion[]; hoy: string 
 
       <button
         disabled={enviando}
-        className="rounded bg-monte px-6 py-3 font-medium text-crema disabled:opacity-50"
+        className="rounded bg-monte px-6 py-3 font-medium text-papel disabled:opacity-50"
       >
         Dar de alta el lote
       </button>

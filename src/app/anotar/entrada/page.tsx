@@ -10,7 +10,7 @@ import { AltaAnimalesForm } from './AltaAnimalesForm'
 // tabla vieja hasta la próxima escritura que sí dispare una revalidación.
 export const dynamic = 'force-dynamic'
 
-const CAMPO = 'rounded border border-borde bg-white px-3 py-2 text-[14px] text-carbon outline-none'
+const CAMPO = 'rounded border border-borde bg-papel px-3 py-2 text-[14px] text-carbon outline-none'
 
 export default async function Entrada() {
   const lotes = await listarLotes()
@@ -67,7 +67,7 @@ export default async function Entrada() {
           <span className="rotulo">Fecha</span>
           <input name="fechaApertura" type="date" defaultValue={hoy} required className={CAMPO} />
         </label>
-        <button className="rounded bg-monte px-5 py-3 text-[14px] font-semibold text-crema">
+        <button className="rounded bg-monte px-5 py-3 text-[14px] font-semibold text-papel">
           Abrir lote
         </button>
       </form>

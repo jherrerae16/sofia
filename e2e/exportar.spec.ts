@@ -187,7 +187,7 @@ test('el botón de la Finca descarga un .xlsx real con la portada, las 8 hojas y
 
   const [descarga] = await Promise.all([
     page.waitForEvent('download'),
-    page.getByRole('link', { name: 'Bajar todo a Excel' }).click(),
+    page.getByRole('main').getByRole('link', { name: 'Bajar todo a Excel' }).click(),
   ])
 
   expect(descarga.suggestedFilename()).toBe(`santa-veronica-${HOY}.xlsx`)

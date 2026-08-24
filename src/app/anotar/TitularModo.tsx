@@ -31,8 +31,8 @@ export function SelectorDeLote({
   const clase = (encendido: boolean) =>
     `rounded border px-3 py-2 text-[13.5px] no-underline ${
       encendido
-        ? 'border-monte bg-monte font-semibold text-crema'
-        : 'border-borde bg-white text-carbon-2'
+        ? 'border-monte bg-monte font-semibold text-papel'
+        : 'border-borde bg-papel text-carbon-2'
     }`
 
   return (

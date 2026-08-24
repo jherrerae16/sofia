@@ -18,14 +18,16 @@ import { animalesDeLaUltimaTanda, pesoVivoPorLote, ultimaTandaDeLote } from '@/d
 import { listarPotreros } from '@/datos/potreros'
 import { eventosVencidos } from '@/datos/sanidad'
 import { serieDePesoPromedio } from '@/datos/serie'
-import { FiltrosGanado, type Chip } from './FiltrosGanado'
+import { BotonSeleccionar, FiltrosGanado, type Chip } from './FiltrosGanado'
 import { GraficaLote } from './GraficaLote'
-import { RejillaGanado, type FilaGanado, type Vista } from './RejillaGanado'
+import { ListaGanado, type FilaGanado, type Vista } from './ListaGanado'
 import { Cinta, type Celda } from '@/ui/Cinta'
 import { ETIQUETA_TIPO_EVENTO } from '@/ui/etiquetas'
 import { capitalizar, formatearGdp, formatearKg, separarUnidad, SIN_DATO } from '@/ui/formato'
+import { EncabezadoPagina } from '@/ui/EncabezadoPagina'
 import { Marco } from '@/ui/Marco'
-import { Titular, type Aviso } from '@/ui/Titular'
+import Link from 'next/link'
+import { type Aviso } from '@/ui/Titular'
 
 /** Quedado es lo que el dueño configuró como quedado, no un número de aquí. */
 function esQuedado(fila: FilaDesempeno): boolean {
@@ -52,14 +54,18 @@ export default async function Ganado({
   if (!lote) {
     return (
       <Marco>
-        <Titular>
-          <h1 className="text-[clamp(27px,3.8vw,40px)] font-semibold leading-[1.18] tracking-[-0.022em] text-monte">
-            Todavía no hay ningún lote de ceba.
-          </h1>
-          <p className="mt-[14px] text-[15.5px] text-carbon-2">
-            Ábrelo desde Anotar y aquí vas a ver cómo viene engordando.
-          </p>
-        </Titular>
+        <EncabezadoPagina
+          titulo="Todavía no hay ningún lote de ceba."
+          bajada="Ábrelo en «Entrada de ganado» y aquí vas a ver cómo viene engordando."
+          acciones={
+            <Link
+              href="/anotar/entrada"
+              className="rounded-full bg-monte px-4 py-2 text-[13px] font-semibold text-papel no-underline"
+            >
+              Abrir un lote
+            </Link>
+          }
+        />
         <Pie />
       </Marco>
     )
@@ -247,30 +253,70 @@ export default async function Ganado({
 
   const vista: Vista = params.vista === 'tabla' ? 'tabla' : 'rejilla'
 
+  const seleccionando = params.sel !== undefined
+
   return (
     <Marco>
-      <Titular avisos={avisos}>
-        <h1 className="text-[clamp(27px,3.8vw,40px)] font-semibold leading-[1.18] tracking-[-0.022em] text-monte">
-          {lote.nombre} va en{' '}
-          <b className="font-extrabold text-tierra">{formatearGdp(resumen.promedio)}</b>.{' '}
-          {quedados.length > 0 && (
-            <u className="font-extrabold text-barro no-underline">
-              {quedados.length === 1
-                ? 'Un novillo está quedado.'
-                : `${quedados.length} novillos están quedados.`}
-            </u>
-          )}
-        </h1>
-        <p data-testid="bajada" className="mt-[14px] max-w-[580px] text-[15.5px] text-carbon-2">
-          {frases.join(' ')}
-        </p>
-      </Titular>
+      <EncabezadoPagina
+        titulo={
+          <>
+            {lote.nombre} va en{' '}
+            <b className="font-extrabold text-tierra">{formatearGdp(resumen.promedio)}</b>.{' '}
+            {quedados.length > 0 && (
+              <span className="font-extrabold text-barro">
+                {quedados.length === 1
+                  ? 'Un novillo está quedado.'
+                  : `${quedados.length} novillos están quedados.`}
+              </span>
+            )}
+          </>
+        }
+        bajada={
+          <>
+            <span data-testid="bajada">{frases.join(' ')}</span>
+            {avisos.length > 0 && (
+              <div data-testid="avisos" className="mt-3 flex flex-col gap-[7px]">
+                {avisos.map((aviso) => (
+                  <div key={aviso.texto} className="flex flex-wrap items-center gap-[9px]">
+                    <span
+                      aria-hidden
+                      className={`h-[6px] w-[6px] flex-none rounded-full ${
+                        aviso.grave ? 'bg-barro' : 'bg-carbon-3'
+                      }`}
+                    />
+                    <span>{aviso.texto}</span>
+                    {aviso.enlace && (
+                      <Link
+                        href={aviso.enlace.href}
+                        className="text-carbon underline underline-offset-[3px]"
+                      >
+                        {aviso.enlace.texto}
+                      </Link>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        }
+        acciones={
+          <>
+            <BotonSeleccionar />
+            <Link
+              href={`/anotar/pesos?lote=${lote.id}`}
+              className="rounded-full bg-monte px-4 py-2 text-[13px] font-semibold text-papel no-underline"
+            >
+              Anotar pesos
+            </Link>
+          </>
+        }
+      />
 
       {faltanUmbrales && (
         <p
           role="alert"
           data-testid="falta-configurar"
-          className="mt-6 rounded border border-barro/40 bg-white px-4 py-3 text-[14px] text-barro"
+          className="mt-5 rounded border border-barro/40 bg-papel px-4 py-3 text-[13.5px] text-barro"
         >
           {faltanUmbrales} Mientras tanto no se puede decir quién va quedado, pero el resto de la
           pantalla sigue en pie.
@@ -279,15 +325,20 @@ export default async function Ganado({
 
       <Cinta celdas={celdas} />
 
-      <h2 className="rotulo mb-4 mt-13">Cómo viene engordando el lote</h2>
+      <h2 className="rotulo mb-3 mt-9">Cómo viene engordando el lote</h2>
       <GraficaLote serie={await serieDePesoPromedio(lote.id, hoy)} />
 
-      <h2 className="rotulo mb-4 mt-13">El ganado</h2>
+      <h2 className="rotulo mb-3 mt-9">El ganado</h2>
       <FiltrosGanado
         lotes={lotes.map((l) => ({ id: l.id, nombre: l.nombre, animales: l.animalesActivos }))}
         chips={chips}
       />
-      <RejillaGanado filas={visibles} vista={vista} />
+      <ListaGanado
+        filas={visibles}
+        vista={vista}
+        seleccionando={seleccionando}
+        loteId={lote.id}
+      />
 
       <Pie />
     </Marco>

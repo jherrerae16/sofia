@@ -5,19 +5,27 @@ export type Celda = {
   unidad?: string
 }
 
+/**
+ * La fila de cifras del lote. Compacta y con línea entre celdas, no cuatro
+ * bloques grandes: son datos de contexto, no la respuesta a nada -- lo que se
+ * lee primero es el titular de arriba.
+ */
 export function Cinta({ celdas }: { celdas: Celda[] }) {
   return (
     <div
       data-testid="cinta"
-      className="mt-10 flex flex-wrap overflow-hidden rounded border border-borde bg-white"
+      className="mt-6 flex flex-wrap overflow-hidden rounded border border-borde bg-papel"
     >
       {celdas.map((celda) => (
-        <div key={celda.rotulo} className="min-w-[160px] flex-1 border-r border-borde px-5 py-4 last:border-r-0">
+        <div
+          key={celda.rotulo}
+          className="min-w-[150px] flex-1 border-r border-borde px-4 py-[11px] last:border-r-0"
+        >
           <span className="rotulo block">{celda.rotulo}</span>
-          <b className="cifra mt-[9px] block text-[25px] font-extrabold leading-none tracking-[-0.02em] text-monte">
+          <b className="cifra mt-[6px] block text-[19px] font-extrabold leading-none tracking-[-0.02em]">
             {celda.valor}
             {celda.unidad && (
-              <small className="ml-1 text-[14px] font-semibold text-carbon-3">{celda.unidad}</small>
+              <small className="ml-1 text-[12px] font-semibold text-carbon-3">{celda.unidad}</small>
             )}
           </b>
         </div>

@@ -94,7 +94,7 @@ function FilaNovedad({ novedad }: { novedad: NovedadVista }) {
           <div className="flex gap-2">
             <button
               disabled={anulando}
-              className="rounded bg-barro px-4 py-2 text-crema disabled:opacity-50"
+              className="rounded bg-barro px-4 py-2 text-papel disabled:opacity-50"
             >
               {anulando ? 'Anulando…' : 'Confirmar anulación'}
             </button>
