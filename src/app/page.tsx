@@ -352,7 +352,7 @@ export default async function Ganado({
 function Pie() {
   return (
     <footer className="mt-18 border-t border-borde pt-[18px] text-[12px] text-carbon-3">
-      SOFÍA — por Sofanor Echeverría.
+      SOFIA — por Sofanor Echeverría.
     </footer>
   )
 }

@@ -17,7 +17,7 @@ const estrecha = Archivo_Narrow({
 })
 
 export const metadata: Metadata = {
-  title: 'SOFÍA',
+  title: 'SOFIA',
   description: 'Control integral de la finca Santa Verónica',
 }
 

@@ -66,7 +66,7 @@ export default async function Finca() {
           potreros, los movimientos, la sanidad, las novedades y los parámetros, con todo el
           histórico e incluyendo lo anulado y lo que ya salió. No es un informe: son los datos tal
           cual están guardados. <b className="text-carbon">Es tu salida:</b> con ese archivo puedes
-          dejar SOFÍA cuando quieras y quedarte con tu información.
+          dejar SOFIA cuando quieras y quedarte con tu información.
         </p>
         <a
           href="/exportar"

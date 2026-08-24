@@ -17,7 +17,7 @@ export default async function Mover() {
     <>
       <TitularModo
         titulo="¿A dónde los pasas?"
-        bajada="SOFÍA te avisa si el potrero queda cargado, pero no te lo impide: a veces no hay otro potrero disponible y la decisión es tuya."
+        bajada="SOFIA te avisa si el potrero queda cargado, pero no te lo impide: a veces no hay otro potrero disponible y la decisión es tuya."
       />
       <div className="mt-8">
         <MoverLoteForm lotes={lotes} potreros={potreros} hoy={hoy} />

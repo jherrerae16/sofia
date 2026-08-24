@@ -14,7 +14,7 @@ export default function Entrar() {
     <main className="flex min-h-screen items-center justify-center bg-papel p-6">
       <form action={entrar} className="w-full max-w-[300px]">
         {/* La marca de la finca manda aquí y en ningún otro lado: esta es la
-            puerta. Adentro manda SOFÍA, que es la herramienta. */}
+            puerta. Adentro manda SOFIA, que es la herramienta. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/marca/santa-veronica.png"
@@ -44,7 +44,7 @@ export default function Entrar() {
           </button>
         </div>
 
-        <p className="mt-6 text-center text-[11px] tracking-[0.2em] text-carbon-3">SOFÍA</p>
+        <p className="mt-6 text-center text-[11px] tracking-[0.2em] text-carbon-3">SOFIA</p>
       </form>
     </main>
   )

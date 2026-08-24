@@ -1,6 +1,6 @@
-# SOFÍA
+# SOFIA
 
-SOFÍA es una plataforma web privada para administrar la finca ganadera de
+SOFIA es una plataforma web privada para administrar la finca ganadera de
 engorde Santa Verónica, en Colombia. La usan el dueño de la finca y quien
 lleva la operación en el campo, para digitar pesajes, dar de alta lotes y
 animales, mover ganado entre potreros, registrar sanidad y ver cómo va el

@@ -40,7 +40,7 @@ export default async function Sanidad({
     <>
       <TitularModo
         titulo="¿Qué les pusiste?"
-        bajada="Queda guardado novillo por novillo, con el producto y la dosis. Si pones cuándo toca repetirlo, SOFÍA te avisa en «Ganado» cuando se venza."
+        bajada="Queda guardado novillo por novillo, con el producto y la dosis. Si pones cuándo toca repetirlo, SOFIA te avisa en «Ganado» cuando se venza."
       />
       <SelectorDeLote lotes={lotes} activo={lote.id} base="/anotar/sanidad" />
 

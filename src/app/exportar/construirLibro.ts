@@ -169,7 +169,7 @@ const DESCRIPCION_HOJA: Record<string, string> = {
  * La portada -- lo único que hace que el archivo se explique solo. Todo ese
  * texto vivía hasta ahora solo en la pantalla de Configuración, que es
  * exactamente lo que el dueño ya no tiene el día que necesita este archivo
- * por fuera de SOFÍA: sin internet, en manos de un contador, o el día que
+ * por fuera de SOFIA: sin internet, en manos de un contador, o el día que
  * deje la plataforma.
  */
 function hojaPortada(datos: DatosExportacion): { sheet: string; data: SheetData; columns: { width?: number }[]; stickyRowsCount: number } {

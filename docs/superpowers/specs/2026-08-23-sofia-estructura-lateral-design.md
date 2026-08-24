@@ -1,4 +1,4 @@
-# SOFÍA — Estructura lateral y acciones sobre selección
+# SOFIA — Estructura lateral y acciones sobre selección
 
 **Fecha:** 23 de agosto de 2026
 **Reemplaza:** la estructura de tres destinos del plan `2026-08-23-sofia-tres-destinos.md`, no su contenido.
@@ -45,22 +45,25 @@ su publicidad.
 Dos imágenes que puso el dueño, ya procesadas a PNG con fondo transparente por
 `scripts/preparar-marcas.ts`:
 
-- `public/marca/vaca.png` — silueta de vaca en línea, tinta café. Va **junto al nombre SOFÍA**, en
+- `public/marca/vaca.png` — silueta de vaca en línea, tinta café. Va **junto al nombre SOFIA**, en
   la cabecera del menú lateral.
 - `public/marca/santa-veronica.png` — el ojo del logo de Ganadería Santa Verónica, tinta negra. Va
   **en la pantalla de entrar**, centrado sobre el formulario: es la puerta de la finca y el único
   lugar donde la marca de la finca manda sobre la de la plataforma. Repetido pequeño al pie del
   menú lateral, junto al nombre de la finca.
 
-El texto del logo («GANADERÍA SANTA VERONICA») no se usa: viene cortado en la captura y el nombre
-de la finca ya se escribe en la interfaz, leído de la base.
+El dueño mandó después una versión limpia del logo con el texto completo, así que en la pantalla
+de entrar va el conjunto entero (ojo y letras) y en el pie del menú va solo el ojo, que es lo que
+se lee a 15 píxeles de alto.
+
+El nombre de la plataforma se escribe **SOFIA, sin tilde**, por decisión del dueño.
 
 ## El menú lateral
 
 Tres grupos, diez renglones, todos a un clic:
 
 ```
-SOFÍA  🐄
+SOFIA  🐄
 
 EL GANADO
   Ganado                 /
@@ -98,8 +101,11 @@ marca; abajo aparece una barra fija con la cuenta y las acciones:
   acción queda **fuera de esta entrega**: mover animales individuales entre lotes es un cambio de
   la capa de datos (hoy `Animal.loteId` solo cambia por alta), no de interfaz.
 
-La selección viaja por la dirección web (`?animales=id,id,id`), no por estado compartido: así el
-enlace se puede recargar y el servidor sigue armando la pantalla.
+El MODO selección viaja en la dirección web, porque se enciende una vez y así aguanta una recarga.
+Las MARCAS viven en estado de React: marcar tres animales seguidos son tres clics en un segundo, y
+leyendo la dirección cada clic partía de una que la vuelta al servidor todavía no había
+actualizado -- sobrevivía solo el último. Al pulsar una acción, las marcas sí pasan a la dirección
+de la pantalla destino (`?animales=id,id,id`), que las usa para mostrar solo esos animales.
 
 ## Lo que no cambia
 

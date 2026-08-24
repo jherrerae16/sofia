@@ -87,10 +87,10 @@ test('los tres destinos y la ficha abren sin dejar escapar un valor crudo de enu
 
 test('el nombre completo aparece una sola vez en toda la plataforma', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByText('SOFÍA — por Sofanor Echeverría.')).toHaveCount(1)
+  await expect(page.getByText('SOFIA — por Sofanor Echeverría.')).toHaveCount(1)
 
   for (const ruta of ['/anotar/pesos', '/finca', '/anotar/sanidad']) {
     await page.goto(ruta)
-    await expect(page.getByText('SOFÍA — por Sofanor Echeverría.')).toHaveCount(0)
+    await expect(page.getByText('SOFIA — por Sofanor Echeverría.')).toHaveCount(0)
   }
 })

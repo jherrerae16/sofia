@@ -109,17 +109,17 @@ export function MenuLateral({ quien }: { quien: string }) {
     >
       <Link
         href="/"
-        className={`flex items-center gap-[9px] border-b border-borde pb-4 no-underline ${
-          contraido ? 'justify-center px-2' : 'px-[18px]'
+        className={`flex items-center gap-[10px] border-b border-borde pb-[14px] no-underline ${
+          contraido ? 'justify-center px-2' : 'px-[16px]'
         }`}
       >
         {/* `<img>` y no `next/image`: son dos marcas de 7 KB ya recortadas al
             tamaño final, no hay nada que optimizar, y el optimizador de Next
             no las lee. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/marca/vaca.png" alt="" width={117} height={128} className="h-[26px] w-auto" />
+        <img src="/marca/vaca.png" alt="" width={117} height={128} className="h-[52px] w-auto" />
         {!contraido && (
-          <span className="text-[15px] font-extrabold tracking-[0.2em] text-monte">SOFÍA</span>
+          <span className="text-[17px] font-extrabold tracking-[0.18em] text-monte">SOFIA</span>
         )}
       </Link>
 

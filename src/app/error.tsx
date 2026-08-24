@@ -29,7 +29,7 @@ export default function Error({
         <p className="mb-4 text-sm text-carbon/70">
           Esta pantalla no pudo cargar por un problema inesperado. No es necesariamente algo que
           hiciste: puede ser un problema pasajero de conexión con la base de datos. Intenta de
-          nuevo, y si el problema sigue, avísale a quien administra SOFÍA.
+          nuevo, y si el problema sigue, avísale a quien administra SOFIA.
         </p>
         <button
           onClick={() => retry()}

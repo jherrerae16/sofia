@@ -249,7 +249,7 @@ describe('construirLibroExcel', () => {
   // fecha de exportación y sin una línea que diga qué es cada hoja. Ese
   // texto vivía solo en la pantalla de Configuración -- que es justo lo que
   // el dueño ya no tiene el día que necesite este archivo por fuera de
-  // SOFÍA.
+  // SOFIA.
   it('agrega una portada con el nombre de la finca, la fecha y hora de exportación en hora de Bogotá, y una línea por hoja', async () => {
     const buffer = await construirLibroExcel(datosDePrueba())
     const archivos = unzipSync(new Uint8Array(buffer))

@@ -63,9 +63,9 @@ test.describe('con la sesión abierta', () => {
 
   test('el nombre completo aparece una sola vez, y solo al pie de Ganado', async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByText('SOFÍA — por Sofanor Echeverría.')).toHaveCount(1)
+    await expect(page.getByText('SOFIA — por Sofanor Echeverría.')).toHaveCount(1)
 
     await page.goto('/finca')
-    await expect(page.getByText('SOFÍA — por Sofanor Echeverría.')).toHaveCount(0)
+    await expect(page.getByText('SOFIA — por Sofanor Echeverría.')).toHaveCount(0)
   })
 })
