@@ -1,24 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import { CLAVES_UMBRAL } from '@/datos/parametros'
 import {
   DEFINICION_GDP_OBJETIVO,
   DEFINICION_PESO_OBJETIVO,
   DEFINICIONES_PARAMETRO,
-  DEFINICIONES_UMBRAL,
 } from './definiciones'
 
-// Las claves de aquí son texto suelto, sin el tipo literal que las ataría a
-// CLAVES_UMBRAL en tiempo de compilación: un typo (p. ej. "umbral_excelnte")
-// pasaría el chequeo de tipos sin problema y dejaría ese umbral sin
-// pantalla para configurarlo. Esta prueba es la que sí lo atrapa.
 describe('definiciones de parámetros', () => {
-  it('DEFINICIONES_UMBRAL cubre exactamente las cuatro claves de CLAVES_UMBRAL, en el mismo orden', () => {
-    expect(DEFINICIONES_UMBRAL.map((d) => d.clave)).toEqual(CLAVES_UMBRAL)
-  })
-
-  it('DEFINICIONES_PARAMETRO cubre los siete parámetros configurables, sin repetir ninguna clave', () => {
+  it('quedan tres criterios configurables, sin repetir ninguna clave', () => {
+    // Eran siete: los cuatro umbrales del semáforo se fueron cuando el dueño
+    // decidió que la meta de ganancia diaria es el único criterio -- por
+    // encima el animal va bien, por debajo es alerta.
     const claves = DEFINICIONES_PARAMETRO.map((d) => d.clave)
-    expect(claves).toEqual([...CLAVES_UMBRAL, 'gdp_objetivo', 'peso_objetivo_venta_kg', 'hectareas_utiles'])
+    expect(claves).toEqual(['gdp_objetivo', 'peso_objetivo_venta_kg', 'hectareas_utiles'])
     expect(new Set(claves).size).toBe(claves.length)
   })
 
@@ -30,18 +23,13 @@ describe('definiciones de parámetros', () => {
     }
   })
 
-  // Prometerle al ganadero que un número cambia algo en una pantalla que no
-  // lo muestra es el defecto que estas tres pruebas fijan. Se rompen a
-  // propósito cuando una pantalla cambia de nombre o deja de consumir un
-  // parámetro: ese es su trabajo -- avisar que el texto quedó mintiendo.
-  it('de los cuatro umbrales, la explicación dice cuál es el único que hoy cambia algo', () => {
-    expect(DEFINICIONES_UMBRAL[0].explicacion).toMatch(/el único que hoy cambia lo que ves es "Bajo"/)
-    expect(DEFINICIONES_UMBRAL[0].explicacion).toMatch(/quedado en Ganado/)
-  })
-
-  it('la meta de ganancia diaria dice que es la línea punteada de las dos curvas', () => {
-    expect(DEFINICION_GDP_OBJETIVO.explicacion).toMatch(/línea punteada/)
-    expect(DEFINICION_GDP_OBJETIVO.explicacion).toMatch(/Ganado/)
+  // Prometerle al ganadero que un número cambia algo en una pantalla que no lo
+  // muestra es el defecto que estas dos pruebas fijan. Se rompen a propósito
+  // cuando una pantalla cambia de nombre o deja de consumir un criterio: ese
+  // es su trabajo -- avisar que el texto quedó mintiendo.
+  it('la meta de ganancia dice que es el único criterio y qué marca', () => {
+    expect(DEFINICION_GDP_OBJETIVO.explicacion).toMatch(/único criterio/)
+    expect(DEFINICION_GDP_OBJETIVO.explicacion).toMatch(/quedado en Ganado/)
   })
 
   // El dueño leyó "Peso de venta" como el peso total esperado del lote, no el

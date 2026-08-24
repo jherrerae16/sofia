@@ -3,10 +3,6 @@ import { prisma } from '../src/datos/cliente'
 import { entrar } from './sesion'
 
 const PARAMETROS = {
-  umbral_excelente: '900',
-  umbral_bueno: '750',
-  umbral_normal: '600',
-  umbral_bajo: '400',
   gdp_objetivo: '750',
 }
 

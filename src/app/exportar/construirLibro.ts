@@ -162,7 +162,7 @@ const DESCRIPCION_HOJA: Record<string, string> = {
   Movimientos: 'Cada traslado de un lote de un potrero a otro.',
   Novedades: 'Los hechos y los suministros anotados en un lote o un potrero, incluidos los que se anularon.',
   'Eventos sanitarios': 'Las vacunas, desparasitaciones y demás cosas aplicadas a un animal puntual o a un lote entero.',
-  Parámetros: 'El histórico de los umbrales y objetivos configurados en la plataforma, con la fecha desde la que rigió cada uno.',
+  Parámetros: 'El histórico de los criterios configurados en la plataforma, con la fecha desde la que rigió cada uno.',
 }
 
 /**

@@ -40,8 +40,8 @@ export type EstadoFormularioParametro = {
  * sin ningún valor vigente hoy -- ahí pide confirmación (`confirmado`
  * llega en '1' cuando el ganadero ya la dio) en vez de bloquear, porque una
  * vigencia futura es una decisión legítima. La validación de número y de
- * orden entre los umbrales corre siempre, confirmado o no: lo único que se
- * salta con la confirmación es el aviso, nunca la validación.
+ * valor corre siempre, confirmado o no: lo único que se salta con la
+ * confirmación es el aviso, nunca la validación.
  */
 export async function guardarParametroAccion(
   _estado: EstadoFormularioParametro,

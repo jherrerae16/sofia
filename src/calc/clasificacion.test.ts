@@ -1,39 +1,37 @@
 import { describe, expect, it } from 'vitest'
-import { clasificar, type Umbrales } from './clasificacion'
+import { clasificar } from './clasificacion'
 
-const umbrales: Umbrales = { excelente: 900, bueno: 750, normal: 600, bajo: 400 }
+const META = 750
 
 describe('clasificar', () => {
-  it('clasifica como excelente en el umbral exacto', () => {
-    expect(clasificar(900, umbrales)).toBe('excelente')
+  it('un animal que va por encima de la meta va bien', () => {
+    expect(clasificar(800, META)).toBe('bien')
   })
 
-  it('clasifica como bueno justo debajo de excelente', () => {
-    expect(clasificar(899, umbrales)).toBe('bueno')
+  it('justo en la meta va bien: la meta se cumple alcanzándola, no superándola', () => {
+    expect(clasificar(750, META)).toBe('bien')
   })
 
-  it('clasifica como normal', () => {
-    expect(clasificar(640, umbrales)).toBe('normal')
+  it('un gramo por debajo de la meta ya es alerta', () => {
+    expect(clasificar(749, META)).toBe('quedado')
   })
 
-  it('clasifica como bajo rendimiento', () => {
-    expect(clasificar(450, umbrales)).toBe('bajo')
+  it('un animal que pierde peso está quedado', () => {
+    expect(clasificar(-200, META)).toBe('quedado')
   })
 
-  it('clasifica como crítico por debajo del umbral bajo', () => {
-    expect(clasificar(399, umbrales)).toBe('critico')
+  it('sin ganancia calculable no se dice nada', () => {
+    expect(clasificar(null, META)).toBe('sin_dato')
   })
 
-  it('clasifica como crítico cuando el animal pierde peso', () => {
-    expect(clasificar(-200, umbrales)).toBe('critico')
+  it('sin meta fijada tampoco se dice nada', () => {
+    // Decir que un animal "va quedado" sin una meta contra la cual medirlo
+    // sería una opinión de la plataforma, no del dueño.
+    expect(clasificar(300, null)).toBe('sin_dato')
   })
 
-  it('devuelve sin_dato cuando no hay ganancia calculable', () => {
-    expect(clasificar(null, umbrales)).toBe('sin_dato')
-  })
-
-  it('respeta umbrales distintos a los de arranque', () => {
-    const propios: Umbrales = { excelente: 1000, bueno: 850, normal: 700, bajo: 500 }
-    expect(clasificar(900, propios)).toBe('bueno')
+  it('respeta la meta que fijó el dueño, no una del código', () => {
+    expect(clasificar(900, 1000)).toBe('quedado')
+    expect(clasificar(900, 850)).toBe('bien')
   })
 })

@@ -1,18 +1,22 @@
-export type Clasificacion = 'excelente' | 'bueno' | 'normal' | 'bajo' | 'critico' | 'sin_dato'
+/**
+ * Un animal solo puede estar en tres situaciones, no en cinco.
+ *
+ * Antes había cuatro umbrales (excelente, bueno, normal, bajo) que el dueño
+ * tenía que inventarse, y que en la práctica solo servían para decidir quién
+ * salía marcado. La regla que él quiere es la que ya tenía en la cabeza: por
+ * encima de la meta que se propuso, el animal va bien; por debajo, es alerta.
+ */
+export type Clasificacion = 'bien' | 'quedado' | 'sin_dato'
 
-/** Cortes en gramos por día. Se leen de la base de datos, nunca se fijan en el código. */
-export type Umbrales = {
-  excelente: number
-  bueno: number
-  normal: number
-  bajo: number
-}
-
-export function clasificar(gdp: number | null, umbrales: Umbrales): Clasificacion {
-  if (gdp === null) return 'sin_dato'
-  if (gdp >= umbrales.excelente) return 'excelente'
-  if (gdp >= umbrales.bueno) return 'bueno'
-  if (gdp >= umbrales.normal) return 'normal'
-  if (gdp >= umbrales.bajo) return 'bajo'
-  return 'critico'
+/**
+ * @param gdp Ganancia diaria observada, en gramos por día. Null si todavía no
+ *   hay dos pesajes con que calcularla.
+ * @param metaGdp La meta que fijó el dueño. Null si no la ha fijado -- y sin
+ *   meta no se clasifica: decir que un animal "va quedado" sin un número
+ *   contra el cual medirlo sería una opinión de la plataforma, no suya.
+ */
+export function clasificar(gdp: number | null, metaGdp: number | null): Clasificacion {
+  if (gdp === null || metaGdp === null) return 'sin_dato'
+  // Alcanzar la meta es cumplirla: la comparación va con "mayor o igual".
+  return gdp >= metaGdp ? 'bien' : 'quedado'
 }

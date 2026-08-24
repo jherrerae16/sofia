@@ -12,7 +12,6 @@ import {
   CLAVE_PESO_VENTA,
   leerGdpObjetivo,
   leerParametro,
-  ParametroFaltanteError,
 } from '@/datos/parametros'
 import { animalesDeLaUltimaTanda, pesoVivoPorLote, ultimaTandaDeLote } from '@/datos/pesajes'
 import { listarPotreros } from '@/datos/potreros'
@@ -29,9 +28,9 @@ import { Marco } from '@/ui/Marco'
 import Link from 'next/link'
 import { type Aviso } from '@/ui/Titular'
 
-/** Quedado es lo que el dueño configuró como quedado, no un número de aquí. */
+/** Quedado es ir por debajo de la meta que fijó el dueño, no de un número de aquí. */
 function esQuedado(fila: FilaDesempeno): boolean {
-  return fila.clasificacion === 'bajo' || fila.clasificacion === 'critico'
+  return fila.clasificacion === 'quedado'
 }
 
 // Todo lo que se ve aquí cambia con el día y con lo que se digitó hace un
@@ -71,19 +70,10 @@ export default async function Ganado({
     )
   }
 
-  // Los umbrales son lo único que puede faltar y tumbar la clasificación
-  // entera. `leerUmbrales` lanza a propósito en vez de inventarlos, porque un
-  // umbral inventado clasificaría animales con un criterio que nadie decidió.
-  // En una finca recién creada eso es esperable, y no puede dejar la portada
-  // en blanco: se atrapa aquí y se conserva todo lo que sí puede mostrarse.
-  let filas: FilaDesempeno[] = []
-  let faltanUmbrales: string | null = null
-  try {
-    filas = (await desempeno(normalizarPeriodo(params.desde), hoy)).filas
-  } catch (error) {
-    if (!(error instanceof ParametroFaltanteError)) throw error
-    faltanUmbrales = error.message
-  }
+  // Sin meta de ganancia fijada nadie sale marcado como quedado: `clasificar`
+  // devuelve 'sin_dato' y la lista se ordena igual. No hace falta atrapar
+  // nada -- leer la meta ya no lanza.
+  const { filas } = await desempeno(normalizarPeriodo(params.desde), hoy)
 
   const delLote = filas.filter((fila) => fila.lote === lote.nombre)
   const resumen = promediarGdp(
@@ -311,17 +301,6 @@ export default async function Ganado({
           </>
         }
       />
-
-      {faltanUmbrales && (
-        <p
-          role="alert"
-          data-testid="falta-configurar"
-          className="mt-5 rounded border border-barro/40 bg-papel px-4 py-3 text-[13.5px] text-barro"
-        >
-          {faltanUmbrales} Mientras tanto no se puede decir quién va quedado, pero el resto de la
-          pantalla sigue en pie.
-        </p>
-      )}
 
       <Cinta celdas={celdas} />
 

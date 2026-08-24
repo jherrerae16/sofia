@@ -5,7 +5,7 @@ import { promediarGdp, type ResumenPromedio } from '@/calc/lote'
 import type { FechaISO } from '@/calc/tipos'
 import { prisma } from './cliente'
 import { aFechaISO, aKg } from './conversion'
-import { leerUmbrales } from './parametros'
+import { leerGdpObjetivo } from './parametros'
 import { historialDeAnimal } from './pesajes'
 
 export type Periodo = 'ultimo_pesaje' | 'dias_30' | 'dias_60' | 'dias_90' | 'acumulado'
@@ -88,7 +88,7 @@ export async function desempeno(
   periodo: Periodo,
   hoy: FechaISO,
 ): Promise<{ filas: FilaDesempeno[]; resumen: ResumenPromedio }> {
-  const umbrales = await leerUmbrales(hoy)
+  const metaGdp = await leerGdpObjetivo(hoy)
 
   const animales = await prisma.animal.findMany({
     where: { estado: 'activo', lote: { tipo: 'ceba' } },
@@ -118,7 +118,7 @@ export async function desempeno(
         kgGanados: ultimo ? Math.round((ultimo.pesoKg - entrada.pesoKg) * 10) / 10 : null,
         gdpPeriodo,
         gdpAcumulada: acumulada,
-        clasificacion: clasificar(gdpPeriodo, umbrales),
+        clasificacion: clasificar(gdpPeriodo, metaGdp),
         diasEnFinca: diasEntre(entrada.fecha, hoy),
       }
     }),

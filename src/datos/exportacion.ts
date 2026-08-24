@@ -138,7 +138,7 @@ export type DatosExportacion = {
 
 /**
  * El valor de un parámetro se guarda siempre como texto (ver
- * `src/datos/parametros.ts`), pero en la práctica es un número -- un umbral,
+ * `src/datos/parametros.ts`), pero en la práctica es un número -- una meta,
  * un objetivo, unas hectáreas. Se convierte aquí para que la celda de Excel
  * sea numérica de verdad; si alguna vez quedó guardado un valor que no es un
  * número (la misma situación que ya tolera la pantalla de Configuración), se

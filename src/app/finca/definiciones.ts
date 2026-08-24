@@ -9,50 +9,11 @@ export type DefinicionParametro = {
   formatear: (numero: number) => string
 }
 
-/**
- * Un umbral por debajo del más bajo (`umbral_bajo`) no tiene clave propia:
- * cualquier ganancia menor cae en "crítico" por descarte, en
- * `src/calc/clasificacion.ts`. Por eso el semáforo tiene cinco niveles con
- * solo cuatro números configurables.
- */
-export const DEFINICIONES_UMBRAL: DefinicionParametro[] = [
-  {
-    clave: 'umbral_excelente',
-    titulo: 'Umbral "Excelente"',
-    explicacion:
-      'Un novillo que gana esto o más por día queda en el nivel más alto. De los cuatro umbrales, el único que hoy cambia lo que ves es "Bajo": es el que decide quién sale marcado como quedado en Ganado y en su propia ficha.',
-    unidad: 'g/día',
-    formatear: formatearGdp,
-  },
-  {
-    clave: 'umbral_bueno',
-    titulo: 'Umbral "Bueno"',
-    explicacion: 'Por debajo de "Excelente" pero desde aquí para arriba, un novillo se clasifica como "Bueno".',
-    unidad: 'g/día',
-    formatear: formatearGdp,
-  },
-  {
-    clave: 'umbral_normal',
-    titulo: 'Umbral "Normal"',
-    explicacion: 'Por debajo de "Bueno" pero desde aquí para arriba, un novillo se clasifica como "Normal".',
-    unidad: 'g/día',
-    formatear: formatearGdp,
-  },
-  {
-    clave: 'umbral_bajo',
-    titulo: 'Umbral "Bajo"',
-    explicacion:
-      'Por debajo de "Normal" pero desde aquí para arriba, un novillo se clasifica como "Bajo". Por debajo de este número, cae en "Crítico" -- ese nivel no tiene un umbral propio, es todo lo que queda debajo del más bajo de los cuatro.',
-    unidad: 'g/día',
-    formatear: formatearGdp,
-  },
-]
-
 export const DEFINICION_GDP_OBJETIVO: DefinicionParametro = {
   clave: 'gdp_objetivo',
   titulo: 'Meta de ganancia diaria',
   explicacion:
-    'Cuántos gramos quieres que gane un novillo cada día. Es la línea punteada de las curvas de peso -- la del lote en Ganado y la de cada animal en su ficha -- y es contra este número que se compara lo que de verdad están ganando.',
+    'Cuántos gramos quieres que gane un novillo cada día. Es el único criterio de la finca: el que llega o pasa esta meta va bien, el que va por debajo sale marcado como quedado en Ganado y en su propia ficha. También es la línea punteada de las dos curvas de peso.',
   unidad: 'g/día',
   formatear: formatearGdp,
 }
@@ -90,7 +51,6 @@ export const DEFINICION_HECTAREAS: DefinicionParametro = {
 }
 
 export const DEFINICIONES_PARAMETRO: DefinicionParametro[] = [
-  ...DEFINICIONES_UMBRAL,
   DEFINICION_GDP_OBJETIVO,
   DEFINICION_PESO_OBJETIVO,
   DEFINICION_HECTAREAS,

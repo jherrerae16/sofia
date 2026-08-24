@@ -299,8 +299,8 @@ describe('datosExportacionCompleta', () => {
   })
 
   it('trae todo el histórico de parámetros, con el valor numérico convertido y el autor resuelto', async () => {
-    await guardarParametro('umbral_bajo', '400', '2026-01-01', 'u1')
-    await guardarParametro('umbral_bajo', '450', '2026-06-01', 'u1')
+    await guardarParametro('gdp_objetivo', '400', '2026-01-01', 'u1')
+    await guardarParametro('gdp_objetivo', '450', '2026-06-01', 'u1')
 
     const datos = await datosExportacionCompleta()
     expect(datos.parametros).toHaveLength(2)
@@ -311,7 +311,7 @@ describe('datosExportacionCompleta', () => {
   })
 
   it('un valor de parámetro no numérico se conserva como texto, no se inventa un número', async () => {
-    await guardarParametro('umbral_bajo', 'seiscientos', '2026-01-01', 'u1')
+    await guardarParametro('gdp_objetivo', 'seiscientos', '2026-01-01', 'u1')
 
     const datos = await datosExportacionCompleta()
     expect(datos.parametros[0].valor).toBe('seiscientos')

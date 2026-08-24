@@ -143,7 +143,7 @@ describe('construirLibroExcel', () => {
         },
       ],
       parametros: [
-        { clave: 'umbral_bajo', valor: 400, vigenteDesde: '2026-01-01', creadoEn: instante, creadoPor: null },
+        { clave: 'gdp_objetivo', valor: 400, vigenteDesde: '2026-01-01', creadoEn: instante, creadoPor: null },
       ],
     }
 

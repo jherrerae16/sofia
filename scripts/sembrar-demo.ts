@@ -63,10 +63,6 @@ async function main() {
 
     const VIGENTE = new Date('2000-01-01T00:00:00.000Z')
     for (const [clave, valor] of Object.entries({
-      umbral_excelente: '900',
-      umbral_bueno: '750',
-      umbral_normal: '600',
-      umbral_bajo: '400',
       gdp_objetivo: '750',
       peso_objetivo_venta_kg: '320',
       hectareas_utiles: '35',
@@ -171,8 +167,8 @@ async function main() {
           registradoPorId: usuario.id,
           mediciones: {
             create: animales.slice(0, tanda.cubre).map((animal, i) => {
-              // Cuatro vienen quedados a propósito: 250 g/día contra el umbral
-              // bajo de 400. Son los que la portada tiene que señalar.
+              // Cuatro vienen quedados a propósito: 250 g/día contra la meta
+              // de 750. Son los que la portada tiene que señalar.
               const gdp = i < 4 ? 0.25 : tanda.ganancia + (i % 5) * 0.03
               return {
                 animalId: animal.id,

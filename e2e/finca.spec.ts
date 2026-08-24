@@ -68,8 +68,10 @@ test('editar el valor después del aviso obliga a revisarlo de nuevo, no deja co
 }) => {
   await page.goto('/finca')
 
-  const tarjeta = page.locator('[data-parametro="umbral_bajo"]')
-  const enUnMes = sumarDias(HOY, 30)
+  // Se usa el peso de venta, que la prueba anterior dejó con vigencia futura:
+  // ese es justo el estado que dispara el aviso.
+  const tarjeta = page.locator('[data-parametro="peso_objetivo_venta_kg"]')
+  const enUnMes = sumarDias(HOY, 60)
 
   await tarjeta.locator('input[name="valor"]').fill('400')
   await tarjeta.locator('input[name="vigenteDesde"]').fill(enUnMes)
@@ -83,35 +85,21 @@ test('editar el valor después del aviso obliga a revisarlo de nuevo, no deja co
   await expect(tarjeta.getByRole('button', { name: 'Guardar', exact: true })).toBeVisible()
 })
 
-test('un umbral que rompe el orden se rechaza con un mensaje claro, y no queda guardado', async ({ page }) => {
-  await prisma.parametro.create({
-    data: { clave: 'umbral_excelente', valor: '900', vigenteDesde: new Date(`${HOY}T00:00:00.000Z`) },
-  })
-  await prisma.parametro.create({
-    data: { clave: 'umbral_bueno', valor: '750', vigenteDesde: new Date(`${HOY}T00:00:00.000Z`) },
-  })
-
-  await page.goto('/finca')
-
-  const tarjeta = page.locator('[data-parametro="umbral_bueno"]')
-  await tarjeta.locator('input[name="valor"]').fill('950')
-  await tarjeta.locator('input[name="vigenteDesde"]').fill(HOY)
-  await tarjeta.getByRole('button', { name: 'Guardar' }).click()
-
-  await expect(tarjeta.getByText(/tiene que ser mayor que/)).toBeVisible()
-  await expect(tarjeta.getByTestId('valor-vigente')).toContainText('750 g/día')
-})
+// La prueba del orden entre umbrales se fue con los umbrales: con un solo
+// criterio -- la meta de ganancia diaria -- no hay orden que conservar, porque
+// un número suelto no puede contradecir a otro.
 
 test('un valor no numérico se rechaza sin guardar nada', async ({ page }) => {
   await page.goto('/finca')
 
-  const tarjeta = page.locator('[data-parametro="umbral_normal"]')
-  await tarjeta.locator('input[name="valor"]').fill('seiscientos')
+  const tarjeta = page.locator('[data-parametro="hectareas_utiles"]')
+  await tarjeta.locator('input[name="valor"]').fill('treinta y cinco')
   await tarjeta.locator('input[name="vigenteDesde"]').fill(HOY)
   await tarjeta.getByRole('button', { name: 'Guardar' }).click()
 
   await expect(tarjeta.getByText(/no es un número/)).toBeVisible()
-  await expect(tarjeta.getByText('Sin configurar todavía.')).toBeVisible()
+  // Y el valor que ya regía sigue en pie: un rechazo no borra lo que había.
+  await expect(tarjeta.getByTestId('valor-vigente')).toContainText('35,0 ha')
 })
 
 test('las hectáreas útiles de la finca se pueden actualizar, con coma decimal, y quedan con vigencia e histórico', async ({

@@ -17,7 +17,7 @@ export type Vista = 'rejilla' | 'tabla'
 
 /** El estado de un animal en una línea: un punto de color y una frase corta. */
 function estadoDe(fila: FilaGanado): { color: string; texto: string } {
-  if (fila.clasificacion === 'bajo' || fila.clasificacion === 'critico') {
+  if (fila.clasificacion === 'quedado') {
     return { color: 'bg-barro', texto: `${formatearGdp(fila.gdpPeriodo)} · quedado` }
   }
   if (fila.gdpPeriodo === null) {

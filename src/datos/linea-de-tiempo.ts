@@ -1,11 +1,11 @@
-import { clasificar, type Umbrales } from '@/calc/clasificacion'
+import { clasificar } from '@/calc/clasificacion'
 import { gdpEntre, type Medicion } from '@/calc/gdp'
 import type { FechaISO } from '@/calc/tipos'
 import { ETIQUETA_ESTADO_ANIMAL, ETIQUETA_METODO_PESAJE, ETIQUETA_TIPO_EVENTO } from '@/ui/etiquetas'
 import { capitalizar, formatearGdp, formatearKg } from '@/ui/formato'
 import { prisma } from './cliente'
 import { aFechaISO, aKg } from './conversion'
-import { leerUmbrales, ParametroFaltanteError } from './parametros'
+import { leerGdpObjetivo } from './parametros'
 import { historialDeAnimal } from './pesajes'
 import { eventosDeAnimal } from './sanidad'
 
@@ -20,7 +20,7 @@ export type Suceso = {
   cifra: string | null
   /** La cifra chica debajo de la anterior. */
   cifraChica: string | null
-  /** Enciende el suceso en barro: un pesaje por debajo del umbral configurado. */
+  /** Enciende el suceso en barro: un pesaje por debajo de la meta fijada. */
   malo: boolean
 }
 
@@ -76,16 +76,9 @@ export async function lineaDeTiempoDeAnimal(animalId: string, hoy: FechaISO): Pr
 
   // --- Pesajes. Cada uno se mide contra el anterior, no contra la entrada:
   // la línea cuenta tramos. El primero no tiene más referencia que la entrada.
-  // `leerUmbrales` lanza a propósito cuando no hay ninguno vigente, porque un
-  // umbral inventado clasificaría animales con un criterio que nadie decidió.
-  // Pero eso no puede tumbar la ficha entera: sin criterio no se dice quién va
-  // mal, y todo lo demás de la historia sigue en pie.
-  let umbrales: Umbrales | null = null
-  try {
-    umbrales = await leerUmbrales(hoy)
-  } catch (error) {
-    if (!(error instanceof ParametroFaltanteError)) throw error
-  }
+  // Sin meta fijada no se dice quién va mal, y todo lo demás de la historia
+  // sigue en pie: `clasificar` devuelve 'sin_dato' y ningún pesaje se marca.
+  const metaGdp = await leerGdpObjetivo(hoy)
 
   const historial = await historialDeAnimal(animalId)
   const pesajes = await prisma.pesaje.findMany({
@@ -105,7 +98,7 @@ export async function lineaDeTiempoDeAnimal(animalId: string, hoy: FechaISO): Pr
       detalle: pesaje ? `Lo pesó ${pesaje.responsable}` : null,
       cifra: formatearKg(medicion.pesoKg),
       cifraChica: gdp === null ? null : formatearGdp(gdp),
-      malo: umbrales !== null && ['bajo', 'critico'].includes(clasificar(gdp, umbrales)),
+      malo: clasificar(gdp, metaGdp) === 'quedado',
     })
   })
 

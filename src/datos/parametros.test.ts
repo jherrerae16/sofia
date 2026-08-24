@@ -10,7 +10,6 @@ import {
   historialParametro,
   leerGdpObjetivo,
   leerParametro,
-  leerUmbrales,
   revisarCambioParametro,
 } from './parametros'
 
@@ -37,7 +36,7 @@ describe('leerParametro', () => {
   })
 
   it('cuando dos valores comparten la fecha de vigencia, devuelve el creado más tarde', async () => {
-    // Corregir un umbral mal escrito significa insertar una segunda fila con
+    // Corregir un criterio mal escrito significa insertar una segunda fila con
     // la misma vigencia: la última corrección debe ganar, sin importar el
     // orden en que la base decida devolverlas si solo se ordenara por
     // vigencia. `creadoEn` se fija a mano (en vez de dejar el `now()` por
@@ -63,40 +62,6 @@ describe('leerParametro', () => {
     })
 
     expect(await leerParametro('gdp_objetivo', '2026-09-01')).toBe('800')
-  })
-})
-
-describe('leerUmbrales', () => {
-  it('arma los umbrales desde los parámetros guardados', async () => {
-    await guardarParametro('umbral_excelente', '900', '2026-09-01', 'u1')
-    await guardarParametro('umbral_bueno', '750', '2026-09-01', 'u1')
-    await guardarParametro('umbral_normal', '600', '2026-09-01', 'u1')
-    await guardarParametro('umbral_bajo', '400', '2026-09-01', 'u1')
-
-    expect(await leerUmbrales('2026-10-01')).toEqual({
-      excelente: 900,
-      bueno: 750,
-      normal: 600,
-      bajo: 400,
-    })
-  })
-
-  it('lanza un error si faltan umbrales, en lugar de inventarlos', async () => {
-    await expect(leerUmbrales('2026-10-01')).rejects.toThrow('umbral_excelente')
-  })
-
-  it('lanza un error si un umbral guardado no es un número, en vez de clasificar todo como crítico', async () => {
-    // Si esto no se validara, `Number('no-es-un-numero')` da NaN, la
-    // comparación `gdp >= NaN` es siempre falsa, y clasificar caería siempre
-    // en 'critico' sin que nadie se entere de que la causa es un dato mal
-    // guardado, no el desempeño de los animales.
-    await guardarParametro('umbral_excelente', 'no-es-un-numero', '2026-09-01', 'u1')
-    await guardarParametro('umbral_bueno', '750', '2026-09-01', 'u1')
-    await guardarParametro('umbral_normal', '600', '2026-09-01', 'u1')
-    await guardarParametro('umbral_bajo', '400', '2026-09-01', 'u1')
-
-    await expect(leerUmbrales('2026-10-01')).rejects.toThrow('umbral_excelente')
-    await expect(leerUmbrales('2026-10-01')).rejects.toThrow(/número/)
   })
 })
 
@@ -168,55 +133,8 @@ describe('configurarParametro — rechaza lo que no sea un número', () => {
   })
 })
 
-describe('configurarParametro — valida el orden de los umbrales', () => {
-  beforeEach(async () => {
-    await guardarParametro('umbral_excelente', '900', '2026-01-01', 'u1')
-    await guardarParametro('umbral_bueno', '750', '2026-01-01', 'u1')
-    await guardarParametro('umbral_normal', '600', '2026-01-01', 'u1')
-    await guardarParametro('umbral_bajo', '400', '2026-01-01', 'u1')
-  })
-
-  it('rechaza subir "bueno" por encima de "excelente"', async () => {
-    await expect(configurarParametro('umbral_bueno', '950', '2026-09-01', 'u1')).rejects.toThrow(
-      /excelente.*mayor.*bueno/,
-    )
-    // No debe haber quedado ninguna fila nueva: el rechazo es antes de guardar.
-    expect(await leerParametro('umbral_bueno', '2026-09-01')).toBe('750')
-  })
-
-  it('rechaza bajar "excelente" por debajo de "bueno"', async () => {
-    await expect(configurarParametro('umbral_excelente', '700', '2026-09-01', 'u1')).rejects.toThrow(/mayor/)
-  })
-
-  it('detecta el desorden aunque el umbral vecino no esté configurado (transitividad)', async () => {
-    // Deja "bueno" sin ningún valor vigente en la fecha de la prueba, para
-    // que la comparación directa entre "excelente" y "normal" (no vecinos
-    // consecutivos) sea la única forma de atrapar el desorden.
-    await prisma.parametro.deleteMany({ where: { clave: 'umbral_bueno' } })
-    await expect(configurarParametro('umbral_excelente', '500', '2026-09-01', 'u1')).rejects.toThrow(
-      /excelente.*mayor.*normal/,
-    )
-  })
-
-  it('acepta un cambio que conserva el orden', async () => {
-    await configurarParametro('umbral_excelente', '950', '2026-09-01', 'u1')
-    expect(await leerParametro('umbral_excelente', '2026-09-01')).toBe('950')
-  })
-
-  it('rechaza un umbral igual a su vecino, no solo uno menor', async () => {
-    await expect(configurarParametro('umbral_bueno', '900', '2026-09-01', 'u1')).rejects.toThrow(/mayor/)
-  })
-
-  it('valida el orden vigente en la fecha de la nueva vigencia, no en hoy', async () => {
-    // "Bueno" sube a 950 a partir de 2027-01-01. En esa fecha, "excelente"
-    // seguirá en 900 (nadie programó un cambio para entonces), así que debe
-    // rechazarse aunque hoy la comparación no aplique todavía.
-    await expect(configurarParametro('umbral_bueno', '950', '2027-01-01', 'u1')).rejects.toThrow(/mayor/)
-  })
-})
-
 describe('configurarParametro — hectáreas útiles', () => {
-  // A diferencia de los umbrales, esta clave no participa de ningún orden
+  // Esta clave no participa de ningún orden
   // entre parámetros: lo único propio que valida es que el número sea mayor
   // que cero, igual que exigía `actualizarHectareasUtiles` antes de que este
   // valor viviera en `Finca`.

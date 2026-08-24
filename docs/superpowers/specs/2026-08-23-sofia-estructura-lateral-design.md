@@ -39,6 +39,18 @@ su publicidad.
   frenando?». Se descartaron «cuántos kilos atrás voy», «qué me falta anotar» y el inventario como
   bloque propio — el inventario es la lista de abajo, no una sección.
 - **La meta se responde en kilos y fechas, no en pesos.** La plata es el plan siguiente.
+- **Los cuatro umbrales del semáforo se van.** Queda un solo criterio de desempeño: la meta de
+  ganancia diaria. Por encima de ella el animal va bien; por debajo, es alerta. Palabras del
+  dueño: *«si está por encima es que va bien el animal y si va abajo de la meta diaria eso es de
+  alerta»*. Se le advirtió la consecuencia —con el lote real de 2025, que promedió 308 g/día
+  contra una meta de 750, saldrían marcados los treinta— y decidió igual.
+  - `Clasificacion` pasa de cinco niveles a tres: `bien`, `quedado`, `sin_dato`.
+  - `clasificar(gdp, metaGdp)` reemplaza a `clasificar(gdp, umbrales)`; `leerUmbrales` desaparece.
+  - Con la validación de orden entre umbrales desaparece también `ParametroFaltanteError`: ya
+    nadie lanza por un criterio ausente. Sin meta fijada nadie sale marcado y la pantalla sigue
+    en pie.
+  - Quedan tres criterios configurables: meta de ganancia diaria, peso al que se vende un novillo
+    y hectáreas útiles.
 
 ## Marcas
 

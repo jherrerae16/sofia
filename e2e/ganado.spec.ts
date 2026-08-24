@@ -7,15 +7,11 @@ import { entrar } from './sesion'
 // sobre varios de ellos que están "sin configurar todavía". Ganado sí los
 // necesita -- `leerUmbrales` lanza cuando no hay ninguno vigente --, así que
 // este archivo los siembra y los recoge, sin tocar los de nadie más.
-const MIOS = ['umbral_excelente', 'umbral_bueno', 'umbral_normal', 'umbral_bajo', 'gdp_objetivo', 'peso_objetivo_venta_kg']
+const MIOS = ['gdp_objetivo', 'peso_objetivo_venta_kg']
 
 test.beforeAll(async () => {
   await prisma.parametro.deleteMany({ where: { clave: { in: MIOS } } })
   for (const [clave, valor] of Object.entries({
-    umbral_excelente: '900',
-    umbral_bueno: '750',
-    umbral_normal: '600',
-    umbral_bajo: '400',
     gdp_objetivo: '750',
     peso_objetivo_venta_kg: '320',
   })) {
@@ -88,29 +84,22 @@ test('sin gdp objetivo configurado no se escribe la frase del objetivo a medias'
   }
 })
 
-test('sin umbrales configurados la portada no se cae: dice qué falta y sigue mostrando lo demás', async ({
+test('sin meta de ganancia fijada nadie sale marcado, pero la portada sigue en pie', async ({
   page,
 }) => {
-  await prisma.parametro.deleteMany({ where: { clave: { startsWith: 'umbral_' } } })
+  await prisma.parametro.deleteMany({ where: { clave: 'gdp_objetivo' } })
   try {
     await irAlLoteConHistoria(page)
+    // Decir que un animal "va quedado" sin una meta contra la cual medirlo
+    // sería una opinión de la plataforma, no del dueño. Así que no se dice --
+    // y todo lo demás se sigue mostrando igual.
     await expect(page.getByTestId('cinta')).toContainText('Novillos')
-    const aviso = page.getByTestId('falta-configurar')
-    // Nombra el parámetro que falta y promete que lo demás sigue en pie: un
-    // "algo salió mal" no le dice al dueño qué tiene que ir a arreglar.
-    await expect(aviso).toContainText('umbral')
-    await expect(aviso).toContainText('el resto de la pantalla sigue en pie')
+    await expect(page.getByTestId('tarja')).toHaveCount(14)
+    await expect(page.getByRole('button', { name: /^Quedados/ })).toContainText('0')
   } finally {
-    for (const [clave, valor] of Object.entries({
-      umbral_excelente: '900',
-      umbral_bueno: '750',
-      umbral_normal: '600',
-      umbral_bajo: '400',
-    })) {
-      await prisma.parametro.create({
-        data: { clave, valor, vigenteDesde: new Date('2000-01-01T00:00:00.000Z') },
-      })
-    }
+    await prisma.parametro.create({
+      data: { clave: 'gdp_objetivo', valor: '750', vigenteDesde: new Date('2000-01-01T00:00:00.000Z') },
+    })
   }
 })
 

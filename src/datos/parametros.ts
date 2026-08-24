@@ -1,4 +1,3 @@
-import type { Umbrales } from '@/calc/clasificacion'
 import type { FechaISO } from '@/calc/tipos'
 import { prisma } from './cliente'
 import { aFechaDb, aFechaISO } from './conversion'
@@ -7,7 +6,7 @@ import { aFechaDb, aFechaISO } from './conversion'
  * Devuelve el valor de la clave vigente en la fecha dada, o null si no había ninguno.
  *
  * Ordena primero por fecha de vigencia y, entre filas con la misma vigencia, por
- * fecha de creación descendente: corregir un umbral mal escrito significa insertar
+ * fecha de creación descendente: corregir un criterio mal escrito significa insertar
  * una segunda fila con la misma vigenteDesde, y sin este desempate cuál gana
  * dependería del plan de ejecución de la base de datos, no del código.
  */
@@ -31,67 +30,14 @@ export async function guardarParametro(
 }
 
 /**
- * Se lanza cuando falta un parámetro obligatorio. Es una subclase de `Error` (no
- * un `Error` a secas) para que quien la atrape — hoy, la portada — pueda
- * distinguirla con `instanceof` de cualquier otro fallo inesperado y no termine
- * ocultando un bug real detrás de un mensaje de "falta configurar".
- */
-export class ParametroFaltanteError extends Error {
-  constructor(
-    public readonly clave: string,
-    mensaje: string,
-  ) {
-    super(mensaje)
-    this.name = 'ParametroFaltanteError'
-  }
-}
-
-async function exigir(clave: string, en: FechaISO): Promise<number> {
-  const valor = await leerParametro(clave, en)
-  if (valor === null) {
-    throw new ParametroFaltanteError(
-      clave,
-      `Falta el parámetro ${clave} vigente en ${en}. Configúralo antes de continuar.`,
-    )
-  }
-  const numero = Number(valor)
-  // Un umbral guardado como texto no numérico no puede colar como NaN: `gdp
-  // >= NaN` es siempre falso, y eso clasificaría a todos los animales como
-  // 'critico' sin que nadie se entere de que la causa es un dato mal
-  // guardado. Se rechaza igual que un parámetro ausente.
-  if (!Number.isFinite(numero)) {
-    throw new ParametroFaltanteError(
-      clave,
-      `El parámetro ${clave} vigente en ${en} no es un número (quedó guardado "${valor}"). Corrígelo antes de continuar.`,
-    )
-  }
-  return numero
-}
-
-/**
- * Arma los umbrales del semáforo desde la base.
- *
- * Si falta uno, lanza en lugar de usar un valor por omisión: un umbral inventado
- * clasificaría animales con un criterio que nadie decidió.
- */
-export async function leerUmbrales(en: FechaISO): Promise<Umbrales> {
-  return {
-    excelente: await exigir('umbral_excelente', en),
-    bueno: await exigir('umbral_bueno', en),
-    normal: await exigir('umbral_normal', en),
-    bajo: await exigir('umbral_bajo', en),
-  }
-}
-
-/**
  * Objetivo de ganancia diaria configurado, o null si nadie lo ha configurado
  * o si quedó guardado un valor que no es un número finito.
  *
- * A diferencia de `leerUmbrales`, un objetivo ausente no impide seguir
- * mostrando el resto de la pantalla: por eso no lanza, sino que devuelve
- * null para que cada pantalla decida cómo mostrar "sin dato". Lo que no
- * puede hacer es inventar un cero: un objetivo de 0 g/día haría que la
- * finca "cumpliera" siempre, contra una meta que nadie fijó.
+ * Es la meta contra la cual se decide si un animal va bien o va quedado, así
+ * que un objetivo ausente no impide mostrar el resto de la pantalla: devuelve
+ * null y cada pantalla decide cómo mostrar "sin dato" -- lo que no puede hacer
+ * es inventar un cero, porque con un objetivo de 0 g/día la finca "cumpliría"
+ * siempre, contra una meta que nadie fijó.
  */
 export async function leerGdpObjetivo(en: FechaISO): Promise<number | null> {
   const valor = await leerParametro('gdp_objetivo', en)
@@ -139,21 +85,13 @@ export async function estadoParametro(clave: string, hoy: FechaISO): Promise<Est
   }
 }
 
-/** Las cuatro claves del semáforo, en el orden en que tienen que quedar: cada una mayor que la siguiente. */
-export const CLAVES_UMBRAL = ['umbral_excelente', 'umbral_bueno', 'umbral_normal', 'umbral_bajo'] as const
-type ClaveUmbral = (typeof CLAVES_UMBRAL)[number]
-
-function esClaveUmbral(clave: string): clave is ClaveUmbral {
-  return (CLAVES_UMBRAL as readonly string[]).includes(clave)
-}
-
 /**
  * Las hectáreas útiles de la finca, movidas aquí desde el campo suelto que
  * tenía `Finca` -- sin esta clave, no llevaban vigencia ni autor, y
  * corregirlas reescribía en el sitio la carga animal de ciclos ya cerrados.
  * Como parámetro más, se comparten `configurarParametro`, `estadoParametro`
- * y el resto de la maquinaria con los otros seis; lo único propio es que no
- * participa del orden entre umbrales, y que tiene que ser mayor que cero.
+ * y el resto de la maquinaria con los otros dos; lo único propio es que tiene
+ * que ser mayor que cero.
  */
 export const CLAVE_HECTAREAS_UTILES = 'hectareas_utiles'
 
@@ -167,60 +105,15 @@ export const CLAVE_HECTAREAS_UTILES = 'hectareas_utiles'
  */
 export const CLAVE_PESO_VENTA = 'peso_objetivo_venta_kg'
 
-async function valoresUmbralEfectivos(
-  en: FechaISO,
-  cambios: Partial<Record<ClaveUmbral, number>>,
-): Promise<Record<ClaveUmbral, number | null>> {
-  const resultado = {} as Record<ClaveUmbral, number | null>
-  for (const clave of CLAVES_UMBRAL) {
-    if (clave in cambios) {
-      resultado[clave] = cambios[clave]!
-      continue
-    }
-    const guardado = await leerParametro(clave, en)
-    resultado[clave] = guardado === null ? null : Number(guardado)
-  }
-  return resultado
-}
-
 /**
- * Verifica excelente > bueno > normal > bajo entre los umbrales vigentes en
- * la fecha `en` (mezclando `cambios`, el que se está por guardar, con lo
- * que ya está guardado para los otros tres). Compara TODOS los pares en
- * orden, no solo los vecinos consecutivos: si "bueno" todavía no está
- * configurado, la única forma de atrapar "excelente" por debajo de "normal"
- * es comparándolos directamente, porque el par excelente-bueno y el par
- * bueno-normal quedan sin poder evaluarse. Un umbral que aún no tiene valor
- * vigente en esa fecha no entra en ninguna comparación: no se le puede
- * exigir un orden a algo que no existe todavía.
- */
-async function validarOrdenUmbrales(
-  en: FechaISO,
-  cambios: Partial<Record<ClaveUmbral, number>>,
-): Promise<void> {
-  const valores = await valoresUmbralEfectivos(en, cambios)
-  for (let i = 0; i < CLAVES_UMBRAL.length; i++) {
-    for (let j = i + 1; j < CLAVES_UMBRAL.length; j++) {
-      const claveMayor = CLAVES_UMBRAL[i]
-      const claveMenor = CLAVES_UMBRAL[j]
-      const vMayor = valores[claveMayor]
-      const vMenor = valores[claveMenor]
-      if (vMayor !== null && vMenor !== null && vMayor <= vMenor) {
-        throw new Error(
-          `El umbral "${claveMayor}" (${vMayor}) tiene que ser mayor que "${claveMenor}" (${vMenor}) ` +
-            `vigente el ${en}; si no, la clasificación del semáforo queda incoherente.`,
-        )
-      }
-    }
-  }
-}
-
-/**
- * Valida un cambio sin guardarlo: el valor tiene que ser un número, y si la
- * clave es uno de los cuatro umbrales, tiene que conservar el orden frente
- * a los otros tres vigentes en la misma fecha. La usa tanto
+ * Valida un cambio sin guardarlo: el valor tiene que ser un número, y las
+ * hectáreas además tienen que ser mayores que cero. La usa tanto
  * `revisarCambioParametro` (para avisar antes de guardar) como
  * `configurarParametro` (para no guardar nunca un valor inválido).
+ *
+ * Aquí vivía el orden entre los cuatro umbrales del semáforo. Se fue con
+ * ellos: con la meta de ganancia diaria como único criterio no hay orden que
+ * conservar, porque un número suelto no puede contradecir a otro.
  */
 export async function validarCambioParametro(
   clave: string,
@@ -234,9 +127,6 @@ export async function validarCambioParametro(
   if (clave === CLAVE_HECTAREAS_UTILES && numero <= 0) {
     throw new Error(`Las hectáreas útiles deben ser mayor que cero (se recibió "${valorTexto}").`)
   }
-  if (esClaveUmbral(clave)) {
-    await validarOrdenUmbrales(vigenteDesde, { [clave]: numero } as Partial<Record<ClaveUmbral, number>>)
-  }
   return numero
 }
 
@@ -246,7 +136,7 @@ export async function validarCambioParametro(
  * de solo agregar), así que la única forma de que esto pase es que la
  * vigencia elegida sea futura y que, hoy, todavía no exista ningún valor
  * anterior cubriendo la clave -- por ejemplo, la primera vez que se
- * configura un umbral y se le puso una fecha de arranque futura.
+ * configura un criterio y se le puso una fecha de arranque futura.
  */
 export async function dejaSinVigenteHoy(
   clave: string,

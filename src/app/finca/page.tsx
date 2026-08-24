@@ -4,12 +4,7 @@ import { CLAVE_HECTAREAS_UTILES, estadoParametro, leerParametro } from '@/datos/
 import { EncabezadoPagina } from '@/ui/EncabezadoPagina'
 import { formatearHectareas } from '@/ui/formato'
 import { Marco } from '@/ui/Marco'
-import {
-  DEFINICION_GDP_OBJETIVO,
-  DEFINICION_HECTAREAS,
-  DEFINICION_PESO_OBJETIVO,
-  DEFINICIONES_UMBRAL,
-} from './definiciones'
+import { DEFINICIONES_PARAMETRO } from './definiciones'
 import { FilaCriterio } from './FilaCriterio'
 
 // El valor vigente de cada criterio depende de la fecha de hoy y de lo que
@@ -23,12 +18,9 @@ export default async function Finca() {
   const hectareasTexto = await leerParametro(CLAVE_HECTAREAS_UTILES, hoy)
   const hectareas = hectareasTexto === null ? null : Number(hectareasTexto)
 
-  const [umbrales, gdpObjetivo, pesoObjetivo, estadoHectareas] = await Promise.all([
-    Promise.all(DEFINICIONES_UMBRAL.map((definicion) => estadoParametro(definicion.clave, hoy))),
-    estadoParametro(DEFINICION_GDP_OBJETIVO.clave, hoy),
-    estadoParametro(DEFINICION_PESO_OBJETIVO.clave, hoy),
-    estadoParametro(DEFINICION_HECTAREAS.clave, hoy),
-  ])
+  const estados = await Promise.all(
+    DEFINICIONES_PARAMETRO.map((definicion) => estadoParametro(definicion.clave, hoy)),
+  )
 
   return (
     <Marco>
@@ -41,22 +33,19 @@ export default async function Finca() {
               : ''}
           </>
         }
-        bajada="Estos números gobiernan lo que ves en las otras pantallas. Cambiarlos no reescribe el pasado: cada valor queda con la fecha desde la que rige, y lo que hubo antes no se borra. Por debajo del más bajo de los cuatro umbrales, un novillo cae en «crítico»: ese nivel no tiene un número propio, es todo lo que queda por debajo."
+        bajada="Tres números gobiernan lo que ves en las otras pantallas. Cambiarlos no reescribe el pasado: cada valor queda con la fecha desde la que rige, y lo que hubo antes no se borra."
       />
 
       <h2 className="rotulo mb-3 mt-8">Los criterios de la finca</h2>
       <div className="rounded border border-borde bg-papel px-4">
-        {DEFINICIONES_UMBRAL.map((definicion, i) => (
+        {DEFINICIONES_PARAMETRO.map((definicion, i) => (
           <FilaCriterio
             key={definicion.clave}
             definicion={definicion}
-            estado={umbrales[i]}
+            estado={estados[i]}
             hoy={hoy}
           />
         ))}
-        <FilaCriterio definicion={DEFINICION_GDP_OBJETIVO} estado={gdpObjetivo} hoy={hoy} />
-        <FilaCriterio definicion={DEFINICION_PESO_OBJETIVO} estado={pesoObjetivo} hoy={hoy} />
-        <FilaCriterio definicion={DEFINICION_HECTAREAS} estado={estadoHectareas} hoy={hoy} />
       </div>
 
       <h2 className="rotulo mb-3 mt-9">Tu copia de todo</h2>

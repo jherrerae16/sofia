@@ -5,7 +5,7 @@ import { gdpAcumulada } from '@/calc/gdp'
 import { prisma } from '@/datos/cliente'
 import { aFechaISO, aKg } from '@/datos/conversion'
 import { lineaDeTiempoDeAnimal } from '@/datos/linea-de-tiempo'
-import { leerUmbrales, ParametroFaltanteError } from '@/datos/parametros'
+import { leerGdpObjetivo } from '@/datos/parametros'
 import { historialDeAnimal } from '@/datos/pesajes'
 import { serieDeAnimal } from '@/datos/serie'
 import { Cinta, type Celda } from '@/ui/Cinta'
@@ -31,15 +31,10 @@ export default async function FichaAnimal({ params }: { params: Promise<{ id: st
   const ultimo = historial.at(-1) ?? null
   const gdp = ultimo ? gdpAcumulada(entrada, ultimo) : null
 
-  // Sin umbrales configurados no se puede decir que un animal va quedado --
-  // sería un criterio que nadie decidió. La ficha sigue en pie sin el sello.
-  let quedado = false
-  try {
-    const umbrales = await leerUmbrales(hoy)
-    quedado = ['bajo', 'critico'].includes(clasificar(gdp, umbrales))
-  } catch (error) {
-    if (!(error instanceof ParametroFaltanteError)) throw error
-  }
+  // Sin meta fijada no se puede decir que un animal va quedado: sería un
+  // criterio que nadie decidió. `clasificar` devuelve 'sin_dato' y la ficha
+  // sigue en pie, solo que sin el sello.
+  const quedado = clasificar(gdp, await leerGdpObjetivo(hoy)) === 'quedado'
 
   const pesoActual = animal.pesoSalidaKg ? aKg(animal.pesoSalidaKg) : (ultimo?.pesoKg ?? null)
   const celdas: Celda[] = [

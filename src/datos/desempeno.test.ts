@@ -17,14 +17,7 @@ beforeEach(async () => {
   // el mismo criterio que parametros.test.ts.
   await prisma.parametro.deleteMany()
 
-  for (const [clave, valor] of Object.entries({
-    umbral_excelente: '900',
-    umbral_bueno: '750',
-    umbral_normal: '600',
-    umbral_bajo: '400',
-  })) {
-    await guardarParametro(clave, valor, '2026-01-01', 'u1')
-  }
+  await guardarParametro('gdp_objetivo', '750', '2026-01-01', 'u1')
 
   loteId = await crearLote({ nombre: 'Ceba 01', tipo: 'ceba', fechaApertura: '2026-09-01' })
   await crearAnimales({
@@ -73,7 +66,7 @@ describe('desempeno', () => {
     const { filas } = await desempeno('ultimo_pesaje', '2026-11-15')
     const uno = filas.find((f) => f.chapeta === '001')!
     expect(uno.gdpPeriodo).toBe(903)
-    expect(uno.clasificacion).toBe('excelente')
+    expect(uno.clasificacion).toBe('bien')
   })
 
   it('calcula la ganancia acumulada desde la entrada', async () => {
@@ -88,7 +81,7 @@ describe('desempeno', () => {
     const dos = filas.find((f) => f.chapeta === '002')!
     expect(dos.fechaUltimoPesaje).toBe('2026-10-01')
     expect(dos.gdpPeriodo).toBe(400)
-    expect(dos.clasificacion).toBe('bajo')
+    expect(dos.clasificacion).toBe('quedado')
   })
 
   it('reporta el promedio con su n y su cobertura', async () => {
@@ -167,11 +160,11 @@ describe('desempeno', () => {
     // NUNCA el de entrada ni el más reciente.
     // dias = diasEntre('2026-10-16','2026-10-31') = 15
     // gdp = (192.0 - 181.5) * 1000 / 15 = 10500 / 15 = 700 g/día (exacto)
-    // Con umbral_normal=600 y umbral_bueno=750: 700 cae en 'normal'.
+    // Con la meta en 750, 700 g/día se queda por debajo.
     const { filas } = await desempeno('dias_30', '2026-11-15')
     const cuatro = filas.find((f) => f.chapeta === '004')!
     expect(cuatro.gdpPeriodo).toBe(700)
-    expect(cuatro.clasificacion).toBe('normal')
+    expect(cuatro.clasificacion).toBe('quedado')
   })
 
   it('con una sola medición dentro de la ventana, retrocede a la última anterior a ella (dias_60)', async () => {
@@ -221,11 +214,11 @@ describe('desempeno', () => {
     // retrocede a la última anterior a la ventana: el pesaje del 2026-09-01 (172 kg).
     // dias = diasEntre('2026-09-01','2026-11-01') = 61
     // gdp = (214 - 172) * 1000 / 61 = 42000 / 61 = 688.524... -> redondea a 689 g/día
-    // Con umbral_normal=600 y umbral_bueno=750: 689 cae en 'normal'.
+    // Con la meta en 750, 689 g/día se queda por debajo.
     const { filas } = await desempeno('dias_60', '2026-11-15')
     const cinco = filas.find((f) => f.chapeta === '005')!
     expect(cinco.gdpPeriodo).toBe(689)
-    expect(cinco.clasificacion).toBe('normal')
+    expect(cinco.clasificacion).toBe('quedado')
   })
 
   it('sin ninguna medición dentro de la ventana, retrocede a la última anterior y da sin dato (dias_30)', async () => {
@@ -280,7 +273,7 @@ describe('desempeno', () => {
     // Es el resultado sensato -- no se puede afirmar una ganancia "de los últimos
     // 30 días" cuando no hubo ningún pesaje en esos 30 días -- y coincide con la
     // decisión de diseño de nunca acusar de "crítico" a un animal sobre el que no
-    // hay dato: clasificar(null, umbrales) da 'sin_dato'.
+    // hay dato: clasificar(null, meta) da 'sin_dato'.
     const { filas } = await desempeno('dias_30', '2026-11-15')
     const seis = filas.find((f) => f.chapeta === '006')!
     expect(seis.fechaUltimoPesaje).toBe('2026-09-20')

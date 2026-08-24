@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { clasificar, type Umbrales } from './clasificacion'
+import { clasificar } from './clasificacion'
 import { gdpAcumulada } from './gdp'
 import { promediarGdp } from './lote'
 import { calcularCarga } from './potrero'
 import { kgProducidos, type AnimalProduccion } from './produccion'
 import { proyectarLlegada } from './proyeccion'
 
-const UMBRALES: Umbrales = { excelente: 900, bueno: 750, normal: 600, bajo: 400 }
+/** La meta que la finca se propuso. Es el único criterio de clasificación. */
+const META_GDP = 750
 
 describe('Santa Verónica — números conocidos', () => {
   it('reproduce el 50,6 % de ganancia proyectado de septiembre a febrero', () => {
@@ -17,12 +18,14 @@ describe('Santa Verónica — números conocidos', () => {
     expect(gdpAcumulada(entrada, salida)).toBe(497)
   })
 
-  it('clasifica como crítico el desempeño real del lote 2025', () => {
+  it('marca como quedado el desempeño real del lote 2025', () => {
+    // 307 g/día contra una meta de 750: menos de la mitad. El sector considera
+    // deficiente todo lo que baje de 500.
     const entrada = { fecha: '2025-01-01', pesoKg: 142 }
     const salida = { fecha: '2026-01-01', pesoKg: 254 }
     const gdp = gdpAcumulada(entrada, salida)
     expect(gdp).toBe(307)
-    expect(clasificar(gdp, UMBRALES)).toBe('critico')
+    expect(clasificar(gdp, META_GDP)).toBe('quedado')
   })
 
   it('calcula la carga del lote de 56 novillos sobre las 35 hectáreas útiles', () => {

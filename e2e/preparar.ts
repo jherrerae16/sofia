@@ -128,11 +128,10 @@ async function main() {
     // que en prisma/seed.ts, para que "Configuración" muestre un valor vigente
     // desde la primera corrida sin que ninguna prueba tenga que configurarlo.
     //
-    // Los umbrales, el gdp objetivo y el peso de venta NO se siembran aquí, a
-    // propósito: `e2e/configuracion.spec.ts` afirma sobre varios de ellos que
-    // están "sin configurar todavía", y sembrarlos le quita el piso a esas
-    // pruebas. La pantalla Ganado los necesita, así que los siembra y los
-    // recoge su propio archivo de pruebas.
+    // La meta de ganancia y el peso de venta NO se siembran aquí, a propósito:
+    // `e2e/finca.spec.ts` afirma sobre ellos que están "sin configurar
+    // todavía", y sembrarlos le quita el piso a esas pruebas. Las pantallas
+    // que los necesitan los siembran y los recogen en su propio archivo.
     await prisma.parametro.create({
       data: { clave: 'hectareas_utiles', valor: '35', vigenteDesde: new Date('2000-01-01T00:00:00.000Z') },
     })
@@ -241,8 +240,8 @@ async function sembrarLoteDeLaPortada(
 
   // Segunda tanda: solo diez de los catorce -- los cuatro últimos no se
   // dejaron pesar, que es el caso que la gráfica tiene que saber avisar. De
-  // los diez, cuatro vienen quedados (250 g/día, por debajo del umbral bajo
-  // de 400) y seis vienen bien (800 g/día).
+  // los diez, cuatro vienen quedados (250 g/día, muy por debajo de la meta de
+  // 750) y seis vienen bien (800 g/día).
   await prisma.pesaje.create({
     data: {
       fecha: aFechaDb(TANDA_NUEVA),

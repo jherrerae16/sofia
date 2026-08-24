@@ -16,14 +16,7 @@ let animalId: string
 beforeEach(async () => {
   await limpiarTablasOperativas()
   await prisma.parametro.deleteMany()
-  for (const [clave, valor] of Object.entries({
-    umbral_excelente: '900',
-    umbral_bueno: '750',
-    umbral_normal: '600',
-    umbral_bajo: '400',
-  })) {
-    await guardarParametro(clave, valor, '2026-01-01', 'u1')
-  }
+  await guardarParametro('gdp_objetivo', '750', '2026-01-01', 'u1')
 
   loteId = await crearLote({ nombre: 'Ceba 01', tipo: 'ceba', fechaApertura: '2026-09-01' })
   await crearAnimales({
@@ -90,12 +83,12 @@ describe('lineaDeTiempoDeAnimal', () => {
     expect(sucesos[0].cifraChica).toBe('1.000 g/día')
   })
 
-  it('un pesaje por debajo del umbral configurado queda marcado como malo', async () => {
+  it('un pesaje por debajo de la meta queda marcado como malo', async () => {
     await pesar('2026-10-01', 155)
 
     const sucesos = await lineaDeTiempoDeAnimal(animalId, '2026-12-01')
 
-    // 5 kg en 30 días = 167 g/día, muy por debajo del umbral bajo de 400.
+    // 5 kg en 30 días = 167 g/día, muy por debajo de la meta de 750.
     expect(sucesos[0].malo).toBe(true)
   })
 
@@ -225,13 +218,12 @@ describe('lineaDeTiempoDeAnimal', () => {
     expect(fechas).toEqual(['2026-10-01', '2026-09-20', '2026-09-01'])
   })
 
-  it('sin umbrales configurados la historia se arma igual, sin marcar a nadie como malo', async () => {
+  it('sin meta fijada la historia se arma igual, sin marcar a nadie como malo', async () => {
     await prisma.parametro.deleteMany()
     await pesar('2026-10-01', 155)
 
-    // `leerUmbrales` lanza a propósito cuando no hay ninguno vigente, pero
-    // eso no puede tumbar la ficha entera de un animal: sin criterio no se
-    // dice quién va mal, y todo lo demás sigue en pie.
+    // Sin meta contra la cual medir no se dice quién va mal, y todo lo demás
+    // de la ficha sigue en pie.
     const sucesos = await lineaDeTiempoDeAnimal(animalId, '2026-12-01')
 
     expect(sucesos).toHaveLength(2)
