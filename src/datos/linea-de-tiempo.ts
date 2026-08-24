@@ -2,7 +2,7 @@ import { clasificar } from '@/calc/clasificacion'
 import { gdpEntre, type Medicion } from '@/calc/gdp'
 import type { FechaISO } from '@/calc/tipos'
 import { ETIQUETA_ESTADO_ANIMAL, ETIQUETA_METODO_PESAJE, ETIQUETA_TIPO_EVENTO } from '@/ui/etiquetas'
-import { capitalizar, formatearGdp, formatearKg } from '@/ui/formato'
+import { capitalizar, formatearFecha, formatearGdp, formatearKg } from '@/ui/formato'
 import { prisma } from './cliente'
 import { aFechaISO, aKg } from './conversion'
 import { leerGdpObjetivo } from './parametros'
@@ -111,7 +111,7 @@ export async function lineaDeTiempoDeAnimal(animalId: string, hoy: FechaISO): Pr
       detalle: juntar(
         evento.dosis,
         evento.responsable,
-        evento.proximaFecha ? `próxima el ${evento.proximaFecha}` : null,
+        evento.proximaFecha ? `próxima el ${formatearFecha(evento.proximaFecha)}` : null,
       ),
       cifra: null,
       cifraChica: null,

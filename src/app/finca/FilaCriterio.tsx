@@ -1,4 +1,5 @@
 import type { EstadoParametro } from '@/datos/parametros'
+import { formatearFecha } from '@/ui/formato'
 import type { DefinicionParametro } from './definiciones'
 import { FormularioParametro } from './FormularioParametro'
 
@@ -43,7 +44,7 @@ export function FilaCriterio({
                 {definicion.formatear(numeroVigente)}
               </div>
               <div className="text-[12px] text-carbon-3">
-                Vigente desde <span className="cifra">{estado.vigenteDesde}</span>
+                Vigente desde <span className="cifra">{formatearFecha(estado.vigenteDesde)}</span>
               </div>
             </>
           ) : (
@@ -75,7 +76,7 @@ export function FilaCriterio({
                 const esValido = Number.isFinite(numero)
                 return (
                   <tr key={fila.vigenteDesde + fila.valor} className="border-b border-borde">
-                    <td className="cifra py-[6px]">{fila.vigenteDesde}</td>
+                    <td className="cifra py-[6px]">{formatearFecha(fila.vigenteDesde)}</td>
                     <td className={`cifra py-[6px] ${esValido ? '' : 'text-alerta'}`}>
                       {esValido ? definicion.formatear(numero) : `"${fila.valor}" (no es un número)`}
                     </td>

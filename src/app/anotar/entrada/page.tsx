@@ -4,13 +4,14 @@ import { ETIQUETA_TIPO_LOTE } from '@/ui/etiquetas'
 import { TitularModo } from '../TitularModo'
 import { crearLoteAccion } from './acciones'
 import { AltaAnimalesForm } from './AltaAnimalesForm'
+import { formatearFecha } from '@/ui/formato'
 
 // La lista de lotes y sus animales activos cambian con cada alta: sin esto
 // Next la prerenderiza en el build y dar de alta un lote o un animal deja la
 // tabla vieja hasta la próxima escritura que sí dispare una revalidación.
 export const dynamic = 'force-dynamic'
 
-const CAMPO = 'rounded border border-borde bg-papel px-3 py-2 text-[14px] text-carbon outline-none'
+const CAMPO = 'rounded border border-borde bg-papel px-3 py-2 text-[14px] text-carbon'
 
 export default async function Entrada() {
   const lotes = await listarLotes()
@@ -40,7 +41,7 @@ export default async function Entrada() {
               <tr key={lote.id} className="border-b border-borde">
                 <td className="py-[9px] font-semibold">{lote.nombre}</td>
                 <td className="py-[9px]">{ETIQUETA_TIPO_LOTE[lote.tipo]}</td>
-                <td className="cifra py-[9px]">{lote.fechaApertura}</td>
+                <td className="cifra py-[9px]">{formatearFecha(lote.fechaApertura)}</td>
                 <td className="py-[9px]">{lote.potreroActual ?? '—'}</td>
                 <td className="cifra py-[9px]">{lote.animalesActivos}</td>
               </tr>

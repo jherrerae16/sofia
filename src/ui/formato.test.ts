@@ -4,6 +4,8 @@ import {
   formatearGdp,
   formatearHectareas,
   formatearKg,
+  formatearFecha,
+  formatearFechaCorta,
   formatearPesos,
   separarUnidad,
   SIN_DATO,
@@ -78,5 +80,29 @@ describe('separarUnidad', () => {
 
   it('una cifra sin unidad se devuelve entera', () => {
     expect(separarUnidad('14')).toEqual({ valor: '14' })
+  })
+})
+
+describe('formatearFecha', () => {
+  it('escribe la fecha como la lee un ganadero, no como la guarda la base', () => {
+    expect(formatearFecha('2026-08-23')).toBe('23 ago 2026')
+  })
+
+  it('no se corre un día por la zona horaria', () => {
+    // `new Date('2026-01-01')` se interpreta como medianoche UTC, que en
+    // Bogotá (UTC-5) es el 31 de diciembre. Toda la plataforma trata las
+    // fechas como cadenas 'YYYY-MM-DD' justamente para no depender de la zona
+    // horaria; el formateador no puede ser la excepción.
+    expect(formatearFecha('2026-01-01')).toBe('1 ene 2026')
+    expect(formatearFecha('2026-12-31')).toBe('31 dic 2026')
+  })
+
+  it('la versión corta deja el año fuera, para donde no cabe', () => {
+    expect(formatearFechaCorta('2026-08-23')).toBe('23 ago')
+  })
+
+  it('una fecha ausente no se inventa', () => {
+    expect(formatearFecha(null)).toBe(SIN_DATO)
+    expect(formatearFechaCorta(null)).toBe(SIN_DATO)
   })
 })

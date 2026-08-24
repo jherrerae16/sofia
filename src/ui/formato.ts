@@ -1,3 +1,5 @@
+import type { FechaISO } from '@/calc/tipos'
+
 const enteros = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 })
 const unDecimal = new Intl.NumberFormat('es-CO', {
   minimumFractionDigits: 1,
@@ -50,4 +52,29 @@ export function separarUnidad(formateado: string): { valor: string; unidad?: str
   const corte = formateado.indexOf(' ')
   if (corte === -1) return { valor: formateado }
   return { valor: formateado.slice(0, corte), unidad: formateado.slice(corte + 1) }
+}
+
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+
+/**
+ * Una fecha como la lee un ganadero: «23 ago 2026», no «2026-08-23».
+ *
+ * No se usa `Intl.DateTimeFormat` sobre `new Date('2026-01-01')` porque esa
+ * cadena se interpreta como medianoche UTC, que en Bogotá (UTC-5) cae el 31
+ * de diciembre: la fecha se corre un día. Toda la plataforma trata las fechas
+ * como cadenas 'YYYY-MM-DD' justamente para no depender de la zona horaria, y
+ * el formateador no puede ser la excepción -- así que se parte la cadena y se
+ * arma el texto con sus propias piezas.
+ */
+export function formatearFecha(fecha: FechaISO | null): string {
+  if (fecha === null) return SIN_DATO
+  const [anio, mes, dia] = fecha.split('-')
+  return `${Number(dia)} ${MESES[Number(mes) - 1]} ${anio}`
+}
+
+/** La misma fecha sin el año, para columnas y líneas donde no cabe. */
+export function formatearFechaCorta(fecha: FechaISO | null): string {
+  if (fecha === null) return SIN_DATO
+  const [, mes, dia] = fecha.split('-')
+  return `${Number(dia)} ${MESES[Number(mes) - 1]}`
 }

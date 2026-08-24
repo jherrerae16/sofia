@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { hoyBogota, sumarDias } from '../src/calc/fechas'
 import { aFechaDb } from '../src/datos/conversion'
+import { formatearFecha } from '../src/ui/formato'
 import { prisma } from '../src/datos/cliente'
 
 // Mismo motivo que en las demás pruebas de navegador: fechas relativas a
@@ -66,7 +67,7 @@ test('un suministro queda vigente hasta que se cierra, y la historia muestra el 
   // Pregunta 1: qué recibe el lote ahora mismo. La descripción aparece dos
   // veces en la página (en "vigentes" y otra vez en la historia de abajo);
   // "— desde <fecha>" es un texto exclusivo del panel de vigentes.
-  await expect(page.getByText(`— desde ${fechaInicio}`)).toBeVisible()
+  await expect(page.getByText(`— desde ${formatearFecha(fechaInicio)}`)).toBeVisible()
 
   // Se cierra el suministro.
   await page.getByRole('button', { name: 'Cerrar' }).click()

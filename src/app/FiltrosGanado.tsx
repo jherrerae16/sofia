@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 export type Chip = { clave: string; texto: string; cuenta: number }
 
@@ -21,7 +22,7 @@ const ORDENES = [
 ] as const
 
 const SELECT =
-  'appearance-none rounded border border-borde bg-papel py-[6px] pl-[10px] pr-[26px] text-[13px] text-carbon outline-none'
+  'appearance-none rounded border border-borde bg-papel py-[6px] pl-[10px] pr-[26px] text-[13px] text-carbon'
 
 /**
  * Todo lo que filtra la lista, en una sola fila: antes estaba repartido entre
@@ -36,6 +37,26 @@ export function FiltrosGanado({ lotes, chips }: { lotes: LoteElegible[]; chips: 
   const router = useRouter()
   const ruta = usePathname()
   const params = useSearchParams()
+
+  // La búsqueda espera a que se deje de escribir. Antes disparaba una vuelta
+  // al servidor por cada tecla: escribir "014" eran tres recargas de la lista
+  // y tres entradas de historial.
+  const [busqueda, setBusqueda] = useState(params.get('q') ?? '')
+  const enLaDireccion = params.get('q') ?? ''
+
+  useEffect(() => {
+    // Solo se escribe si lo escrito difiere de lo que ya dice la dirección.
+    // Un simple "no la primera vez" no basta: en desarrollo React corre los
+    // efectos dos veces, y el segundo disparaba un `router.replace` 300 ms
+    // después de cargar la pantalla que CANCELABA la navegación si para
+    // entonces el dueño ya había pulsado una tarjeta.
+    if (busqueda === enLaDireccion) return
+    const temporizador = setTimeout(() => poner('q', busqueda), 300)
+    return () => clearTimeout(temporizador)
+    // `poner` se recrea en cada render; incluirla reiniciaría el temporizador
+    // en cada uno, que es justo lo que se quiere evitar.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busqueda, enLaDireccion])
 
   // Un solo lugar donde se escribe la dirección: cambiar un filtro conserva
   // los demás. Cambiar de lote sí borra la selección -- los animales marcados
@@ -112,9 +133,9 @@ export function FiltrosGanado({ lotes, chips }: { lotes: LoteElegible[]; chips: 
       <input
         placeholder="Buscar chapeta"
         aria-label="Buscar chapeta"
-        className="ml-auto w-[150px] rounded border border-borde bg-papel px-[10px] py-[6px] text-[13px] outline-none"
-        defaultValue={params.get('q') ?? ''}
-        onChange={(evento) => poner('q', evento.target.value)}
+        className="ml-auto w-[150px] rounded border border-borde bg-papel px-[10px] py-[6px] text-[13px]"
+        value={busqueda}
+        onChange={(evento) => setBusqueda(evento.target.value)}
       />
 
       <div className="flex gap-[2px] rounded bg-papel-2 p-[2px]">

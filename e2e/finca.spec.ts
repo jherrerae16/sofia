@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { hoyBogota, sumarDias } from '../src/calc/fechas'
+import { formatearFecha } from '../src/ui/formato'
 import { prisma } from '../src/datos/cliente'
 import { entrar } from './sesion'
 
@@ -27,7 +28,7 @@ test('un parámetro sin configurar se puede configurar, queda vigente hoy y apar
 
   await expect(tarjeta.getByText('Guardado.')).toBeVisible()
   const valorVigente = tarjeta.getByTestId('valor-vigente')
-  await expect(valorVigente).toContainText(HOY)
+  await expect(valorVigente).toContainText(formatearFecha(HOY))
   await expect(valorVigente).toContainText('750 g/día')
 
   // Un segundo cambio, con otra fecha, tiene que verse en el histórico sin
@@ -39,8 +40,8 @@ test('un parámetro sin configurar se puede configurar, queda vigente hoy y apar
   await expect(tarjeta.getByText('Guardado.')).toBeVisible()
 
   await tarjeta.getByText(/Ver histórico/).click()
-  await expect(tarjeta.getByRole('row', { name: new RegExp(HOY) })).toContainText('750 g/día')
-  await expect(tarjeta.getByRole('row', { name: new RegExp(mañana) })).toContainText('800 g/día')
+  await expect(tarjeta.getByRole('row', { name: formatearFecha(HOY) })).toContainText('750 g/día')
+  await expect(tarjeta.getByRole('row', { name: formatearFecha(mañana) })).toContainText('800 g/día')
 })
 
 test('una vigencia futura como único valor avisa antes de guardar, y confirmar guarda igual', async ({ page }) => {
@@ -117,14 +118,16 @@ test('las hectáreas útiles de la finca se pueden actualizar, con coma decimal,
   await tarjeta.getByRole('button', { name: 'Guardar' }).click()
 
   await expect(tarjeta.getByText('Guardado.')).toBeVisible()
-  await expect(tarjeta.getByTestId('valor-vigente')).toContainText(HOY)
+  await expect(tarjeta.getByTestId('valor-vigente')).toContainText(formatearFecha(HOY))
   await expect(tarjeta.getByTestId('valor-vigente')).toContainText('40,5 ha')
 
-  // Igual que los otros seis parámetros: el valor anterior no desaparece,
+  // Igual que los otros dos criterios: el valor anterior no desaparece,
   // queda en el histórico -- es justo lo que Finca.hectareasUtiles no podía
   // ofrecer antes de este cambio.
   await tarjeta.getByText(/Ver histórico/).click()
-  await expect(tarjeta.getByRole('row', { name: '2000-01-01' })).toContainText('35,0 ha')
+  await expect(tarjeta.getByRole('row', { name: formatearFecha('2000-01-01') })).toContainText(
+    '35,0 ha',
+  )
 })
 
 test('una clave que no está en la lista de parámetros definidos se rechaza, sin escribir nada', async ({ page }) => {

@@ -112,7 +112,9 @@ describe('lineaDeTiempoDeAnimal', () => {
 
     expect(suceso.que).toContain('Ivermectina 1%')
     expect(suceso.detalle).toContain('1 ml / 50 kg')
-    expect(suceso.detalle).toContain('2026-12-20')
+    // La fecha viaja formateada como se lee, no como la guarda la base: es
+    // texto para el dueño, no un dato que otra capa vaya a volver a parsear.
+    expect(suceso.detalle).toContain('20 dic 2026')
   })
 
   it('una aplicación anulada no aparece en la historia del animal', async () => {

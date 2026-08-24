@@ -11,7 +11,7 @@ import { registrarSanidadAccion, type EstadoSanidad } from './acciones'
 // funciones asíncronas.
 const INICIAL: EstadoSanidad = { guardadas: null, datosEnviados: null, error: null }
 
-const CAMPO = 'rounded border border-borde bg-papel px-3 py-[10px] text-[14px] text-carbon outline-none min-w-[170px]'
+const CAMPO = 'rounded border border-borde bg-papel px-3 py-[10px] text-[14px] text-carbon min-w-[170px]'
 
 export function SanidadForm({
   loteId,

@@ -76,3 +76,37 @@ body {
   padding: 3px 7px;
   line-height: 1.1;
 }
+
+/* Foco visible en todo lo que se puede accionar.
+   La plataforma tenía cero estados de foco y ocho `outline-none` que lo
+   apagaban: se podía navegar con el ratón y con nada más. Va con
+   `:focus-visible` y no con `:focus` para que el anillo no salte en cada
+   clic, y como regla global para que ningún control nuevo nazca sin él. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-monte);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Sobre el verde no se ve un anillo verde. */
+:where(.bg-monte, .bg-carbon):focus-visible,
+:where(.bg-monte, .bg-carbon) :focus-visible {
+  outline-color: var(--color-papel);
+}
+
+/* Los controles nativos heredan el tema del sistema operativo si no se les
+   dice lo contrario: en el modo oscuro de Windows un <select> sin color
+   explícito sale con texto blanco sobre fondo blanco. */
+select,
+input {
+  background-color: var(--color-papel);
+  color: var(--color-carbon);
+}
+
+/* Titulares sin viudas: una palabra sola en la última línea parte la frase
+   justo donde el ojo la necesita entera. */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}

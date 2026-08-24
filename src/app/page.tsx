@@ -22,7 +22,14 @@ import { GraficaLote } from './GraficaLote'
 import { ListaGanado, type FilaGanado, type Vista } from './ListaGanado'
 import { Cinta, type Celda } from '@/ui/Cinta'
 import { ETIQUETA_TIPO_EVENTO } from '@/ui/etiquetas'
-import { capitalizar, formatearGdp, formatearKg, separarUnidad, SIN_DATO } from '@/ui/formato'
+import {
+  capitalizar,
+  formatearFecha,
+  formatearGdp,
+  formatearKg,
+  separarUnidad,
+  SIN_DATO,
+} from '@/ui/formato'
 import { EncabezadoPagina } from '@/ui/EncabezadoPagina'
 import { Marco } from '@/ui/Marco'
 import Link from 'next/link'
@@ -141,7 +148,7 @@ export default async function Ganado({
 
   for (const suministro of await listarSuministrosVigentes(lote.id)) {
     avisos.push({
-      texto: `Les están dando ${suministro.descripcion} desde el ${suministro.fecha}.`,
+      texto: `Les están dando ${suministro.descripcion} desde el ${formatearFecha(suministro.fecha)}.`,
       enlace: { href: '/anotar/novedad', texto: 'Ver todo lo que reciben' },
     })
   }

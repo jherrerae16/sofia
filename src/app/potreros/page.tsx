@@ -9,7 +9,7 @@ import { TarjetaPotrero } from '../finca/TarjetaPotrero'
 // esto Next la prerenderiza en el build y esos días quedan congelados.
 export const dynamic = 'force-dynamic'
 
-const CAMPO = 'rounded border border-borde bg-papel px-3 py-2 text-[14px] text-carbon outline-none'
+const CAMPO = 'rounded border border-borde bg-papel px-3 py-2 text-[14px] text-carbon'
 
 export default async function Potreros() {
   const hoy = hoyBogota()

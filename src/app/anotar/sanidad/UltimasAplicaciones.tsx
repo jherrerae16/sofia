@@ -3,7 +3,7 @@
 import { useActionState, useState } from 'react'
 import type { AplicacionVista } from '@/datos/sanidad'
 import { ETIQUETA_TIPO_EVENTO } from '@/ui/etiquetas'
-import { capitalizar } from '@/ui/formato'
+import { capitalizar, formatearFecha } from '@/ui/formato'
 import { anularSanidadAccion, type EstadoAnulacionSanidad } from './acciones'
 
 // Aquí y no en `acciones.ts`: un archivo 'use server' solo puede exportar
@@ -63,13 +63,13 @@ function Fila({ aplicacion }: { aplicacion: AplicacionVista }) {
           )}
         </td>
         <td className="py-[9px] text-[13.5px]">{aplicacion.aQuienes}</td>
-        <td className="cifra py-[9px] text-[13.5px]">{aplicacion.fecha}</td>
+        <td className="cifra py-[9px] text-[13.5px]">{formatearFecha(aplicacion.fecha)}</td>
         <td className={`py-[9px] text-[13.5px] ${aplicacion.vencida ? 'text-alerta' : 'text-carbon-3'}`}>
           {aplicacion.proximaFecha === null
             ? 'no se repite'
             : aplicacion.vencida
-              ? `${aplicacion.proximaFecha} — vencida`
-              : aplicacion.proximaFecha}
+              ? `${formatearFecha(aplicacion.proximaFecha)} — vencida`
+              : formatearFecha(aplicacion.proximaFecha)}
         </td>
         <td className="py-[9px] text-right">
           {!preguntando && (
@@ -100,7 +100,7 @@ function Fila({ aplicacion }: { aplicacion: AplicacionVista }) {
                 <input
                   name="motivo"
                   placeholder="Por qué esta anotación no cuenta"
-                  className="w-full rounded border border-borde bg-papel px-3 py-2 text-[14px] outline-none"
+                  className="w-full rounded border border-borde bg-papel px-3 py-2 text-[14px]"
                 />
               </label>
               <button

@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react'
 import type { NovedadVista } from '@/datos/novedades'
 import { cerrarSuministroAccion, type EstadoCierre } from './acciones'
+import { formatearFecha } from '@/ui/formato'
 
 const INICIAL: EstadoCierre = { cerrado: false, error: null }
 
@@ -35,7 +36,7 @@ function FilaSuministro({ suministro, hoy }: { suministro: NovedadVista; hoy: st
         <div>
           {suministro.descripcion}{' '}
           <span className="text-carbon-3">
-            — desde <span className="cifra">{suministro.fecha}</span>
+            — desde <span className="cifra">{formatearFecha(suministro.fecha)}</span>
           </span>
         </div>
         {!abierto && (

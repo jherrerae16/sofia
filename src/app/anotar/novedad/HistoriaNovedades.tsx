@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react'
 import type { NovedadVista } from '@/datos/novedades'
 import { anularNovedadAccion, type EstadoAnulacionNovedad } from './acciones'
+import { formatearFecha } from '@/ui/formato'
 
 const INICIAL: EstadoAnulacionNovedad = { anulada: false, error: null }
 
@@ -36,7 +37,7 @@ function FilaNovedad({ novedad }: { novedad: NovedadVista }) {
     <li className="py-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <span className="cifra font-medium">{novedad.fecha}</span>
+          <span className="cifra font-medium">{formatearFecha(novedad.fecha)}</span>
           {novedad.tipo === 'suministro' && (
             <span className="ml-2 text-xs uppercase tracking-wide text-monte">
               {novedad.fechaFin ? (

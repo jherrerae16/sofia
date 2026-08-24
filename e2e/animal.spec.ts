@@ -24,6 +24,9 @@ async function irALaFichaDeUnAnimalConHistoria(page: import('@playwright/test').
   const lote = await prisma.lote.findFirstOrThrow({ where: { nombre: 'Ceba 02' } })
   await page.goto(`/?lote=${lote.id}`)
   await page.getByTestId('tarja').first().click()
+  // Sin esperar la navegación, la aserción siguiente puede correr todavía
+  // sobre la portada: un clic no espera por sí solo a que cargue el destino.
+  await page.waitForURL(/\/animales\//)
 }
 
 test.beforeEach(async ({ page }) => {
@@ -37,6 +40,8 @@ test('la ficha abre con la chapeta, sus datos de entrada y la vuelta al ganado',
   await expect(page.locator('h1')).toContainText('C2-')
   await expect(page.getByTestId('identidad')).toContainText('Ceba 02')
   await expect(page.getByTestId('identidad')).toContainText('entró')
+  // Y la fecha se escribe como se lee, no como la guarda la base.
+  await expect(page.getByTestId('identidad')).not.toContainText(/\d{4}-\d{2}-\d{2}/)
   await expect(page.getByRole('link', { name: /El ganado/ })).toHaveAttribute('href', '/')
 })
 

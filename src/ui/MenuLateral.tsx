@@ -102,6 +102,7 @@ export function MenuLateral({ quien }: { quien: string }) {
 
   return (
     <aside
+      id="menu-lateral"
       data-testid="menu"
       className={`flex flex-none flex-col border-r border-borde bg-papel py-4 ${
         contraido ? 'w-[60px]' : 'w-[212px]'
@@ -143,6 +144,10 @@ export function MenuLateral({ quien }: { quien: string }) {
                   key={item.href}
                   href={item.href}
                   aria-current={activo ? 'page' : undefined}
+                  // Contraído, el texto desaparece y el ícono es aria-hidden:
+                  // sin esto el enlace se queda sin nombre y un lector de
+                  // pantalla anuncia "enlace" y nada más.
+                  aria-label={contraido ? item.texto : undefined}
                   title={contraido ? item.texto : undefined}
                   className={`flex items-center gap-[10px] py-2 text-[13.5px] no-underline ${
                     contraido ? 'justify-center px-2' : 'px-[18px]'
@@ -177,6 +182,8 @@ export function MenuLateral({ quien }: { quien: string }) {
           type="button"
           onClick={alternar}
           aria-expanded={!contraido}
+          aria-controls="menu-lateral"
+          aria-label={contraido ? 'Extender menú' : undefined}
           className={`text-[12px] text-carbon-3 ${contraido ? 'w-full text-center' : ''}`}
         >
           {contraido ? '»' : 'Contraer menú'}

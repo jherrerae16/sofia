@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react'
 import type { ResumenPesaje } from '@/datos/pesajes'
 import { ETIQUETA_METODO_PESAJE } from '@/ui/etiquetas'
 import { anularAccion, type EstadoAnulacion } from './acciones'
+import { formatearFecha } from '@/ui/formato'
 
 const INICIAL: EstadoAnulacion = { anulado: false, error: null }
 
@@ -43,7 +44,7 @@ function FilaPesaje({ pesaje }: { pesaje: ResumenPesaje }) {
     <li className="py-3 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <span className="cifra font-medium">{pesaje.fecha}</span>
+          <span className="cifra font-medium">{formatearFecha(pesaje.fecha)}</span>
           {' · '}
           {ETIQUETA_METODO_PESAJE[pesaje.metodo]}
           {' · '}

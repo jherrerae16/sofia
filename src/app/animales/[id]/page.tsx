@@ -10,7 +10,13 @@ import { historialDeAnimal } from '@/datos/pesajes'
 import { serieDeAnimal } from '@/datos/serie'
 import { Cinta, type Celda } from '@/ui/Cinta'
 import { ETIQUETA_ESTADO_ANIMAL } from '@/ui/etiquetas'
-import { formatearGdp, formatearKg, separarUnidad } from '@/ui/formato'
+import {
+  formatearFecha,
+  formatearFechaCorta,
+  formatearGdp,
+  formatearKg,
+  separarUnidad,
+} from '@/ui/formato'
 import { Marco } from '@/ui/Marco'
 import { GraficaLote } from '../../GraficaLote'
 
@@ -58,7 +64,7 @@ export default async function FichaAnimal({ params }: { params: Promise<{ id: st
     animal.lote.nombre,
     animal.raza ?? 'raza sin registrar',
     animal.sexo,
-    `entró el ${entrada.fecha} con ${formatearKg(entrada.pesoKg)}`,
+    `entró el ${formatearFecha(entrada.fecha)} con ${formatearKg(entrada.pesoKg)}`,
     animal.proveedor,
     animal.edadEntradaMeses !== null ? `${animal.edadEntradaMeses} meses al entrar` : null,
   ].filter(Boolean)
@@ -94,7 +100,7 @@ export default async function FichaAnimal({ params }: { params: Promise<{ id: st
             }`}
           >
             {ETIQUETA_ESTADO_ANIMAL[animal.estado]}
-            {animal.fechaSalida && <span className="cifra"> el {aFechaISO(animal.fechaSalida)}</span>}
+            {animal.fechaSalida && <span className="cifra"> el {formatearFecha(aFechaISO(animal.fechaSalida))}</span>}
           </p>
         )}
 
@@ -122,7 +128,7 @@ export default async function FichaAnimal({ params }: { params: Promise<{ id: st
             className="flex flex-wrap items-baseline gap-x-5 gap-y-1 border-b border-borde py-[13px]"
           >
             <div className="cifra w-[70px] flex-none text-[12.5px] text-carbon-3">
-              {suceso.fecha}
+              {formatearFechaCorta(suceso.fecha)}
             </div>
             <div className="flex-1 basis-[240px]">
               <div className={`text-[14px] ${suceso.malo ? 'text-alerta' : 'text-carbon'}`}>

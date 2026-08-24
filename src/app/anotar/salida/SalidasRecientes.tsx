@@ -1,5 +1,5 @@
 import type { AnimalVista } from '@/datos/animales'
-import { formatearKg } from '@/ui/formato'
+import { formatearFecha, formatearKg } from '@/ui/formato'
 
 const ETIQUETA_ESTADO: Record<string, string> = {
   vendido: 'Vendido',
@@ -43,7 +43,7 @@ export function SalidasRecientes({ animales }: { animales: AnimalVista[] }) {
               {animal.fechaSalida && (
                 <>
                   {' el '}
-                  <span className="cifra">{animal.fechaSalida}</span>
+                  <span className="cifra">{formatearFecha(animal.fechaSalida)}</span>
                 </>
               )}
               {animal.pesoSalidaKg !== null && (
