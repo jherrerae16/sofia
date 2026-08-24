@@ -32,7 +32,7 @@ export function TarjetaPotrero({ potrero }: { potrero: PotreroVista }) {
       </div>
 
       <div
-        className={`mt-4 text-[13px] font-semibold ${sobrecargado ? 'text-barro' : 'text-carbon-2'}`}
+        className={`mt-4 text-[13px] font-semibold ${sobrecargado ? 'text-alerta' : 'text-carbon-2'}`}
       >
         {ocupado ? `Ocupado · ${potrero.lotesOcupantes.join(', ')}` : 'Descansando'}
       </div>
@@ -49,7 +49,7 @@ export function TarjetaPotrero({ potrero }: { potrero: PotreroVista }) {
         <div className="mt-[15px] h-1 overflow-hidden rounded-sm bg-borde">
           <span
             aria-hidden
-            className={`block h-full ${sobrecargado ? 'bg-barro' : 'bg-carbon-3'}`}
+            className={`block h-full ${sobrecargado ? 'bg-alerta' : 'bg-carbon-3'}`}
             style={{ width: `${llenado}%` }}
           />
         </div>

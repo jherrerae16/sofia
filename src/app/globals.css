@@ -16,7 +16,12 @@
   --color-monte-2: #006400;
   --color-monte-suave: #e8f4e8;
   --color-tierra: #8b5e3c;
-  --color-barro: #c25a2e;
+  /* Rojo de alerta. Era terracota (#C25A2E) y a seis píxeles no se
+     distinguía del café de la línea de peso: los dos leían como el mismo
+     punto marrón. Lo que va mal tiene que verse desde el otro lado de la
+     pantalla. */
+  --color-alerta: #d92b2b;
+  --color-alerta-suave: #fdeceb;
   --color-carbon: #18181b;
   --color-carbon-2: #52525b;
   --color-carbon-3: #8a8a93;

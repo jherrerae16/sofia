@@ -130,8 +130,8 @@ export function AltaAnimalesForm({ lotes, hoy }: { lotes: Opcion[]; hoy: string 
       />
 
       {estado.conflictos.length > 0 && (
-        <div className="rounded border border-barro/40 bg-barro/5 p-3 text-sm">
-          <p className="mb-2 font-medium text-barro">
+        <div className="rounded border border-alerta/40 bg-alerta/5 p-3 text-sm">
+          <p className="mb-2 font-medium text-alerta">
             {estado.conflictos.length === 1
               ? 'Esta chapeta ya está activa en otro animal:'
               : `Estas ${estado.conflictos.length} chapetas ya están activas en otros animales:`}
@@ -169,8 +169,8 @@ export function AltaAnimalesForm({ lotes, hoy }: { lotes: Opcion[]; hoy: string 
           corregir el peso que la disparó -- sin tocar la casilla -- hace que
           esa advertencia ya no aparezca en el siguiente envío. */}
       {estado.advertencias && estado.advertencias.length > 0 && (
-        <div className="space-y-2 rounded border border-barro/40 bg-barro/10 p-3 text-sm">
-          <p className="font-medium text-barro">
+        <div className="space-y-2 rounded border border-alerta/40 bg-alerta/10 p-3 text-sm">
+          <p className="font-medium text-alerta">
             Revisa estos pesos de entrada antes de seguir -- ningún animal se dio de alta todavía:
           </p>
           <ul className="list-disc space-y-1 pl-5 text-carbon/80">
@@ -201,7 +201,7 @@ export function AltaAnimalesForm({ lotes, hoy }: { lotes: Opcion[]; hoy: string 
       )}
 
       {estado.error && estado.conflictos.length === 0 && (
-        <p className="text-barro">{estado.error}</p>
+        <p className="text-alerta">{estado.error}</p>
       )}
 
       <button

@@ -165,7 +165,7 @@ export function NovedadForm({
           />
         </label>
 
-        {estado.error && <p className="text-barro">{estado.error}</p>}
+        {estado.error && <p className="text-alerta">{estado.error}</p>}
 
         <button
           disabled={enviando}

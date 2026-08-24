@@ -3,7 +3,7 @@ import Link from 'next/link'
 export type Aviso = {
   texto: string
   enlace?: { href: string; texto: string }
-  /** Enciende el punto en barro: algo que hay que atender, no solo saber. */
+  /** Enciende el punto en alerta: algo que hay que atender, no solo saber. */
   grave?: boolean
 }
 
@@ -33,7 +33,7 @@ export function Titular({
               <span
                 aria-hidden
                 className={`h-[6px] w-[6px] flex-none rounded-full ${
-                  aviso.grave ? 'bg-barro' : 'bg-carbon-3'
+                  aviso.grave ? 'bg-alerta' : 'bg-carbon-3'
                 }`}
               />
               <span>{aviso.texto}</span>

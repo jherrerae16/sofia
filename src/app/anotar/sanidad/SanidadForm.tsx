@@ -210,7 +210,7 @@ export function SanidadForm({
         <p
           data-testid="error"
           role="alert"
-          className="mt-4 rounded border border-barro/40 bg-papel px-4 py-3 text-[14px] text-barro"
+          className="mt-4 rounded border border-alerta/40 bg-papel px-4 py-3 text-[14px] text-alerta"
         >
           {estado.error}
         </p>

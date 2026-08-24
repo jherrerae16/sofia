@@ -9,8 +9,8 @@ const INICIAL: EstadoDigitacion = { revision: [], datosRevisados: null, guardado
 
 const COLOR_NIVEL = {
   ok: 'text-monte',
-  advertencia: 'text-barro',
-  rechazo: 'text-barro font-semibold',
+  advertencia: 'text-alerta',
+  rechazo: 'text-alerta font-semibold',
 }
 
 export function TablaPesaje({
@@ -252,10 +252,10 @@ function Formulario({
         />
       </label>
 
-      {estado.error && <p className="text-barro">{estado.error}</p>}
-      {guardadoEstado.error && <p className="text-barro">{guardadoEstado.error}</p>}
+      {estado.error && <p className="text-alerta">{estado.error}</p>}
+      {guardadoEstado.error && <p className="text-alerta">{guardadoEstado.error}</p>}
       {hayRechazos && (
-        <p className="text-barro">
+        <p className="text-alerta">
           Corrige las filas en rojo antes de guardar. No se guardará nada mientras haya rechazos.
         </p>
       )}

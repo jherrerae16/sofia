@@ -36,7 +36,7 @@ export function FilaCriterio({
 
         <div data-testid="valor-vigente" className="text-right text-[13px]">
           {estado.valorVigente === null ? (
-            <span className="text-barro">Sin configurar todavía.</span>
+            <span className="text-alerta">Sin configurar todavía.</span>
           ) : vigenteEsValido ? (
             <>
               <div className="cifra text-[19px] font-extrabold text-carbon">
@@ -47,7 +47,7 @@ export function FilaCriterio({
               </div>
             </>
           ) : (
-            <span className="text-barro">
+            <span className="text-alerta">
               El valor vigente hoy (&quot;{estado.valorVigente}&quot;) no es un número. Corrígelo
               aquí abajo.
             </span>
@@ -76,7 +76,7 @@ export function FilaCriterio({
                 return (
                   <tr key={fila.vigenteDesde + fila.valor} className="border-b border-borde">
                     <td className="cifra py-[6px]">{fila.vigenteDesde}</td>
-                    <td className={`cifra py-[6px] ${esValido ? '' : 'text-barro'}`}>
+                    <td className={`cifra py-[6px] ${esValido ? '' : 'text-alerta'}`}>
                       {esValido ? definicion.formatear(numero) : `"${fila.valor}" (no es un número)`}
                     </td>
                   </tr>

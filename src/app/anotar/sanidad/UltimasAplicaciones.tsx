@@ -52,7 +52,7 @@ function Fila({ aplicacion }: { aplicacion: AplicacionVista }) {
     <tbody data-testid="aplicacion">
       <tr className="border-b border-borde align-top">
         <td className="py-[9px]">
-          <b className={aplicacion.vencida ? 'text-barro' : ''}>
+          <b className={aplicacion.vencida ? 'text-alerta' : ''}>
             {capitalizar(ETIQUETA_TIPO_EVENTO[aplicacion.tipo])}
           </b>
         </td>
@@ -64,7 +64,7 @@ function Fila({ aplicacion }: { aplicacion: AplicacionVista }) {
         </td>
         <td className="py-[9px] text-[13.5px]">{aplicacion.aQuienes}</td>
         <td className="cifra py-[9px] text-[13.5px]">{aplicacion.fecha}</td>
-        <td className={`py-[9px] text-[13.5px] ${aplicacion.vencida ? 'text-barro' : 'text-carbon-3'}`}>
+        <td className={`py-[9px] text-[13.5px] ${aplicacion.vencida ? 'text-alerta' : 'text-carbon-3'}`}>
           {aplicacion.proximaFecha === null
             ? 'no se repite'
             : aplicacion.vencida
@@ -106,7 +106,7 @@ function Fila({ aplicacion }: { aplicacion: AplicacionVista }) {
               <button
                 type="submit"
                 disabled={anulando}
-                className="rounded border border-barro bg-papel px-4 py-2 text-[13.5px] font-semibold text-barro disabled:opacity-50"
+                className="rounded border border-alerta bg-papel px-4 py-2 text-[13.5px] font-semibold text-alerta disabled:opacity-50"
               >
                 Anular la aplicación
               </button>
@@ -118,7 +118,7 @@ function Fila({ aplicacion }: { aplicacion: AplicacionVista }) {
                 Dejarla
               </button>
               {estado.error && (
-                <p data-testid="error" role="alert" className="w-full text-[13.5px] text-barro">
+                <p data-testid="error" role="alert" className="w-full text-[13.5px] text-alerta">
                   {estado.error}
                 </p>
               )}

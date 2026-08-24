@@ -9,8 +9,8 @@ const ETIQUETA_ESTADO: Record<string, string> = {
 
 const COLOR_ESTADO: Record<string, string> = {
   vendido: 'text-carbon',
-  muerto: 'text-barro',
-  robado: 'text-barro',
+  muerto: 'text-alerta',
+  robado: 'text-alerta',
 }
 
 /**

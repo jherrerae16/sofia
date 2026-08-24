@@ -8,8 +8,8 @@ const INICIAL: EstadoMovimiento = { aviso: null, datosRevisados: null, movido: f
 
 const COLOR_ESTADO: Record<EstadoCapacidad, string> = {
   holgado: 'text-monte',
-  ajustado: 'text-barro',
-  sobrecargado: 'text-barro font-semibold',
+  ajustado: 'text-alerta',
+  sobrecargado: 'text-alerta font-semibold',
 }
 
 type Opcion = { id: string; nombre: string }
@@ -180,10 +180,10 @@ function Formulario({
         <p className={`w-full text-sm ${COLOR_ESTADO[aviso.estadoResultante]}`}>{aviso.mensaje}</p>
       )}
       {estadoRevision.error && (
-        <p className="w-full text-sm text-barro">{estadoRevision.error}</p>
+        <p className="w-full text-sm text-alerta">{estadoRevision.error}</p>
       )}
       {estadoMovimiento.error && (
-        <p className="w-full text-sm text-barro">{estadoMovimiento.error}</p>
+        <p className="w-full text-sm text-alerta">{estadoMovimiento.error}</p>
       )}
 
       <button

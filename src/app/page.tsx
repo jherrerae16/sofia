@@ -253,7 +253,7 @@ export default async function Ganado({
             {lote.nombre} va en{' '}
             <b className="font-extrabold text-tierra">{formatearGdp(resumen.promedio)}</b>.{' '}
             {quedados.length > 0 && (
-              <span className="font-extrabold text-barro">
+              <span className="font-extrabold text-alerta">
                 {quedados.length === 1
                   ? 'Un novillo está quedado.'
                   : `${quedados.length} novillos están quedados.`}
@@ -271,7 +271,7 @@ export default async function Ganado({
                     <span
                       aria-hidden
                       className={`h-[6px] w-[6px] flex-none rounded-full ${
-                        aviso.grave ? 'bg-barro' : 'bg-carbon-3'
+                        aviso.grave ? 'bg-alerta' : 'bg-carbon-3'
                       }`}
                     />
                     <span>{aviso.texto}</span>

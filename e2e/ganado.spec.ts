@@ -198,3 +198,35 @@ test('sin peso de venta configurado no se inventa el chip de listos', async ({ p
     })
   }
 })
+
+test('un animal quedado se ve como alerta, no como un punto más', async ({ page }) => {
+  const quedados = page.getByTestId('tarja').filter({ hasText: 'Quedado' })
+  await expect(quedados.first()).toBeVisible()
+
+  // La distinción tiene que estar en la estructura, no solo en un color: un
+  // punto de seis píxeles en café contra otro punto de seis píxeles en café es
+  // lo mismo que no marcar nada.
+  const primera = quedados.first()
+  await expect(primera).toHaveAttribute('data-estado', 'quedado')
+  await expect(primera.getByText('Quedado')).toBeVisible()
+
+  // Y ninguna tarjeta que no esté quedada lleva la etiqueta: si la llevaran
+  // todas, marcar dejaría de significar algo.
+  const sinAlerta = page.getByTestId('tarja').filter({ hasNotText: 'Quedado' })
+  await expect(sinAlerta.first()).toBeVisible()
+  for (const tarja of await sinAlerta.all()) {
+    expect(await tarja.getAttribute('data-estado')).not.toBe('quedado')
+  }
+})
+
+test('el chip, el titular y las tarjetas cuentan lo mismo', async ({ page }) => {
+  // Tres sitios, una sola verdad. No se fija un número: cuántos van quedados
+  // depende de la meta configurada, y esa la cambia el dueño cuando quiera.
+  // Lo que no puede pasar es que los tres no cuadren.
+  const chip = await page.getByRole('button', { name: /^Quedados/ }).innerText()
+  const cuantos = Number(chip.replace(/\D/g, ''))
+  expect(cuantos).toBeGreaterThan(0)
+
+  await expect(page.getByTestId('tarja').filter({ hasText: 'Quedado' })).toHaveCount(cuantos)
+  await expect(page.locator('h1')).toContainText(`${cuantos} novillos están quedados`)
+})

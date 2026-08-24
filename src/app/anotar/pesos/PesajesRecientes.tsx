@@ -61,7 +61,7 @@ function FilaPesaje({ pesaje }: { pesaje: ResumenPesaje }) {
             <button
               type="button"
               onClick={() => setAbierto(true)}
-              className="rounded border border-barro px-3 py-1 text-xs text-barro"
+              className="rounded border border-alerta px-3 py-1 text-xs text-alerta"
             >
               Anular esta sesión
             </button>
@@ -76,7 +76,7 @@ function FilaPesaje({ pesaje }: { pesaje: ResumenPesaje }) {
       {!pesaje.anuladoEn && abierto && (
         <form
           action={anular}
-          className="mt-3 space-y-2 rounded border border-barro/30 bg-barro/5 p-3"
+          className="mt-3 space-y-2 rounded border border-alerta/30 bg-alerta/5 p-3"
         >
           <input type="hidden" name="pesajeId" value={pesaje.id} />
           <p className="text-carbon-2">
@@ -94,11 +94,11 @@ function FilaPesaje({ pesaje }: { pesaje: ResumenPesaje }) {
               className="mt-1 w-full rounded border border-borde p-2"
             />
           </label>
-          {estado.error && <p className="text-barro">{estado.error}</p>}
+          {estado.error && <p className="text-alerta">{estado.error}</p>}
           <div className="flex gap-2">
             <button
               disabled={anulando}
-              className="rounded bg-barro px-4 py-2 text-papel disabled:opacity-50"
+              className="rounded bg-alerta px-4 py-2 text-papel disabled:opacity-50"
             >
               {anulando ? 'Anulando…' : 'Confirmar anulación'}
             </button>

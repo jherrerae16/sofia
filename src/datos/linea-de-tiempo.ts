@@ -20,7 +20,7 @@ export type Suceso = {
   cifra: string | null
   /** La cifra chica debajo de la anterior. */
   cifraChica: string | null
-  /** Enciende el suceso en barro: un pesaje por debajo de la meta fijada. */
+  /** Enciende el suceso en alerta: un pesaje por debajo de la meta fijada. */
   malo: boolean
 }
 

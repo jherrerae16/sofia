@@ -70,7 +70,7 @@ function FilaSuministro({ suministro, hoy }: { suministro: NovedadVista; hoy: st
               className="ml-2 rounded border border-borde p-2"
             />
           </label>
-          {estado.error && <p className="text-barro">{estado.error}</p>}
+          {estado.error && <p className="text-alerta">{estado.error}</p>}
           <div className="flex gap-2">
             <button
               disabled={cerrando}

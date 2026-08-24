@@ -62,7 +62,7 @@ function FilaNovedad({ novedad }: { novedad: NovedadVista }) {
             <button
               type="button"
               onClick={() => setAbierto(true)}
-              className="shrink-0 rounded border border-barro px-3 py-1 text-xs text-barro"
+              className="shrink-0 rounded border border-alerta px-3 py-1 text-xs text-alerta"
             >
               Anular
             </button>
@@ -77,7 +77,7 @@ function FilaNovedad({ novedad }: { novedad: NovedadVista }) {
       {!novedad.anuladoEn && abierto && (
         <form
           action={anular}
-          className="mt-3 space-y-2 rounded border border-barro/30 bg-barro/5 p-3 text-sm"
+          className="mt-3 space-y-2 rounded border border-alerta/30 bg-alerta/5 p-3 text-sm"
         >
           <input type="hidden" name="id" value={novedad.id} />
           <label className="block">
@@ -90,11 +90,11 @@ function FilaNovedad({ novedad }: { novedad: NovedadVista }) {
               className="mt-1 w-full rounded border border-borde p-2"
             />
           </label>
-          {estado.error && <p className="text-barro">{estado.error}</p>}
+          {estado.error && <p className="text-alerta">{estado.error}</p>}
           <div className="flex gap-2">
             <button
               disabled={anulando}
-              className="rounded bg-barro px-4 py-2 text-papel disabled:opacity-50"
+              className="rounded bg-alerta px-4 py-2 text-papel disabled:opacity-50"
             >
               {anulando ? 'Anulando…' : 'Confirmar anulación'}
             </button>

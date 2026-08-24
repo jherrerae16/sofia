@@ -82,8 +82,8 @@ export function FormularioParametro({ clave, unidad, hoy }: { clave: string; uni
         </button>
       </div>
       {estado.guardado && <p className="text-monte">Guardado.</p>}
-      {estado.aviso && <p className="text-barro">{estado.aviso}</p>}
-      {estado.error && <p className="text-barro">{estado.error}</p>}
+      {estado.aviso && <p className="text-alerta">{estado.aviso}</p>}
+      {estado.error && <p className="text-alerta">{estado.error}</p>}
     </form>
   )
 }

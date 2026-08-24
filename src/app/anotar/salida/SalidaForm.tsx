@@ -221,8 +221,8 @@ export function SalidaForm({
           </p>
 
           {estado.advertencias && estado.advertencias.length > 0 && (
-            <div className="space-y-2 rounded border border-barro/40 bg-barro/10 p-3 text-sm">
-              <p className="font-medium text-barro">
+            <div className="space-y-2 rounded border border-alerta/40 bg-alerta/10 p-3 text-sm">
+              <p className="font-medium text-alerta">
                 Revisa estos pesos de venta antes de seguir -- ninguno se guardó todavía:
               </p>
               <ul className="list-disc space-y-1 pl-5 text-carbon/80">
@@ -261,7 +261,7 @@ export function SalidaForm({
             </div>
           )}
 
-          {estado.error && <p className="text-barro">{estado.error}</p>}
+          {estado.error && <p className="text-alerta">{estado.error}</p>}
 
           <button
             disabled={enviando}

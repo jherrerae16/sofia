@@ -90,7 +90,7 @@ export default async function FichaAnimal({ params }: { params: Promise<{ id: st
             className={`mt-4 inline-block rounded border px-3 py-1 text-[12.5px] font-semibold ${
               animal.estado === 'vendido'
                 ? 'border-borde-2 text-carbon-2'
-                : 'border-barro/40 text-barro'
+                : 'border-alerta/40 text-alerta'
             }`}
           >
             {ETIQUETA_ESTADO_ANIMAL[animal.estado]}
@@ -101,7 +101,7 @@ export default async function FichaAnimal({ params }: { params: Promise<{ id: st
         {quedado && animal.estado === 'activo' && (
           <p
             data-testid="sello"
-            className="mt-4 inline-block rounded border border-barro/40 px-3 py-1 text-[12.5px] font-semibold text-barro"
+            className="mt-4 inline-block rounded border border-alerta/40 px-3 py-1 text-[12.5px] font-semibold text-alerta"
           >
             No está engordando
           </p>
@@ -125,7 +125,7 @@ export default async function FichaAnimal({ params }: { params: Promise<{ id: st
               {suceso.fecha}
             </div>
             <div className="flex-1 basis-[240px]">
-              <div className={`text-[14px] ${suceso.malo ? 'text-barro' : 'text-carbon'}`}>
+              <div className={`text-[14px] ${suceso.malo ? 'text-alerta' : 'text-carbon'}`}>
                 {suceso.que}
               </div>
               {suceso.detalle && (
@@ -134,7 +134,7 @@ export default async function FichaAnimal({ params }: { params: Promise<{ id: st
             </div>
             <div className="text-right">
               {suceso.cifra && (
-                <div className={`cifra text-[14px] font-semibold ${suceso.malo ? 'text-barro' : ''}`}>
+                <div className={`cifra text-[14px] font-semibold ${suceso.malo ? 'text-alerta' : ''}`}>
                   {suceso.cifra}
                 </div>
               )}
