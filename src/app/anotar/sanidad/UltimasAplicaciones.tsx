@@ -76,7 +76,7 @@ function Fila({ aplicacion }: { aplicacion: AplicacionVista }) {
             <button
               type="button"
               onClick={() => setPreguntando(true)}
-              className="text-[13px] text-carbon-3 underline underline-offset-[3px]"
+              className="-my-2 py-2 pl-3 text-[13px] text-carbon-3 underline underline-offset-[3px]"
             >
               Anular
             </button>

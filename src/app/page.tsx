@@ -141,7 +141,7 @@ export default async function Ganado({
   }
 
   const avisos: Aviso[] = [...porTanda.values()].map((tanda) => ({
-    texto: `${tanda.texto} — ${tanda.cuantos === 1 ? 'un animal' : `${tanda.cuantos} animales`}.`,
+    texto: `${tanda.texto}, ${tanda.cuantos === 1 ? 'un animal' : `${tanda.cuantos} animales`}.`,
     enlace: { href: '/anotar/sanidad', texto: 'Anotarla' },
     grave: true,
   }))
@@ -274,22 +274,31 @@ export default async function Ganado({
             {avisos.length > 0 && (
               <div data-testid="avisos" className="mt-3 flex flex-col gap-[7px]">
                 {avisos.map((aviso) => (
-                  <div key={aviso.texto} className="flex flex-wrap items-center gap-[9px]">
+                  // Rejilla y no flex: con flex-wrap, un aviso largo empujaba
+                  // el texto al renglón siguiente y dejaba el punto solo
+                  // arriba. Aquí el punto ocupa su columna y el texto fluye en
+                  // la suya, alineado con la primera línea.
+                  <div key={aviso.texto} className="grid grid-cols-[auto_1fr] gap-x-[9px]">
                     <span
                       aria-hidden
-                      className={`h-[6px] w-[6px] flex-none rounded-full ${
+                      className={`mt-[7px] h-[6px] w-[6px] rounded-full ${
                         aviso.grave ? 'bg-alerta' : 'bg-carbon-3'
                       }`}
                     />
-                    <span>{aviso.texto}</span>
-                    {aviso.enlace && (
-                      <Link
-                        href={aviso.enlace.href}
-                        className="text-carbon underline underline-offset-[3px]"
-                      >
-                        {aviso.enlace.texto}
-                      </Link>
-                    )}
+                    <p>
+                      {aviso.texto}{' '}
+                      {aviso.enlace && (
+                        <Link
+                          href={aviso.enlace.href}
+                          // Relleno negativo: agranda el blanco de clic hasta
+                          // lo que se acierta con el dedo sin mover una sola
+                          // línea de la frase que lo rodea.
+                          className="-mx-[6px] -my-[9px] inline-block whitespace-nowrap px-[6px] py-[9px] align-middle text-carbon underline underline-offset-[3px]"
+                        >
+                          {aviso.enlace.texto}
+                        </Link>
+                      )}
+                    </p>
                   </div>
                 ))}
               </div>

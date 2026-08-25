@@ -38,7 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="es-CO" className={`${interfaz.variable} ${estrecha.variable}`}>
       <body>
         {sesion ? (
-          <div className="flex min-h-screen">
+          <div className="flex min-h-screen flex-col md:flex-row">
             <MenuLateral quien={quien} />
             <main className="min-w-0 flex-1">{children}</main>
           </div>

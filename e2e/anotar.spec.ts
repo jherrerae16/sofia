@@ -16,24 +16,10 @@ test.beforeEach(async ({ page }) => {
   await entrar(page)
 })
 
-test('Anotar ofrece los seis modos, en orden', async ({ page }) => {
-  await page.goto('/anotar/pesos')
-  // El orden es el de frecuencia real: se pesa todas las semanas, se vende
-  // dos veces al año.
-  await expect(page.getByTestId('modos').getByRole('link')).toHaveText([
-    'Pesos',
-    'Venta o muerte',
-    'Novedad',
-    'Mover lote',
-    'Entrada de ganado',
-    'Sanidad',
-  ])
-})
-
-test('el modo en el que estás queda marcado, y solo ese', async ({ page }) => {
-  await page.goto('/anotar/pesos')
-  await expect(page.getByTestId('modos').locator('[aria-current="page"]')).toHaveText(['Pesos'])
-})
+// La cinta de pestañas de Anotar se fue: eran los mismos seis destinos que ya
+// lista el menú lateral, dibujados dos veces en la misma pantalla. Lo que
+// antes probaba esta prueba lo prueba ahora e2e/caparazon.spec.ts sobre el
+// menú, que es donde viven.
 
 test('el titular de Anotar dice qué se está anotando', async ({ page }) => {
   await page.goto('/anotar/pesos')

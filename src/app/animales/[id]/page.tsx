@@ -73,7 +73,7 @@ export default async function FichaAnimal({ params }: { params: Promise<{ id: st
     <Marco>
       <Link
         href="/"
-        className="mt-8 inline-block text-[13px] text-carbon-3 underline underline-offset-[3px]"
+        className="-mx-2 mt-6 inline-block px-2 py-2 text-[13px] text-carbon-3 underline underline-offset-[3px]"
       >
         ← El ganado
       </Link>

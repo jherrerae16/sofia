@@ -40,10 +40,13 @@ test.describe('con la sesión abierta', () => {
   test('el menú se puede contraer y se recuerda al volver', async ({ page }) => {
     await page.goto('/')
     await page.getByRole('button', { name: 'Contraer menú' }).click()
-    await expect(page.getByTestId('menu').getByText('Sanidad')).toHaveCount(0)
+    // Contraído la etiqueta sigue en el marcado pero deja de verse: el enlace
+    // conserva su `aria-label` para que un lector de pantalla lo siga
+    // nombrando, así que lo que se comprueba es que no se vea, no que no esté.
+    await expect(page.getByTestId('menu').getByText('Sanidad')).toBeHidden()
 
     await page.goto('/anotar/pesos')
-    await expect(page.getByTestId('menu').getByText('Sanidad')).toHaveCount(0)
+    await expect(page.getByTestId('menu').getByText('Sanidad')).toBeHidden()
   })
 
   test('el destino en el que estás queda marcado, y solo ese', async ({ page }) => {

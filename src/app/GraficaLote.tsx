@@ -63,7 +63,10 @@ export function GraficaLote({ serie }: { serie: SerieLote }) {
       <svg
         viewBox={`0 0 ${ANCHO} ${ALTO}`}
         width="100%"
-        height="240"
+        // Sin alto fijo: con `height="240"` y un viewBox de 900x260, en
+        // teléfono la curva se dibujaba a 100 px dentro de una caja de 240 y
+        // quedaba una raya rodeada de vacío.
+        className="h-auto w-full"
         role="img"
         aria-label={`Peso promedio del lote en ${serie.puntos.length} puntos`}
       >

@@ -26,7 +26,7 @@ export default async function Entrada() {
 
       <h2 className="rotulo mb-4 mt-13">Los lotes abiertos</h2>
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
+        <table className="w-full max-w-[720px] border-collapse">
           <thead>
             <tr className="border-b border-borde">
               {['Lote', 'Tipo', 'Abierto', 'Potrero', 'Animales'].map((encabezado) => (

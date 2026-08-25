@@ -62,7 +62,7 @@ function FilaPesaje({ pesaje }: { pesaje: ResumenPesaje }) {
             <button
               type="button"
               onClick={() => setAbierto(true)}
-              className="rounded border border-alerta px-3 py-1 text-xs text-alerta"
+              className="rounded border border-alerta px-3 py-2 text-xs text-alerta"
             >
               Anular esta sesión
             </button>

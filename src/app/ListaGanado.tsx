@@ -82,9 +82,17 @@ export function ListaGanado({
                   data-estado={estadoDe(fila)}
                   className={`border-b border-borde last:border-b-0 ${quedado ? 'bg-alerta-suave' : ''}`}
                 >
-                  <td className="px-4 py-[9px]">
-                    <Link href={`/animales/${fila.animalId}`} className="chapeta text-[13px]">
-                      {fila.chapeta}
+                  <td className="px-4 py-[6px]">
+                    {/* El relleno va en el enlace y no en la chapeta: la clase
+                        `.chapeta` se define después de las utilidades de
+                        Tailwind en la hoja, así que le gana a cualquier `py-*`
+                        que se le ponga encima. Con 22 px de alto había que
+                        apuntarle al enlace. */}
+                    <Link
+                      href={`/animales/${fila.animalId}`}
+                      className="inline-flex py-[6px] no-underline"
+                    >
+                      <span className="chapeta text-[13px]">{fila.chapeta}</span>
                     </Link>
                   </td>
                   <td className="cifra px-4 py-[9px] text-[13.5px]">{formatearKg(fila.pesoActualKg)}</td>

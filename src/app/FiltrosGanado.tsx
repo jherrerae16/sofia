@@ -119,7 +119,7 @@ export function FiltrosGanado({ lotes, chips }: { lotes: LoteElegible[]; chips: 
             key={chip.clave}
             type="button"
             onClick={() => poner('filtro', chip.clave === 'todos' ? null : chip.clave)}
-            className={`rounded-full border px-[11px] py-[5px] text-[12px] ${
+            className={`rounded-full border px-[12px] py-[7px] text-[12px] ${
               activo
                 ? 'border-monte bg-monte font-semibold text-papel'
                 : 'border-borde bg-papel text-carbon-2'
@@ -146,7 +146,7 @@ export function FiltrosGanado({ lotes, chips }: { lotes: LoteElegible[]; chips: 
               key={vista}
               type="button"
               onClick={() => poner('vista', vista === 'rejilla' ? null : vista)}
-              className={`rounded-[3px] px-[10px] py-[5px] text-[12px] font-semibold ${
+              className={`rounded-[3px] px-[11px] py-[7px] text-[12px] font-semibold ${
                 activo ? 'bg-papel text-carbon' : 'text-carbon-2'
               }`}
             >

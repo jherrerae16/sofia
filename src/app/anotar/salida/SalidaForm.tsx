@@ -165,7 +165,7 @@ export function SalidaForm({
             </label>
           </div>
 
-          <table className="w-full text-sm">
+          <table className="w-full max-w-[820px] text-sm">
             <thead className="border-b border-borde text-left text-xs uppercase text-carbon-3">
               <tr>
                 <th className="p-2">

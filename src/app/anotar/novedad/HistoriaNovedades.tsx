@@ -63,7 +63,7 @@ function FilaNovedad({ novedad }: { novedad: NovedadVista }) {
             <button
               type="button"
               onClick={() => setAbierto(true)}
-              className="shrink-0 rounded border border-alerta px-3 py-1 text-xs text-alerta"
+              className="shrink-0 rounded border border-alerta px-3 py-2 text-xs text-alerta"
             >
               Anular
             </button>

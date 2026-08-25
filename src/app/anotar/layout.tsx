@@ -1,16 +1,11 @@
 import { Marco } from '@/ui/Marco'
-import { ModosAnotar } from './ModosAnotar'
 
 /**
- * La cinta de modos es lo único que comparten los seis. El titular lo pone
- * cada modo, porque cada uno dice algo distinto: "Pasa la libreta" no sirve
- * para anotar una vacuna.
+ * Los seis modos de Anotar tenían aquí su propia cinta de pestañas. Se fue
+ * cuando el menú lateral pasó a listar cada uno como un renglón propio: eran
+ * los mismos seis destinos dibujados dos veces en la misma pantalla, y el de
+ * arriba ni siquiera era el que se usaba.
  */
 export default function AnotarLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <Marco>
-      <ModosAnotar />
-      {children}
-    </Marco>
-  )
+  return <Marco>{children}</Marco>
 }

@@ -3,6 +3,7 @@ import { hoyBogota } from '@/calc/fechas'
 import { listarAnimalesDeLote } from '@/datos/animales'
 import { listarLotes } from '@/datos/lotes'
 import { listarPesajesDeLote } from '@/datos/pesajes'
+import { SelectorDeLote, TitularModo } from '../TitularModo'
 import { PesajesRecientes } from './PesajesRecientes'
 import { TablaPesaje } from './TablaPesaje'
 
@@ -30,14 +31,10 @@ export default async function Pesos({
 
   return (
     <>
-      <div className="max-w-[820px] pt-8">
-        <h1 className="text-[clamp(27px,3.8vw,40px)] font-semibold leading-[1.18] tracking-[-0.022em] text-monte">
-          Pasa la libreta.
-        </h1>
-        <p className="mt-[14px] max-w-[580px] text-[15.5px] text-carbon-2">
-          Escribe de arriba abajo con la tecla Tab. Deja vacías las chapetas que no se pesaron.
-        </p>
-      </div>
+      <TitularModo
+        titulo="Pasa la libreta."
+        bajada="Escribe de arriba abajo con la tecla Tab. Deja vacías las chapetas que no se pesaron."
+      />
 
       {escogidos.size > 0 && (
         <p className="mt-6 rounded border border-borde bg-papel-2 px-4 py-3 text-[13.5px] text-carbon-2">
@@ -49,21 +46,7 @@ export default async function Pesos({
         </p>
       )}
 
-      <nav className="mt-6 mb-6 flex flex-wrap gap-2">
-        {lotes.map((lote) => (
-          <Link
-            key={lote.id}
-            href={`/anotar/pesos?lote=${lote.id}`}
-            className={`rounded border px-3 py-2 text-[13.5px] no-underline ${
-              lote.id === loteId
-                ? 'border-monte bg-monte font-semibold text-papel'
-                : 'border-borde bg-papel text-carbon-2'
-            }`}
-          >
-            {lote.nombre} ({lote.animalesActivos})
-          </Link>
-        ))}
-      </nav>
+      <SelectorDeLote lotes={lotes} activo={loteId} base="/anotar/pesos" />
 
       <TablaPesaje
         loteId={loteId}

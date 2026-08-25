@@ -207,7 +207,13 @@ function Formulario({
         </label>
       </div>
 
-      <table className="w-full text-sm">
+      {/* Tope de ancho: con tres columnas, estirarse a 1280 px deja media
+          pantalla en blanco y aleja el peso de su chapeta. */}
+      {/* Tope de ancho y desplazamiento propio: con tres columnas,
+          estirarse a 1280 px deja media pantalla en blanco, y en
+          teléfono la tabla desbordaba la página entera. */}
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[420px] max-w-[820px] text-sm">
         <thead className="border-b border-borde text-left text-xs uppercase text-carbon-3">
           <tr>
             <th className="p-2">Chapeta</th>
@@ -240,15 +246,18 @@ function Formulario({
           })}
         </tbody>
       </table>
+      </div>
 
-      <label className="block text-sm">
-        Notas
+      <label className="block">
+        <span className="rotulo mb-[7px] block">Notas</span>
         <input
           key={poblarKey}
           name="notas"
           defaultValue={revisados?.notas ?? ''}
           onChange={marcarEditado}
-          className="ml-2 w-96 rounded border border-borde p-2"
+          // Ancho fijo de 384 px más la etiqueta al lado no cabían en una
+          // pantalla de 390: la etiqueta sube y el campo se adapta.
+          className="w-full max-w-[420px] rounded border border-borde p-2 text-sm"
         />
       </label>
 
