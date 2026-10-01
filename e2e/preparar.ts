@@ -102,6 +102,7 @@ async function main() {
     // prueba puede terminar quedándose con la vieja, sin lote, en vez de la
     // recién sembrada.
     await prisma.novedad.deleteMany()
+    await prisma.gasto.deleteMany()
     await prisma.movimiento.deleteMany()
     await prisma.medicion.deleteMany()
     await prisma.pesaje.deleteMany()

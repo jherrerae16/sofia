@@ -19,7 +19,7 @@ test.describe('con la sesión abierta', () => {
     await entrar(page)
   })
 
-  test('el menú lateral ofrece las diez funciones, cada una a un clic', async ({ page }) => {
+  test('el menú lateral ofrece las once funciones, cada una a un clic', async ({ page }) => {
     await page.goto('/')
     // Planas, sin submenús: pesar o aplicar una vacuna costaba dos pasos
     // (entrar a Anotar y escoger el modo) y ahora cuesta uno.
@@ -30,6 +30,7 @@ test.describe('con la sesión abierta', () => {
       'Sanidad',
       'Venta o muerte',
       'Novedad',
+      'Gasto',
       'Mover lote',
       'Entrada de ganado',
       'Criterios',

@@ -260,3 +260,20 @@ model Novedad {
   @@index([fecha])
   @@index([loteId, tipo, fechaFin])
 }
+
+/// Un gasto de la finca entera: fecha, qué fue (texto libre, sin categorías)
+/// y valor entero en pesos. No se carga a ningún lote y el sistema nunca
+/// anota uno solo. Nada se borra: se anula con motivo, igual que una Novedad.
+model Gasto {
+  id              String    @id @default(cuid())
+  fecha           DateTime  @db.Date
+  descripcion     String
+  valor           Int
+  registradoPorId String
+  creadoEn        DateTime  @default(now())
+  anuladoEn       DateTime?
+  motivoAnulacion String?
+  anuladoPorId    String?
+
+  @@index([fecha])
+}

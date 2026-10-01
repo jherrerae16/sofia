@@ -51,6 +51,7 @@ async function main() {
     await prisma.eventoSanitario.deleteMany()
     await prisma.movimiento.deleteMany()
     await prisma.novedad.deleteMany()
+    await prisma.gasto.deleteMany()
     await prisma.pesaje.deleteMany()
     await prisma.animal.deleteMany()
     await prisma.lote.deleteMany()
@@ -224,8 +225,23 @@ async function main() {
       },
     })
 
+    // Gastos de ejemplo con los rubros del xlsx, en el mes pasado y en este.
+    const MES_PASADO = sumarDias(HOY, -Number(HOY.slice(8, 10)))
+    for (const [fecha, descripcion, valor] of [
+      [MES_PASADO, 'Sueldo del trabajador', 2_800_000],
+      [sumarDias(MES_PASADO, -2), 'Recibo de luz', 312_400],
+      [sumarDias(MES_PASADO, -6), 'Cuadrilla, limpieza del potrero El Jobo', 1_650_000],
+      [sumarDias(MES_PASADO, -11), '4 bultos de sal mineralizada', 368_000],
+      [sumarDias(MES_PASADO, -15), 'Peajes y gasolina de Joseph, quincena', 240_000],
+      [HOY, 'Gasolina de la moto', 95_000],
+    ] as const) {
+      await prisma.gasto.create({
+        data: { fecha: aFechaDb(fecha), descripcion, valor, registradoPorId: usuario.id },
+      })
+    }
+
     console.log('Finca de demostración sembrada.')
-    console.log('Entra con joseph@ejemplo.com y la clave "demo".')
+    console.log('Entra con jvargas y la clave que diga CLAVE_JVARGAS.')
   } finally {
     await prisma.$disconnect()
   }

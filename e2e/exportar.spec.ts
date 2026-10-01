@@ -181,7 +181,7 @@ test.beforeAll(async () => {
   })
 })
 
-test('el botón de la Finca descarga un .xlsx real con la portada, las 8 hojas y todo lo sembrado', async ({ page }) => {
+test('el botón de la Finca descarga un .xlsx real con la portada, las 9 hojas y todo lo sembrado', async ({ page }) => {
   await iniciarSesion(page)
   await page.goto('/finca')
 
@@ -206,6 +206,7 @@ test('el botón de la Finca descarga un .xlsx real con la portada, las 8 hojas y
     'Potreros',
     'Movimientos',
     'Novedades',
+    'Gastos',
     'Eventos sanitarios',
     'Parámetros',
   ])
@@ -222,6 +223,7 @@ test('el botón de la Finca descarga un .xlsx real con la portada, las 8 hojas y
     'Potreros',
     'Movimientos',
     'Novedades',
+    'Gastos',
     'Eventos sanitarios',
     'Parámetros',
   ]) {

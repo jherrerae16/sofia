@@ -40,6 +40,7 @@ function datosDePrueba(): DatosExportacion {
     potreros: [],
     movimientos: [],
     novedades: [],
+    gastos: [],
     eventos: [],
     parametros: [],
   }
@@ -213,7 +214,7 @@ describe('construirLibroExcel', () => {
 
     const archivos = unzipSync(new Uint8Array(buffer))
     const nombresHoja = Object.keys(archivos).filter((n) => /^xl\/worksheets\/sheet\d+\.xml$/.test(n))
-    expect(nombresHoja).toHaveLength(9)
+    expect(nombresHoja).toHaveLength(10)
 
     const workbook = strFromU8(archivos['xl/workbook.xml'])
     for (const nombre of [
@@ -224,6 +225,7 @@ describe('construirLibroExcel', () => {
       'Potreros',
       'Movimientos',
       'Novedades',
+      'Gastos',
       'Eventos sanitarios',
       'Parámetros',
     ]) {
@@ -272,6 +274,7 @@ describe('construirLibroExcel', () => {
       'Potreros',
       'Movimientos',
       'Novedades',
+      'Gastos',
       'Eventos sanitarios',
       'Parámetros',
     ]) {

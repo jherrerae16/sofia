@@ -4,6 +4,7 @@ import type {
   DatosExportacion,
   FilaAnimalExport,
   FilaEventoExport,
+  FilaGastoExport,
   FilaLoteExport,
   FilaMovimientoExport,
   FilaNovedadExport,
@@ -116,6 +117,17 @@ const COLUMNAS_NOVEDADES: Column<FilaNovedadExport>[] = [
   { ...columnaAncha('Fecha de anulación', 18), cell: (f) => celdaFechaHora(f.anuladoEn) },
 ]
 
+const COLUMNAS_GASTOS: Column<FilaGastoExport>[] = [
+  { ...columnaAncha('Fecha', 14), cell: (f) => celdaFecha(f.fecha) },
+  { ...columnaAncha('Qué fue', 40), cell: (f) => celdaTexto(f.descripcion) },
+  { ...columnaAncha('Valor', 16), cell: (f) => ({ value: f.valor, type: Number, format: FORMATO_NUMERO }) },
+  { ...columnaAncha('Registrado por', 18), cell: (f) => celdaTexto(f.registradoPor) },
+  { ...columnaAncha('Anulado', 10), cell: (f) => celdaTexto(f.anuladoEn ? 'Sí' : '') },
+  { ...columnaAncha('Motivo de anulación', 26), cell: (f) => celdaTexto(f.motivoAnulacion) },
+  { ...columnaAncha('Anulado por', 18), cell: (f) => celdaTexto(f.anuladoPor) },
+  { ...columnaAncha('Fecha de anulación', 18), cell: (f) => celdaFechaHora(f.anuladoEn) },
+]
+
 const COLUMNAS_EVENTOS: Column<FilaEventoExport>[] = [
   { ...columnaAncha('Tipo', 18), cell: (f) => celdaTexto(f.tipo) },
   { ...columnaAncha('Fecha', 14), cell: (f) => celdaFecha(f.fecha) },
@@ -161,6 +173,7 @@ const DESCRIPCION_HOJA: Record<string, string> = {
   Potreros: 'Cada potrero de la finca, con sus hectáreas y su capacidad, incluidos los que ya no se usan.',
   Movimientos: 'Cada traslado de un lote de un potrero a otro.',
   Novedades: 'Los hechos y los suministros anotados en un lote o un potrero, incluidos los que se anularon.',
+  Gastos: 'Cada gasto de la finca anotado en la plataforma, con su valor en pesos, incluidos los que se anularon.',
   'Eventos sanitarios': 'Las vacunas, desparasitaciones y demás cosas aplicadas a un animal puntual o a un lote entero.',
   Parámetros: 'El histórico de los criterios configurados en la plataforma, con la fecha desde la que rigió cada uno.',
 }
@@ -207,6 +220,7 @@ export async function construirLibroExcel(datos: DatosExportacion): Promise<Buff
     hoja('Potreros', datos.potreros, COLUMNAS_POTREROS),
     hoja('Movimientos', datos.movimientos, COLUMNAS_MOVIMIENTOS),
     hoja('Novedades', datos.novedades, COLUMNAS_NOVEDADES),
+    hoja('Gastos', datos.gastos, COLUMNAS_GASTOS),
     hoja('Eventos sanitarios', datos.eventos, COLUMNAS_EVENTOS),
     hoja('Parámetros', datos.parametros, COLUMNAS_PARAMETROS),
   ]).toBuffer()

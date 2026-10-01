@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 /**
- * Los diez destinos, planos: cada acción del día a día es un renglón, no un
+ * Los once destinos, planos: cada acción del día a día es un renglón, no un
  * modo que hay que escoger después de entrar a otra pantalla. Pesar, aplicar
  * una vacuna o registrar una venta son cosas que se hacen a diario; costaban
  * dos pasos y ahora cuestan uno.
@@ -25,6 +25,7 @@ const GRUPOS = [
       { href: '/anotar/sanidad', texto: 'Sanidad', icono: 'jeringa' },
       { href: '/anotar/salida', texto: 'Venta o muerte', icono: 'salida' },
       { href: '/anotar/novedad', texto: 'Novedad', icono: 'nota' },
+      { href: '/anotar/gasto', texto: 'Gasto', icono: 'gasto' },
       { href: '/anotar/mover', texto: 'Mover lote', icono: 'mover' },
       { href: '/anotar/entrada', texto: 'Entrada de ganado', icono: 'entrada' },
     ],
@@ -47,6 +48,7 @@ const TRAZOS: Record<Icono, string> = {
   jeringa: 'M13 4l6 6 M15 6l-9 9-3 4 4-3 9-9 M11 8l4 4',
   salida: 'M13 4H5v15h8 M16 8l4 4-4 4 M9 12h11',
   nota: 'M5 3h9l5 5v13H5z M14 3v5h5 M8 13h8 M8 17h5',
+  gasto: 'M6 3h12v18l-3-2-3 2-3-2-3 2z M9 8h6 M9 12h6 M9 16h3',
   mover: 'M3 12h15 M13 7l5 5-5 5 M20 5v14',
   entrada: 'M20 12H5 M10 7l-5 5 5 5 M3 5v14',
   criterios: 'M5 7h14 M5 12h14 M5 17h14 M9 7v0 M15 12v0 M8 17v0',

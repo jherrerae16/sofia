@@ -6,6 +6,7 @@ import { datosExportacionCompleta } from './exportacion'
 import { limpiarTablasOperativas } from './limpieza-pruebas'
 import { crearLote } from './lotes'
 import { moverLote } from './movimientos'
+import { anularGasto, registrarGasto } from './gastos'
 import { anularNovedad, registrarHecho, registrarSuministro } from './novedades'
 import { anularPesaje, guardarPesaje } from './pesajes'
 import { crearPotrero } from './potreros'
@@ -17,6 +18,7 @@ let otroPotreroId: string
 
 beforeEach(async () => {
   await limpiarTablasOperativas()
+  await prisma.gasto.deleteMany()
   await prisma.parametro.deleteMany()
   await prisma.usuario.deleteMany()
   await prisma.finca.deleteMany()
@@ -162,6 +164,20 @@ describe('datosExportacionCompleta', () => {
     expect(segundo.potreroOrigen).toBe('El Jobo')
     expect(segundo.potreroDestino).toBe('La Loma')
     expect(segundo.lote).toBe('Ceba 01')
+  })
+
+  it('trae los gastos con su valor, incluidos los anulados con su motivo', async () => {
+    await registrarGasto({ fecha: '2026-01-31', descripcion: 'Sueldo del trabajador', valor: 2_800_000, registradoPorId: 'u1' }, '2026-08-20')
+    const repetido = await registrarGasto({ fecha: '2026-01-15', descripcion: 'Peajes', valor: 240_000, registradoPorId: 'u1' }, '2026-08-20')
+    await anularGasto(repetido, 'Repetido', 'u1')
+
+    const datos = await datosExportacionCompleta()
+    expect(datos.gastos.map((g) => [g.fecha, g.descripcion, g.valor, g.registradoPor])).toEqual([
+      ['2026-01-15', 'Peajes', 240_000, 'Joseph'],
+      ['2026-01-31', 'Sueldo del trabajador', 2_800_000, 'Joseph'],
+    ])
+    expect(datos.gastos[0].motivoAnulacion).toBe('Repetido')
+    expect(datos.gastos[0].anuladoEn).not.toBeNull()
   })
 
   it('trae las novedades vigentes, las cerradas y las anuladas', async () => {

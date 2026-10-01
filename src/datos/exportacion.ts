@@ -83,6 +83,16 @@ export type FilaNovedadExport = {
   anuladoPor: string | null
 }
 
+export type FilaGastoExport = {
+  fecha: FechaISO
+  descripcion: string
+  valor: number
+  registradoPor: string | null
+  anuladoEn: Date | null
+  motivoAnulacion: string | null
+  anuladoPor: string | null
+}
+
 export type FilaEventoExport = {
   tipo: string
   fecha: FechaISO
@@ -132,6 +142,7 @@ export type DatosExportacion = {
   potreros: FilaPotreroExport[]
   movimientos: FilaMovimientoExport[]
   novedades: FilaNovedadExport[]
+  gastos: FilaGastoExport[]
   eventos: FilaEventoExport[]
   parametros: FilaParametroExport[]
 }
@@ -177,7 +188,7 @@ export async function datosExportacionCompleta(): Promise<DatosExportacion> {
   const nombreUsuario = (id: string | null): string | null => (id === null ? null : (usuarios.get(id) ?? id))
   const finca = await obtenerFinca()
 
-  const [animales, mediciones, lotes, potreros, movimientos, novedades, eventos, parametros] = await Promise.all([
+  const [animales, mediciones, lotes, potreros, movimientos, novedades, gastos, eventos, parametros] = await Promise.all([
     prisma.animal.findMany({
       include: { lote: { select: { nombre: true } } },
       orderBy: [{ chapeta: 'asc' }, { fechaEntrada: 'asc' }],
@@ -206,6 +217,7 @@ export async function datosExportacionCompleta(): Promise<DatosExportacion> {
       include: { lote: { select: { nombre: true } }, potrero: { select: { nombre: true } } },
       orderBy: [{ fecha: 'asc' }, { creadoEn: 'asc' }],
     }),
+    prisma.gasto.findMany({ orderBy: [{ fecha: 'asc' }, { creadoEn: 'asc' }] }),
     prisma.eventoSanitario.findMany({
       include: {
         animal: { select: { chapeta: true, lote: { select: { nombre: true } } } },
@@ -290,6 +302,16 @@ export async function datosExportacionCompleta(): Promise<DatosExportacion> {
       anuladoEn: novedad.anuladoEn,
       motivoAnulacion: novedad.motivoAnulacion,
       anuladoPor: nombreUsuario(novedad.anuladoPorId),
+    })),
+
+    gastos: gastos.map((gasto) => ({
+      fecha: aFechaISO(gasto.fecha),
+      descripcion: gasto.descripcion,
+      valor: gasto.valor,
+      registradoPor: nombreUsuario(gasto.registradoPorId),
+      anuladoEn: gasto.anuladoEn,
+      motivoAnulacion: gasto.motivoAnulacion,
+      anuladoPor: nombreUsuario(gasto.anuladoPorId),
     })),
 
     eventos: eventos.map((evento) => ({
