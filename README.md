@@ -134,6 +134,7 @@ npm run test
 # pruebas y levanta su propio servidor de desarrollo antes de correr las
 # pruebas, así que no hace falta tener `npm run dev` abierto aparte.
 npm run test:e2e
+# Si el 3000 está ocupado: PUERTO_E2E=3005 npm run test:e2e
 
 # Chequeo de tipos, sin emitir nada.
 npx tsc --noEmit
@@ -148,3 +149,26 @@ levantar el servidor:
 ```bash
 npx next build
 ```
+
+## Despliegue en Vercel + Neon
+
+Vercel construye con `npm run vercel-build`, que hace todo lo que una base
+nueva necesita, sin pasos a mano: genera el cliente de Prisma, aplica las
+migraciones, siembra la finca y los parámetros de arranque **solo si la base
+está vacía** (`prisma/seed.ts` no pisa nada que ya exista) y arma la
+aplicación. Las cuentas tampoco se crean a mano: la fila de cada una aparece
+en su primer ingreso.
+
+Variables de entorno en Vercel (Settings › Environment Variables):
+
+| Variable | De dónde sale |
+|---|---|
+| `DATABASE_URL` | La pone sola la integración de Neon (conexión con pooler, la usa la app) |
+| `DATABASE_URL_UNPOOLED` | También la pone Neon (conexión directa, la usan las migraciones) |
+| `AUTH_SECRET` | `openssl rand -base64 32` |
+| `AUTH_TRUST_HOST` | `true` |
+| `CLAVE_JHERRERA` | La clave de jherrera |
+| `CLAVE_JVARGAS` | La clave de jvargas |
+
+Cambiar una clave es cambiar su variable y volver a desplegar (Deployments ›
+Redeploy). Node 22 queda fijado en `package.json` (`engines`).

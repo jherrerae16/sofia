@@ -1,5 +1,8 @@
-export { auth as middleware } from '@/auth'
+export { auth as proxy } from '@/auth'
 
+// "proxy" es el nombre que Next 16 le da a lo que antes era "middleware", y
+// corre en Node.js por defecto -- lo que exige `auth()`, que consulta la base
+// con Prisma. Ya no se declara `runtime`: en un proxy hacerlo es un error.
 export const config = {
   // Los límites de segmento van anclados con (?:$|/) o $ en cada exclusión:
   // sin anclar, "entrar" como prefijo dejaba pasar sin sesión rutas como
@@ -8,7 +11,7 @@ export const config = {
   //
   // "marca/" son las imágenes de marca (el logo de la finca y la silueta de
   // la vaca). Van excluidas porque la pantalla de entrar necesita su propio
-  // logo: sin esta exclusión el middleware redirige la petición de la imagen
+  // logo: sin esta exclusión el proxy redirige la petición de la imagen
   // a /entrar, y la puerta de la finca queda con el logo roto.
   //
   // "_next/image" llevaba el mismo problema al revés: anclado solo con "/"
@@ -23,8 +26,4 @@ export const config = {
   matcher: [
     '/((?!entrar(?:$|/)|api/auth/|marca/|_next/static/|_next/image(?:$|/|\\?)|favicon\\.ico$).*)',
   ],
-  // La convención "middleware" (deprecada en Next 16 a favor de "proxy") sigue
-  // usando el runtime Edge por defecto, donde Prisma no funciona. `auth()`
-  // depende de `@/datos/cliente`, así que forzamos Node.js aquí.
-  runtime: 'nodejs',
 }

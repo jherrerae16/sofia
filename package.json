@@ -8,7 +8,9 @@
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "tsx e2e/preparar.ts && playwright test"
+    "test:e2e": "tsx e2e/preparar.ts && playwright test",
+    "vercel-build": "prisma generate && prisma migrate deploy && prisma db seed && next build",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.1",
@@ -36,5 +38,8 @@
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }

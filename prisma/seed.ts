@@ -11,16 +11,26 @@ const VIGENTE_DESDE = new Date('2026-01-01T00:00:00.000Z')
 const PARAMETROS: Record<string, string> = {
   gdp_objetivo: '750',
   peso_objetivo_venta_kg: '320',
-  hectareas_utiles: '35',
+  // 30 ha útiles: la cifra de la reproyección del 1-sep-2026 (antes 35).
+  hectareas_utiles: '30',
 }
 
+/**
+ * Corre en cada despliegue de Vercel (`vercel-build`), así que solo siembra
+ * una base vacía: si ya hay finca o parámetros, no toca nada. Lo que el
+ * dueño cambie en Criterios nunca se pisa con los valores de arranque.
+ */
 async function main() {
-  await prisma.finca.create({
-    data: { nombre: 'Santa Verónica' },
-  })
+  if ((await prisma.finca.count()) === 0) {
+    await prisma.finca.create({ data: { nombre: 'Santa Verónica' } })
+    console.log('Semilla: finca creada.')
+  }
 
-  for (const [clave, valor] of Object.entries(PARAMETROS)) {
-    await prisma.parametro.create({ data: { clave, valor, vigenteDesde: VIGENTE_DESDE } })
+  if ((await prisma.parametro.count()) === 0) {
+    for (const [clave, valor] of Object.entries(PARAMETROS)) {
+      await prisma.parametro.create({ data: { clave, valor, vigenteDesde: VIGENTE_DESDE } })
+    }
+    console.log('Semilla: parámetros de arranque creados.')
   }
 }
 
