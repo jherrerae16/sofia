@@ -134,7 +134,8 @@ npm run test
 # pruebas y levanta su propio servidor de desarrollo antes de correr las
 # pruebas, así que no hace falta tener `npm run dev` abierto aparte.
 npm run test:e2e
-# Si el 3000 está ocupado: PUERTO_E2E=3005 npm run test:e2e
+# Corre en el puerto 3005 y en .next-e2e/, así que no choca con un
+# `npm run dev` abierto. Otro puerto: PUERTO_E2E=3007 npm run test:e2e
 
 # Chequeo de tipos, sin emitir nada.
 npx tsc --noEmit

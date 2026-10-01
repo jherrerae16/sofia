@@ -10,9 +10,9 @@ import { defineConfig } from '@playwright/test'
 // contenido inyectado en la salida de las pruebas que no aporta nada aquí.
 config({ path: '.env.test', override: true, quiet: true })
 
-// El 3000 suele estar ocupado por otro proyecto; `PUERTO_E2E=3005 npm run
-// test:e2e` levanta el servidor de pruebas en otro puerto.
-const PUERTO = process.env.PUERTO_E2E ?? '3000'
+// No el 3000: ese casi siempre lo tiene ocupado otro proyecto, y lo usa el
+// `npm run dev` de todos los días. `PUERTO_E2E=...` lo cambia si hace falta.
+const PUERTO = process.env.PUERTO_E2E ?? '3005'
 const BASE = `http://localhost:${PUERTO}`
 
 export default defineConfig({
@@ -28,6 +28,8 @@ export default defineConfig({
   use: { baseURL: BASE },
   webServer: {
     command: `npm run dev -- -p ${PUERTO}`,
+    // Carpeta de build propia, para no chocar con un `npm run dev` abierto.
+    env: { NEXT_DIST_DIR: '.next-e2e' },
     url: BASE,
     // Nunca reutilizar un servidor que ya esté corriendo en ese puerto: si
     // alguien dejó un "npm run dev" abierto en otra terminal apuntando a la base
