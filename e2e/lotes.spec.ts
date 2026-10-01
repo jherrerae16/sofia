@@ -12,7 +12,7 @@ test.afterAll(async () => {
 
 async function iniciarSesion(page: import('@playwright/test').Page) {
   await page.goto('/entrar')
-  await page.fill('input[name="correo"]', 'joseph@ejemplo.com')
+  await page.fill('input[name="usuario"]', 'jvargas')
   await page.fill('input[name="clave"]', 'claveDePrueba')
   await page.click('button')
   await page.waitForURL((url) => url.pathname === '/')

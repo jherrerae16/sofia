@@ -12,10 +12,10 @@ test('la pantalla de entrar tiene etiquetas de verdad, no solo placeholders', as
 
   // `getByLabel` solo encuentra el campo si hay una etiqueta asociada: un
   // placeholder no lo es, y desaparece en cuanto se escribe la primera letra.
-  await expect(page.getByLabel('Correo')).toBeVisible()
+  await expect(page.getByLabel('Usuario')).toBeVisible()
   await expect(page.getByLabel('Clave')).toBeVisible()
 
-  await expect(page.getByLabel('Correo')).toHaveAttribute('autocomplete', 'username')
+  await expect(page.getByLabel('Usuario')).toHaveAttribute('autocomplete', 'username')
   await expect(page.getByLabel('Clave')).toHaveAttribute('autocomplete', 'current-password')
 })
 
@@ -23,7 +23,7 @@ test('una clave equivocada lo dice, no deja la pantalla muda', async ({ page }) 
   await page.context().clearCookies()
   await page.goto('/entrar')
 
-  await page.getByLabel('Correo').fill('joseph@ejemplo.com')
+  await page.getByLabel('Usuario').fill('jvargas')
   await page.getByLabel('Clave').fill('esta-no-es')
   await page.getByRole('button', { name: 'Entrar' }).click()
 

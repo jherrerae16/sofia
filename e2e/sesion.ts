@@ -10,7 +10,7 @@ import type { Page } from '@playwright/test'
  */
 export async function entrar(page: Page): Promise<void> {
   await page.goto('/entrar')
-  await page.fill('input[name="correo"]', 'joseph@ejemplo.com')
+  await page.fill('input[name="usuario"]', 'jvargas')
   await page.fill('input[name="clave"]', 'claveDePrueba')
   await page.click('button')
   // El envío pasa por un server action asíncrono: sin esperar a que la

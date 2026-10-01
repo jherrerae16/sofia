@@ -41,11 +41,12 @@ enum TipoNovedad {
   suministro
 }
 
+/// Quién anotó cada cosa. Las dos cuentas y sus claves no viven aquí sino en
+/// src/usuarios.ts y en variables de entorno; la fila se crea al primer ingreso.
 model Usuario {
   id       String @id @default(cuid())
   nombre   String
-  correo   String @unique
-  claveHash String
+  usuario  String @unique
   creadoEn DateTime @default(now())
 }
 

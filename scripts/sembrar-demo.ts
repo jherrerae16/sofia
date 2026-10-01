@@ -17,6 +17,7 @@ config({ quiet: true })
 
 import { hoyBogota, sumarDias } from '../src/calc/fechas'
 import { aFechaDb } from '../src/datos/conversion'
+import { USUARIOS } from '../src/usuarios'
 
 function exigirBaseDeDemostracion(): void {
   const cadena = process.env.DATABASE_URL ?? ''
@@ -39,7 +40,6 @@ function exigirBaseDeDemostracion(): void {
 async function main() {
   exigirBaseDeDemostracion()
 
-  const { default: bcrypt } = await import('bcryptjs')
   const { prisma } = await import('../src/datos/cliente')
 
   const HOY = hoyBogota()
@@ -70,13 +70,9 @@ async function main() {
       await prisma.parametro.create({ data: { clave, valor, vigenteDesde: VIGENTE } })
     }
 
-    for (const [nombre, correo] of [
-      ['Joseph', 'joseph@ejemplo.com'],
-      ['Amy', 'amy@ejemplo.com'],
-    ]) {
-      await prisma.usuario.create({
-        data: { nombre, correo, claveHash: await bcrypt.hash('demo', 12) },
-      })
+    // Las claves no se siembran: salen de CLAVE_JVARGAS / CLAVE_JHERRERA.
+    for (const { usuario, nombre } of USUARIOS) {
+      await prisma.usuario.create({ data: { nombre, usuario } })
     }
     const usuario = await prisma.usuario.findFirstOrThrow()
 

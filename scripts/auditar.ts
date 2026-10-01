@@ -13,7 +13,7 @@ import path from 'node:path'
 import { chromium, type Page } from '@playwright/test'
 
 const BASE = process.env.BASE ?? 'http://localhost:3000'
-const CORREO = process.env.CORREO ?? 'joseph@ejemplo.com'
+const USUARIO = process.env.USUARIO ?? 'jvargas'
 const CLAVE = process.env.CLAVE
 
 const ANCHOS = [
@@ -136,7 +136,7 @@ async function main() {
 
   // Se necesita un animal real para la ficha.
   await pagina.goto(`${BASE}/entrar`, { waitUntil: 'domcontentloaded' })
-  await pagina.fill('input[name="correo"]', CORREO)
+  await pagina.fill('input[name="usuario"]', USUARIO)
   await pagina.fill('input[name="clave"]', CLAVE)
   await pagina.click('button[type="submit"]')
   await pagina.waitForURL((url) => url.pathname === '/')

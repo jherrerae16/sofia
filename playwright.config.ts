@@ -10,6 +10,11 @@ import { defineConfig } from '@playwright/test'
 // contenido inyectado en la salida de las pruebas que no aporta nada aquí.
 config({ path: '.env.test', override: true, quiet: true })
 
+// El 3000 suele estar ocupado por otro proyecto; `PUERTO_E2E=3005 npm run
+// test:e2e` levanta el servidor de pruebas en otro puerto.
+const PUERTO = process.env.PUERTO_E2E ?? '3000'
+const BASE = `http://localhost:${PUERTO}`
+
 export default defineConfig({
   testDir: './e2e',
   // Un solo worker: los archivos de prueba comparten `sofia_test` sin
@@ -20,11 +25,11 @@ export default defineConfig({
   // escribiendo lotes al mismo tiempo -- y eso sería una carrera de datos,
   // no una prueba.
   workers: 1,
-  use: { baseURL: 'http://localhost:3000' },
+  use: { baseURL: BASE },
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    // Nunca reutilizar un servidor que ya esté corriendo en el puerto 3000: si
+    command: `npm run dev -- -p ${PUERTO}`,
+    url: BASE,
+    // Nunca reutilizar un servidor que ya esté corriendo en ese puerto: si
     // alguien dejó un "npm run dev" abierto en otra terminal apuntando a la base
     // real, reusarlo en silencio haría que las pruebas (que borran usuarios,
     // lotes y animales) corrieran contra esa base sin que DATABASE_URL de arriba

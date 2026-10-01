@@ -19,8 +19,8 @@ visita.
 - [Tailwind CSS v4](https://tailwindcss.com).
 - [Prisma 7](https://www.prisma.io) sobre PostgreSQL, con el adaptador
   `@prisma/adapter-pg` (Prisma 7 ya no trae el motor Rust integrado).
-- [NextAuth v5](https://authjs.dev) con credenciales (correo y clave) para
-  los dos usuarios de la finca.
+- [NextAuth v5](https://authjs.dev) con credenciales (usuario y clave) para
+  las dos cuentas fijas de la finca: `jherrera` y `jvargas`.
 - [Vitest](https://vitest.dev) para las pruebas unitarias y de integración
   contra base de datos, y [Playwright](https://playwright.dev) para las
   pruebas de navegador de punta a punta.
@@ -56,6 +56,10 @@ Necesitas Node.js y una instancia de PostgreSQL local.
    # /api/auth/callback/credentials sin establecer nunca la sesión: la
    # plataforma queda inaccesible desde el primer despliegue real.
    AUTH_TRUST_HOST=true
+   # La clave de cada una de las dos cuentas fijas (src/usuarios.ts).
+   # Vacía o ausente = esa cuenta no puede entrar.
+   CLAVE_JHERRERA="..."
+   CLAVE_JVARGAS="..."
    ```
 
    (Ver `.env.example` para la lista completa, con el porqué de cada
@@ -69,12 +73,11 @@ Necesitas Node.js y una instancia de PostgreSQL local.
    npx prisma db seed
    ```
 
-   La semilla (`prisma/seed.ts`) solo crea la finca y sus parámetros; no crea
-   usuarios. Para poder entrar a la aplicación, crea al menos un usuario:
-
-   ```bash
-   npx tsx scripts/crear-usuario.ts "Nombre completo" correo@ejemplo.com claveSegura
-   ```
+   La semilla (`prisma/seed.ts`) solo crea la finca y sus parámetros. Las
+   cuentas no se crean a mano: son fijas en `src/usuarios.ts`, su clave sale
+   de `CLAVE_JHERRERA` / `CLAVE_JVARGAS`, y la fila de `Usuario` (que solo
+   sirve para saber quién anotó qué) se crea sola en el primer ingreso.
+   Cambiar una clave es cambiar la variable y volver a desplegar.
 
 4. Levanta el servidor de desarrollo:
 
@@ -82,8 +85,8 @@ Necesitas Node.js y una instancia de PostgreSQL local.
    npm run dev
    ```
 
-   Abre [http://localhost:3000](http://localhost:3000) y entra con el
-   correo y la clave que creaste en el paso anterior.
+   Abre [http://localhost:3000](http://localhost:3000) y entra con
+   `jherrera` o `jvargas` y la clave que pusiste en `.env`.
 
 ## Las dos bases de datos
 

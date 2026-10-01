@@ -4,7 +4,7 @@
 // primera capa de protección; la segunda es `exigirBaseDePrueba` más abajo, que
 // no depende de esta.
 //
-// Los `import` de `bcryptjs` y de `../src/datos/cliente` se hacen más abajo con
+// El `import` de `../src/datos/cliente` se hace más abajo con
 // `import()` dinámico, a propósito, en vez de con `import` estático: los
 // `import` estáticos se izan por encima de cualquier otra instrucción del
 // archivo (incluida la llamada a `config()` de aquí abajo), sin importar en qué
@@ -21,8 +21,8 @@ import { config } from 'dotenv'
 config({ path: '.env.test', override: true, quiet: true })
 
 // Se importa arriba, estático: `fechas.ts` no lee variables de entorno, así
-// que no le aplica la razón por la que bcrypt y el cliente de Prisma más
-// abajo sí se importan dinámicamente.
+// que no le aplica la razón por la que el cliente de Prisma más abajo sí
+// se importa dinámicamente.
 import { hoyBogota, sumarDias } from '../src/calc/fechas'
 import { aFechaDb } from '../src/datos/conversion'
 
@@ -78,7 +78,6 @@ async function main() {
 
   // El guardia de arriba corre antes de esta línea: si aborta, `cliente.ts`
   // nunca se importa y nunca se abre ninguna conexión.
-  const { default: bcrypt } = await import('bcryptjs')
   const { prisma } = await import('../src/datos/cliente')
 
   try {
@@ -139,8 +138,7 @@ async function main() {
     await prisma.usuario.create({
       data: {
         nombre: 'Joseph',
-        correo: 'joseph@ejemplo.com',
-        claveHash: await bcrypt.hash('claveDePrueba', 12),
+        usuario: 'jvargas',
       },
     })
 

@@ -22,7 +22,7 @@ beforeEach(async () => {
   await prisma.finca.deleteMany()
 
   await prisma.usuario.create({
-    data: { id: 'u1', nombre: 'Joseph', correo: 'joseph@ejemplo.com', claveHash: 'x' },
+    data: { id: 'u1', nombre: 'Joseph', usuario: 'jvargas' },
   })
   await prisma.finca.create({ data: { nombre: 'Santa Verónica' } })
 

@@ -15,7 +15,7 @@ export default async function Entrar({
     'use server'
     try {
       await signIn('credentials', {
-        correo: datos.get('correo'),
+        usuario: datos.get('usuario'),
         clave: datos.get('clave'),
         redirectTo: '/',
       })
@@ -49,20 +49,21 @@ export default async function Entrar({
             data-testid="error"
             className="mb-4 rounded border border-alerta/40 bg-alerta-suave px-3 py-2 text-[13px] text-alerta"
           >
-            El correo o la clave no coinciden. Revísalos e intenta de nuevo.
+            El usuario o la clave no coinciden. Revísalos e intenta de nuevo.
           </p>
         )}
 
         <div className="space-y-3">
           <label className="block">
-            <span className="rotulo mb-[6px] block">Correo</span>
+            <span className="rotulo mb-[6px] block">Usuario</span>
             <input
-              name="correo"
-              type="email"
+              name="usuario"
+              type="text"
               required
               autoComplete="username"
+              autoCapitalize="none"
               spellCheck={false}
-              placeholder="joseph@ejemplo.com"
+              placeholder="jvargas"
               className={CAMPO}
             />
           </label>

@@ -5,14 +5,14 @@
  * La sesión la abre Playwright, no una persona. Las credenciales llegan por
  * variable de entorno y no van escritas aquí.
  *
- *   CORREO=... CLAVE=... npx tsx scripts/mirar.ts [carpeta-de-salida]
+ *   USUARIO=... CLAVE=... npx tsx scripts/mirar.ts [carpeta-de-salida]
  */
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import { chromium } from '@playwright/test'
 
 const BASE = process.env.BASE ?? 'http://localhost:3000'
-const CORREO = process.env.CORREO ?? 'joseph@ejemplo.com'
+const USUARIO = process.env.USUARIO ?? 'jvargas'
 const CLAVE = process.env.CLAVE
 
 const PANTALLAS: { ruta: string; nombre: string }[] = [
@@ -41,7 +41,7 @@ async function main() {
     await pagina.goto(`${BASE}/entrar`)
     await pagina.screenshot({ path: path.join(salida, '00-entrar.png'), fullPage: true })
 
-    await pagina.fill('input[name="correo"]', CORREO)
+    await pagina.fill('input[name="usuario"]', USUARIO)
     await pagina.fill('input[name="clave"]', CLAVE)
     await pagina.click('button')
     await pagina.waitForURL((url) => url.pathname === '/')
